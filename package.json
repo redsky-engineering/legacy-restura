@@ -1,0 +1,17 @@
+{
+  "name": "restura",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "prettier:check": "prettier --check ./engine/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} package.json ui/package.json ",
+    "prettier:fix-all": "prettier --write ./ui/src/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} package.json ui/package.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "husky": "^8.0.1"
+  }
+}
