@@ -1,8 +1,8 @@
-import { RsRequest } from '../@types/expressCustom.js';
-import { ObjectUtils } from '../utils/utils.js';
-import { RsError } from '../utils/errors.js';
+import { RsRequest } from '../../../src/@types/expressCustom.js';
+import { ObjectUtils } from '../../../src/utils/utils.js';
+import { RsError } from '../../../src/utils/errors.js';
 
-export default function validateRequestParams(req: RsRequest<any>, routeData: ResturaApi.RouteData) {
+export default function validateRequestParams(req: RsRequest<any>, routeData: Restura.RouteData) {
 	let requestData = getRequestData(req);
 	req.data = requestData;
 
@@ -26,7 +26,7 @@ export default function validateRequestParams(req: RsRequest<any>, routeData: Re
 	});
 }
 
-function validateRequestSingleParam(requestValue: any, requestParam: ResturaApi.RequestData) {
+function validateRequestSingleParam(requestValue: any, requestParam: Restura.RequestData) {
 	requestParam.validator.forEach((validator) => {
 		switch (validator.type) {
 			case 'TYPE_CHECK':
@@ -45,7 +45,7 @@ function validateRequestSingleParam(requestValue: any, requestParam: ResturaApi.
 	});
 }
 
-function performTypeCheck(requestValue: any, validator: ResturaApi.ValidatorData, requestParamName: string) {
+function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
 	if (validator.value === 'number' || validator.value === 'string') {
 		if (typeof requestValue !== validator.value) {
 			throw new RsError(
@@ -72,7 +72,7 @@ function performTypeCheck(requestValue: any, validator: ResturaApi.ValidatorData
 	}
 }
 
-function performMinCheck(requestValue: any, validator: ResturaApi.ValidatorData, requestParamName: string) {
+function performMinCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
 	validateBothAreNumbers(requestValue, validator.value, requestParamName);
 
 	if (requestValue < validator.value)
@@ -82,7 +82,7 @@ function performMinCheck(requestValue: any, validator: ResturaApi.ValidatorData,
 		);
 }
 
-function performMaxCheck(requestValue: any, validator: ResturaApi.ValidatorData, requestParamName: string) {
+function performMaxCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
 	validateBothAreNumbers(requestValue, validator.value, requestParamName);
 
 	if (requestValue > validator.value)
@@ -92,7 +92,7 @@ function performMaxCheck(requestValue: any, validator: ResturaApi.ValidatorData,
 		);
 }
 
-function performOneOfCheck(requestValue: any, validator: ResturaApi.ValidatorData, requestParamName: string) {
+function performOneOfCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
 	if (!ObjectUtils.isArrayWithData(validator.value as any[]))
 		throw new RsError('SCHEMA_ERROR', `Schema validator value (${validator.value}) is not of type array`);
 	if (typeof requestValue === 'object')

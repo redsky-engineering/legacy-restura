@@ -1,10 +1,10 @@
-import connection from '../database/connection.js';
-import { RsRequest } from '../@types/expressCustom.js';
-import { RsError } from '../utils/errors.js';
-import { ObjectUtils } from '../utils/utils.js';
+import connection from '../../../src/database/connection.js';
+import { RsRequest } from '../../../src/@types/expressCustom.js';
+import { RsError } from '../../../src/utils/errors.js';
+import { ObjectUtils } from '../../../src/utils/utils.js';
 
 class SqlEngine {
-	async createDatabaseFromSchema(schema: ResturaApi.Schema): Promise<string> {
+	async createDatabaseFromSchema(schema: Restura.Schema): Promise<string> {
 		let sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
 		await connection.runQuery(sqlFullStatement);
 		return sqlFullStatement;
@@ -12,8 +12,8 @@ class SqlEngine {
 
 	async runQueryForRoute(
 		req: RsRequest<any>,
-		routeData: ResturaApi.StandardRouteData,
-		schema: ResturaApi.Schema
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema
 	): Promise<any> {
 		let sqlParams: any[] = [];
 		let sqlStatement = this.generateSqlFromRoute(req, routeData, schema, sqlParams);
@@ -21,7 +21,7 @@ class SqlEngine {
 		else return await connection.runQuery(sqlStatement, sqlParams);
 	}
 
-	generateDatabaseSchemaFromSchema(schema: ResturaApi.Schema): string {
+	generateDatabaseSchemaFromSchema(schema: Restura.Schema): string {
 		let sqlStatements = [];
 		// Setup tables and indexes first
 		for (let table of schema.database) {
@@ -73,8 +73,8 @@ class SqlEngine {
 
 	private generateSqlFromRoute(
 		req: RsRequest<any>,
-		routeData: ResturaApi.StandardRouteData,
-		schema: ResturaApi.Schema,
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema,
 		sqlParams: any[]
 	): string {
 		let userRole = req.requesterDetails.role;
@@ -106,7 +106,7 @@ class SqlEngine {
 
 	private doesRoleHavePermissionToColumn(
 		role: string,
-		schema: ResturaApi.Schema,
+		schema: Restura.Schema,
 		tableName: string,
 		columnName: string
 	): boolean {
@@ -117,14 +117,14 @@ class SqlEngine {
 		return !(ObjectUtils.isArrayWithData(columnSchema.roles) && !columnSchema.roles.includes(role));
 	}
 
-	private doesRoleHavePermissionToTable(userRole: string, schema: ResturaApi.Schema, tableName: string): boolean {
+	private doesRoleHavePermissionToTable(userRole: string, schema: Restura.Schema, tableName: string): boolean {
 		let tableSchema = this.getTableSchema(schema, tableName);
 		return !(ObjectUtils.isArrayWithData(tableSchema.roles) && !tableSchema.roles.includes(userRole));
 	}
 
 	private generateJoinStatements(
-		routeData: ResturaApi.StandardRouteData,
-		schema: ResturaApi.Schema,
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema,
 		userRole: string
 	): string {
 		let joinStatements = '';
@@ -138,7 +138,7 @@ class SqlEngine {
 		return joinStatements;
 	}
 
-	private getTableSchema(schema: ResturaApi.Schema, tableName: string): ResturaApi.TableData {
+	private getTableSchema(schema: Restura.Schema, tableName: string): Restura.TableData {
 		let tableSchema = schema.database.find((item) => item.name === tableName);
 		if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
 		return tableSchema;
@@ -146,7 +146,7 @@ class SqlEngine {
 
 	private generateWhereClause(
 		req: RsRequest<any>,
-		routeData: ResturaApi.StandardRouteData,
+		routeData: Restura.StandardRouteData,
 		sqlParams: any[]
 	): string {
 		let whereClause = '';
@@ -192,7 +192,7 @@ class SqlEngine {
 
 	private replaceParamKeywords(
 		value: string,
-		routeData: ResturaApi.RouteData,
+		routeData: Restura.RouteData,
 		req: RsRequest<any>,
 		sqlParams: any[]
 	): string {
@@ -209,7 +209,7 @@ class SqlEngine {
 
 	private replaceGlobalParamKeywords(
 		value: string,
-		routeData: ResturaApi.RouteData,
+		routeData: Restura.RouteData,
 		req: RsRequest<any>,
 		sqlParams: any[]
 	): string {

@@ -18,5 +18,6 @@
 		"outDir": "phpstorm",
 		"noEmit": false
 	},
-	"include": ["src"]
+	"include": ["src", "../engine/@types/*"
+	]
 }

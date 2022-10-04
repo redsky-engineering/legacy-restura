@@ -1,19 +1,19 @@
 import * as express from 'express';
 
-import endpointValidation from '../middleware/apiValidation/apiValidation.js';
-import { RsRequest, RsResponse } from '../@types/expressCustom.js';
+import endpointValidation from '../../../src/middleware/apiValidation/apiValidation.js';
+import { RsRequest, RsResponse } from '../../../src/@types/expressCustom.js';
 import { boundMethod } from 'autobind-decorator';
-import config from '../utils/config.js';
+import config from '../../../src/utils/config.js';
 import mysql, { Connection } from 'mysql';
 import { Router } from 'express';
-import logger from '../utils/logger.js';
-import { RsError } from '../utils/errors.js';
+import logger from '../../../src/utils/logger.js';
+import { RsError } from '../../../src/utils/errors.js';
 import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
-import apiFactory from '../api/apiFactory.js';
-import { StringUtils } from '../utils/utils.js';
+import apiFactory from '../../../src/api/apiFactory.js';
+import { StringUtils } from '../../../src/utils/utils.js';
 
-class Restura {
+class ResturaEngine {
 	private metaDbConnection: Connection;
 	private resturaRouter!: Router;
 	private publicEndpoints: { GET: string[]; POST: string[]; PUT: string[]; PATCH: string[]; DELETE: string[] } = {
@@ -24,7 +24,7 @@ class Restura {
 		DELETE: []
 	};
 	private expressApp!: express.Application;
-	private schema!: ResturaApi.Schema;
+	private schema!: Restura.Schema;
 
 	constructor() {
 		this.metaDbConnection = mysql.createConnection({
@@ -107,7 +107,7 @@ class Restura {
 		logger.info(`Restura loaded (${routeCount}) endpoint${routeCount > 1 ? 's' : ''}`);
 	}
 
-	async seedDatabase(schema: ResturaApi.Schema) {
+	async seedDatabase(schema: Restura.Schema) {
 		await this.storeDatabaseSchema(schema);
 		await sqlEngine.createDatabaseFromSchema(schema);
 	}
@@ -119,7 +119,7 @@ class Restura {
 	}
 
 	@boundMethod
-	private async previewCreateSchema(req: RsRequest<ResturaApi.Schema>, res: express.Response) {
+	private async previewCreateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
 			let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
 			res.send({ data: commands });
@@ -129,7 +129,7 @@ class Restura {
 	}
 
 	@boundMethod
-	private async createSchema(req: RsRequest<ResturaApi.Schema>, res: express.Response) {
+	private async createSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
 			let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
 			await this.storeDatabaseSchema(req.data);
@@ -140,7 +140,7 @@ class Restura {
 	}
 
 	@boundMethod
-	private async updateSchema(req: RsRequest<ResturaApi.Schema>, res: express.Response) {
+	private async updateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
 			// Here is where we would need to update database structure, but for now we just update the meta database.
 			await this.storeDatabaseSchema(req.data);
@@ -196,7 +196,7 @@ class Restura {
 	}
 
 	@boundMethod
-	private runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: ResturaApi.RouteData) {
+	private runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
 		let version = req.baseUrl.split('/')[2];
 		let domain = routeData.path.split('/')[1];
 		let customApiName = `${StringUtils.capitalizeFirst(domain)}Api${StringUtils.capitalizeFirst(version)}`;
@@ -217,12 +217,12 @@ class Restura {
 	}
 
 	@boundMethod
-	private async getLatestDatabaseSchema(): Promise<ResturaApi.Schema> {
+	private async getLatestDatabaseSchema(): Promise<Restura.Schema> {
 		return new Promise((resolve, reject) => {
 			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
 				if (err) reject(err);
 				try {
-					let schema: ResturaApi.Schema = JSON.parse(results[0].schema);
+					let schema: Restura.Schema = JSON.parse(results[0].schema);
 					resolve(schema);
 				} catch (e) {
 					reject('Invalid schema, JSON malformed');
@@ -232,7 +232,7 @@ class Restura {
 	}
 
 	@boundMethod
-	private async storeDatabaseSchema(schema: ResturaApi.Schema): Promise<void> {
+	private async storeDatabaseSchema(schema: Restura.Schema): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.metaDbConnection.query(
 				'INSERT INTO meta set ?;',
@@ -255,14 +255,14 @@ class Restura {
 		};
 	}
 
-	private validateAuthorization(req: RsRequest<any>, routeData: ResturaApi.RouteData) {
+	private validateAuthorization(req: RsRequest<any>, routeData: Restura.RouteData) {
 		let role = req.requesterDetails.role;
 		if (routeData.roles.length === 0) return;
 		if (!routeData.roles.includes(role))
 			throw new RsError('UNAUTHORIZED', 'Not authorized to access this endpoint');
 	}
 
-	private getRouteData(method: string, baseUrl: string, path: string): ResturaApi.RouteData {
+	private getRouteData(method: string, baseUrl: string, path: string): Restura.RouteData {
 		let endpoint = this.schema.endpoints.find((item) => {
 			return item.baseUrl === baseUrl;
 		});
@@ -275,5 +275,5 @@ class Restura {
 	}
 }
 
-const restura = new Restura();
+const restura = new ResturaEngine();
 export default restura;
