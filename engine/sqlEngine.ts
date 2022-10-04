@@ -144,11 +144,7 @@ class SqlEngine {
 		return tableSchema;
 	}
 
-	private generateWhereClause(
-		req: RsRequest<any>,
-		routeData: Restura.StandardRouteData,
-		sqlParams: any[]
-	): string {
+	private generateWhereClause(req: RsRequest<any>, routeData: Restura.StandardRouteData, sqlParams: any[]): string {
 		let whereClause = '';
 		routeData.where.forEach((item) => {
 			if (item.custom) {
