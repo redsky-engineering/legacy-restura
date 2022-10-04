@@ -1,0 +1,36 @@
+image: node:14
+
+stages:
+  - Clean
+  - Test
+
+Clean Node Modules:
+  stage: Clean
+  script:
+    - yarn install --silent
+  rules:
+    - changes:
+        - package.json
+    - if: $FORCE_CLEAN == "true"
+
+  cache:
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules/
+    policy: push
+
+
+Prettier Check:
+  stage: Test
+  script:
+    - echo "Checking for prettyness"
+    - yarn run prettier:check
+  cache:
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules/
+    policy: pull
