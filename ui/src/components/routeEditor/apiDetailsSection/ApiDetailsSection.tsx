@@ -62,6 +62,32 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 		return schema.roles;
 	}, [schema]);
 
+	function handleAddNewParameter() {
+		if (!schema || !routeData || !selectedRoute) return;
+		if (!newParameterName) {
+			rsToastify.error('Please enter a name for the new parameter', 'Missing Parameter Name');
+			return;
+		}
+
+		let sanitizedName = newParameterName.replace(/[$#]/g, '');
+		if (routeData.request.find((item) => item.name === sanitizedName)) {
+			rsToastify.error('Parameter name already exists', 'Duplicate Parameter Name');
+			return;
+		}
+
+		let newParameter: Restura.RequestData = {
+			name: sanitizedName, required: false, validator: []
+		}
+
+		schemaService.updateRouteData(
+			{ ...routeData, request: [...routeData.request, newParameter]},
+			selectedRoute.path,
+			selectedRoute.baseUrl
+		);
+		setNewParameterName('');
+	}
+
+
 	function renderTypeInput() {
 		if (!selectedRoute || !routeData) return null;
 		return (
@@ -304,12 +330,11 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 						placeholder={'name'}
 						onKeyDown={(event) => {
 							if (event.key === 'Enter') {
-								console.log(event.currentTarget.value);
-								setNewParameterName('');
+								handleAddNewParameter()
 							}
 						}}
 					/>
-					<Button look={'outlinedPrimary'} onClick={() => setNewParameterName('')}>
+					<Button look={'outlinedPrimary'} onClick={handleAddNewParameter}>
 						Add
 					</Button>
 				</Box>
