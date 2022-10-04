@@ -2,6 +2,7 @@
 	"name": "restura",
 	"version": "1.0.0",
 	"description": "",
+	"type": "module",
 	"scripts": {
 		"prettier:check": "prettier --check ./engine/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} package.json ui/package.json ",
 		"prettier:fix-all": "prettier --write ./engine/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} package.json ui/package.json"
