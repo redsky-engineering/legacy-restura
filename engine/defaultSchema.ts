@@ -1,4 +1,6 @@
-const fakeSchema: Restura.Schema = {
+
+
+const defaultSchema: Restura.Schema = {
 	database: [
 		{
 			name: 'company',
@@ -88,7 +90,29 @@ const fakeSchema: Restura.Schema = {
 					type: 'BIGINT',
 					isNullable: false,
 					comment: 'Foreign key to company(id)'
-				}
+				},
+				{
+					roles: [],
+					name: 'password',
+					type: 'VARCHAR',
+					length: 30,
+					isNullable: true
+				},
+				{
+					roles: [],
+					name: 'email',
+					type: 'VARCHAR',
+					length: 100,
+					isNullable: true
+				},
+				{
+					roles: [],
+					name: 'role',
+					type: 'VARCHAR',
+					length: 30,
+					isNullable: true
+				},
+
 			],
 			foreignKeys: [
 				{
@@ -289,5 +313,5 @@ const fakeSchema: Restura.Schema = {
 	roles: ['admin', 'user', 'anonymous']
 };
 
-console.log(JSON.stringify(fakeSchema, null, 2));
-export default fakeSchema;
+console.log(JSON.stringify(defaultSchema, null, 2));
+export default defaultSchema;
