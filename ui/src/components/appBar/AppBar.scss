@@ -1,0 +1,30 @@
+@import 'src/themes/themes';
+
+.rsAppBar {
+	height: $desktopAppBarHeight;
+	background-color: theme-var($neutralBeige900);
+	padding: 0 24px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	.dividerLine {
+		width: 1px;
+		min-height: $desktopAppBarHeight;
+		background-color: theme-var($primaryRed700);
+		margin: 0 16px;
+	}
+
+	.notificationBtn {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background-color: theme-var($neutralBeige900);
+		transition: filter 300ms;
+		margin-right: 32px;
+		&:hover {
+			cursor: pointer;
+			filter: brightness(1.2);
+		}
+	}
+}

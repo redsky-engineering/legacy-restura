@@ -1,0 +1,9 @@
+@import 'src/themes/themes';
+
+.rsIndexSection {
+	.tableIndexesDetailsGrid {
+		display: grid;
+		gap: 0 16px;
+		grid-template-columns: fit-content(200px) repeat(3, fit-content(400px)) fit-content(150px);
+	}
+}

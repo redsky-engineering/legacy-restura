@@ -1,0 +1,16 @@
+@import 'src/themes/themes';
+
+.rsColumnSection {
+	.tableColumnDetailsGrid {
+		display: grid;
+		gap: 0 16px;
+		grid-template-columns: repeat(13, fit-content(400px));
+	}
+
+	.rsIcon {
+		color: theme-var($neutralWhite);
+		&:hover {
+			color: theme-var($secondaryOrange500);
+		}
+	}
+}
