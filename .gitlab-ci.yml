@@ -17,6 +17,7 @@ Clean Node Modules:
     key:
       files:
         - yarn.lock
+        - package.json
     paths:
       - node_modules/
     policy: push
@@ -31,6 +32,7 @@ Prettier Check:
     key:
       files:
         - yarn.lock
+        - package.json
     paths:
       - node_modules/
     policy: pull
