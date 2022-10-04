@@ -76,17 +76,18 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 		}
 
 		let newParameter: Restura.RequestData = {
-			name: sanitizedName, required: false, validator: []
-		}
+			name: sanitizedName,
+			required: false,
+			validator: []
+		};
 
 		schemaService.updateRouteData(
-			{ ...routeData, request: [...routeData.request, newParameter]},
+			{ ...routeData, request: [...routeData.request, newParameter] },
 			selectedRoute.path,
 			selectedRoute.baseUrl
 		);
 		setNewParameterName('');
 	}
-
 
 	function renderTypeInput() {
 		if (!selectedRoute || !routeData) return null;
@@ -330,7 +331,7 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 						placeholder={'name'}
 						onKeyDown={(event) => {
 							if (event.key === 'Enter') {
-								handleAddNewParameter()
+								handleAddNewParameter();
 							}
 						}}
 					/>
