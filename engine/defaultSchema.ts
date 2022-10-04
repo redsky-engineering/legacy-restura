@@ -1,5 +1,3 @@
-
-
 const defaultSchema: Restura.Schema = {
 	database: [
 		{
@@ -111,8 +109,7 @@ const defaultSchema: Restura.Schema = {
 					type: 'VARCHAR',
 					length: 30,
 					isNullable: true
-				},
-
+				}
 			],
 			foreignKeys: [
 				{
