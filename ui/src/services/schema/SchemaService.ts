@@ -42,52 +42,76 @@ export default class SchemaService extends Service {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
-		let indices = SchemaService.getIndexesToKeyPoints(schema, baseUrl, routePath);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] = routeData;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	removeValidator(requestParamName: string, validatorIndex: number, routePath: string, baseUrl: string) {
+	updateRequestParam(paramIndex: number, requestData: Restura.RequestData, routePath: string, baseUrl: string) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
-		let indices = SchemaService.getIndexesToKeyPoints(schema, baseUrl, routePath, requestParamName);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex] = requestData;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	updateValidator(paramIndex: number, validatorIndex: number, validatorData: Restura.ValidatorData, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex].validator[validatorIndex] = validatorData;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	addValidator(requestParamIndex: number, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[
-			indices.paramIndex!
+			requestParamIndex
+			].validator.push({
+				type: 'MIN',
+				value: 0,
+		});
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	removeValidator(requestParamIndex: number, validatorIndex: number, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[
+			requestParamIndex
 		].validator.splice(validatorIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	removeRequestParam(requestParamName: string, routePath: string, baseUrl: string) {
+	removeRequestParam(requestParamIndex: number, routePath: string, baseUrl: string) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
-		let indices = SchemaService.getIndexesToKeyPoints(schema, baseUrl, routePath, requestParamName);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request.splice(indices.paramIndex!, 1);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request.splice(requestParamIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	static getIndexesToKeyPoints(
+	static getIndexesToRoute(
 		schema: Restura.Schema,
 		baseUrl: string,
-		routePath: string,
-		paramName?: string
-	): { endpointIndex: number; routeIndex: number; paramIndex?: number } {
+		routePath: string
+	): { endpointIndex: number; routeIndex: number } {
 		let indices = {
 			endpointIndex: -1,
-			routeIndex: -1,
-			paramIndex: -1
+			routeIndex: -1
 		};
 		indices.endpointIndex = schema.endpoints.findIndex((r) => r.baseUrl === baseUrl);
 		if (indices.endpointIndex === -1) throw new Error('Endpoint not found');
 		indices.routeIndex = schema.endpoints[indices.endpointIndex].routes.findIndex((r) => r.path === routePath);
 		if (indices.routeIndex === -1) throw new Error('Route not found');
-		if (paramName) {
-			indices.paramIndex = schema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request.findIndex(
-				(r) => r.name === paramName
-			);
-			if (indices.paramIndex === -1) throw new Error('Param not found');
-		}
 		return indices;
 	}
 
@@ -132,4 +156,6 @@ export default class SchemaService extends Service {
 
 		return errors;
 	}
+
+
 }

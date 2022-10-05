@@ -46,7 +46,7 @@ function validateRequestSingleParam(requestValue: any, requestParam: Restura.Req
 }
 
 function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
-	if (validator.value === 'number' || validator.value === 'string') {
+	if (validator.value === 'number' || validator.value === 'string' || validator.value === 'boolean') {
 		if (typeof requestValue !== validator.value) {
 			throw new RsError(
 				'BAD_REQUEST',

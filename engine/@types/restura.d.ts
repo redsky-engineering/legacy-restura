@@ -114,6 +114,7 @@ declare namespace Restura {
 	export interface RouteDataBase {
 		method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 		name: string;
+		description: string;
 		path: string;
 		roles: string[];
 		request: RequestData[];

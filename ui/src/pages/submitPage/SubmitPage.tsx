@@ -12,8 +12,6 @@ import { WebUtils } from '../../utils/utils.js';
 
 interface SubmitPageProps {}
 
-declare var Prism: any;
-
 const SubmitPage: React.FC<SubmitPageProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
