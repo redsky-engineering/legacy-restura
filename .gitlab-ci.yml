@@ -7,7 +7,8 @@ stages:
 Clean Node Modules:
   stage: Clean
   script:
-    - yarn install --silent
+    - cd engine && yarn install --silent
+    - cd ui && yarn install --silent
   rules:
     - changes:
         - package.json
@@ -26,7 +27,8 @@ Prettier Check:
   stage: Test
   script:
     - echo "Checking for prettyness"
-    - yarn run prettier:check
+    - cd engine && yarn run prettier:check
+    - cd ui && yarn run prettier:check
   cache:
     key:
       files:

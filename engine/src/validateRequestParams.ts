@@ -1,6 +1,6 @@
-import { RsRequest } from '../../../src/@types/expressCustom.js';
-import { ObjectUtils } from '../../../src/utils/utils.js';
-import { RsError } from '../../../src/utils/errors.js';
+import { RsRequest } from '../../../../src/@types/expressCustom.js';
+import { ObjectUtils } from '../../../../src/utils/utils.js';
+import { RsError } from '../../../../src/utils/errors.js';
 
 export default function validateRequestParams(req: RsRequest<any>, routeData: Restura.RouteData) {
 	let requestData = getRequestData(req);

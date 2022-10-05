@@ -1,6 +1,6 @@
 import { Service } from '../Service';
 import globalState, { getRecoilExternalValue, setRecoilExternalValue } from '../../state/globalState';
-import defaultSchema from '../../../../engine/defaultSchema.js';
+import defaultSchema from '../../../../engine/src/defaultSchema.js';
 import http from '../../utils/http.js';
 import cloneDeep from 'lodash.clonedeep';
 
