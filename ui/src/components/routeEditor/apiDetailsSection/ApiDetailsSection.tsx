@@ -7,6 +7,7 @@ import globalState from '../../../state/globalState.js';
 import themes from '../../../themes/themes.scss?export';
 import serviceFactory from '../../../services/serviceFactory.js';
 import SchemaService from '../../../services/schema/SchemaService.js';
+import cloneDeep from 'lodash.clonedeep';
 
 interface ApiDetailsSectionProps {}
 
@@ -78,7 +79,12 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 		let newParameter: Restura.RequestData = {
 			name: sanitizedName,
 			required: false,
-			validator: []
+			validator: [
+				{
+					type: 'TYPE_CHECK',
+					value: 'string'
+				}
+			]
 		};
 
 		schemaService.updateRouteData(
@@ -277,10 +283,16 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 									fontSize={16}
 									className={'deleteIcon'}
 									onClick={() => {
-										console.log('delete');
+										schemaService.removeRequestParam(
+											item.name,
+											selectedRoute.path,
+											selectedRoute.baseUrl
+										);
 									}}
 								/>
-								<InputText inputMode={'text'} placeholder={'name'} value={item.name} />
+								<InputText inputMode={'text'} placeholder={'name'} value={item.name} onChange={(newValue) => {
+									
+								}} />
 								<Checkbox labelText={'Required'} look={'containedPrimary'} checked={item.required} />
 							</Box>
 							<Box className={'paramValidators'}>
@@ -298,7 +310,12 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 												fontSize={16}
 												className={'deleteIcon'}
 												onClick={() => {
-													console.log('delete');
+													schemaService.removeValidator(
+														item.name,
+														index,
+														selectedRoute.path,
+														selectedRoute.baseUrl
+													);
 												}}
 											/>
 											<Select
@@ -316,7 +333,9 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 									);
 								})}
 							</Box>
-							<Button look={'containedPrimary'} className={'circleButton'}>
+							<Button look={'containedPrimary'} className={'circleButton'} onClick={() => {
+							   
+							}}>
 								<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
 								Validator
 							</Button>
