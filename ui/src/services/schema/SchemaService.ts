@@ -1,6 +1,6 @@
 import { Service } from '../Service';
 import globalState, { getRecoilExternalValue, setRecoilExternalValue } from '../../state/globalState';
-import defaultSchema from '../../../../engine/defaultSchema.js';
+import defaultSchema from '../../../../engine/src/defaultSchema.js';
 import http from '../../utils/http.js';
 import cloneDeep from 'lodash.clonedeep';
 
@@ -56,12 +56,20 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	updateValidator(paramIndex: number, validatorIndex: number, validatorData: Restura.ValidatorData, routePath: string, baseUrl: string) {
+	updateValidator(
+		paramIndex: number,
+		validatorIndex: number,
+		validatorData: Restura.ValidatorData,
+		routePath: string,
+		baseUrl: string
+	) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex].validator[validatorIndex] = validatorData;
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex].validator[
+			validatorIndex
+		] = validatorData;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -72,9 +80,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[
 			requestParamIndex
-			].validator.push({
-				type: 'MIN',
-				value: 0,
+		].validator.push({
+			type: 'MIN',
+			value: 0
 		});
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
@@ -156,6 +164,4 @@ export default class SchemaService extends Service {
 
 		return errors;
 	}
-
-
 }

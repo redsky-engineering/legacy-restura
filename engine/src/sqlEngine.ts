@@ -1,7 +1,7 @@
-import connection from '../../../src/database/connection.js';
-import { RsRequest } from '../../../src/@types/expressCustom.js';
-import { RsError } from '../../../src/utils/errors.js';
-import { ObjectUtils } from '../../../src/utils/utils.js';
+import connection from '../../../../src/database/connection.js';
+import { RsRequest } from '../../../../src/@types/expressCustom.js';
+import { RsError } from '../../../../src/utils/errors.js';
+import { ObjectUtils } from '../../../../src/utils/utils.js';
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema): Promise<string> {

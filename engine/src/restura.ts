@@ -1,17 +1,17 @@
 import * as express from 'express';
 
-import endpointValidation from '../../../src/middleware/apiValidation/apiValidation.js';
-import { RsRequest, RsResponse } from '../../../src/@types/expressCustom.js';
+import endpointValidation from '../../../../src/middleware/apiValidation/apiValidation.js';
+import { RsRequest, RsResponse } from '../../../../src/@types/expressCustom.js';
 import { boundMethod } from 'autobind-decorator';
-import config from '../../../src/utils/config.js';
+import config from '../../../../src/utils/config.js';
 import mysql, { Connection } from 'mysql';
 import { Router } from 'express';
-import logger from '../../../src/utils/logger.js';
-import { RsError } from '../../../src/utils/errors.js';
+import logger from '../../../../src/utils/logger.js';
+import { RsError } from '../../../../src/utils/errors.js';
 import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
-import apiFactory from '../../../src/api/apiFactory.js';
-import { StringUtils } from '../../../src/utils/utils.js';
+import apiFactory from '../../../../src/api/apiFactory.js';
+import { StringUtils } from '../../../../src/utils/utils.js';
 
 class ResturaEngine {
 	private metaDbConnection: Connection;

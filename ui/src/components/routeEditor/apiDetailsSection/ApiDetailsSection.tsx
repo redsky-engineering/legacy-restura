@@ -9,8 +9,8 @@ import RouteTypeInput from '../../routeTypeInput/RouteTypeInput';
 import PermissionInput from '../../permissionInput/PermissionInput';
 import BaseTableInput from '../../baseTableInput/BaseTableInput';
 import RequestParamInput from '../../requestParamInput/RequestParamInput';
-import RouteNameInput from "../../routeNameInput/RouteNameInput";
-import RouteDescriptionInput from "../../routeDescriptionInput/RouteDescriptionInput";
+import RouteNameInput from '../../routeNameInput/RouteNameInput';
+import RouteDescriptionInput from '../../routeDescriptionInput/RouteDescriptionInput';
 
 interface ApiDetailsSectionProps {}
 

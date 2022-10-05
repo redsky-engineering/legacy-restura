@@ -1,13 +1,13 @@
 import * as React from 'react';
 import './RawDataSection.scss';
-import {Box, Button, rsToastify} from '@redskytech/framework/ui';
+import { Box, Button, rsToastify } from '@redskytech/framework/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
 import type JSONEditor from 'jsoneditor';
 import type { JSONEditorOptions } from 'jsoneditor';
-import serviceFactory from "../../../services/serviceFactory";
-import SchemaService from "../../../services/schema/SchemaService";
+import serviceFactory from '../../../services/serviceFactory';
+import SchemaService from '../../../services/schema/SchemaService';
 
 interface RawDataSectionProps {}
 
@@ -76,19 +76,19 @@ const RawDataSection: React.FC<RawDataSectionProps> = (props) => {
 				>
 					Reset
 				</Button>
-				<Button look={'containedPrimary'} disabled={currentRouteDataText === initialRouteDataText} onClick={() => {
-				   if (!editor) return;
-				   try {
-					   let newRouteData = editor.get() as Restura.RouteData;
-					   schemaService.updateRouteData(
-						   newRouteData,
-						   selectedRoute.path,
-						   selectedRoute.baseUrl
-					   );
-				   } catch (e) {
-					   rsToastify.error('Invalid JSON, please fix the errors and try again', 'Invalid JSON');
-				   }
-				}}>
+				<Button
+					look={'containedPrimary'}
+					disabled={currentRouteDataText === initialRouteDataText}
+					onClick={() => {
+						if (!editor) return;
+						try {
+							let newRouteData = editor.get() as Restura.RouteData;
+							schemaService.updateRouteData(newRouteData, selectedRoute.path, selectedRoute.baseUrl);
+						} catch (e) {
+							rsToastify.error('Invalid JSON, please fix the errors and try again', 'Invalid JSON');
+						}
+					}}
+				>
 					Apply
 				</Button>
 			</Box>

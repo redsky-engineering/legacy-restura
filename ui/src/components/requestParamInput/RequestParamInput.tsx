@@ -175,7 +175,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 											onChange={(newValue) => {
 												if (!newValue) return;
 												let newValidatorType = newValue.value as Restura.ValidatorData['type'];
-												let sanitizedValue = parseValueFromType(newValidatorType, validator.value.toString());
+												let sanitizedValue = parseValueFromType(
+													newValidatorType,
+													validator.value.toString()
+												);
 												schemaService.updateValidator(
 													paramIndex,
 													validatorIndex,
@@ -205,7 +208,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 													);
 													return;
 												}
-												let sanitizedValue = parseValueFromType(validator.type, event.target.value);
+												let sanitizedValue = parseValueFromType(
+													validator.type,
+													event.target.value
+												);
 												schemaService.updateValidator(
 													paramIndex,
 													validatorIndex,
@@ -219,9 +225,13 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								);
 							})}
 						</Box>
-						<Button look={'containedPrimary'} className={'circleButton'} onClick={() => {
-							schemaService.addValidator(paramIndex, selectedRoute.path, selectedRoute.baseUrl);
-						}}>
+						<Button
+							look={'containedPrimary'}
+							className={'circleButton'}
+							onClick={() => {
+								schemaService.addValidator(paramIndex, selectedRoute.path, selectedRoute.baseUrl);
+							}}
+						>
 							<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
 							Validator
 						</Button>
