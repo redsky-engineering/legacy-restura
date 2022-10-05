@@ -27,6 +27,7 @@
 		}
 
 		textarea {
+			color: theme-var($neutralWhite);
 			resize: none;
 			&:focus-visible {
 				border: unset;

@@ -70,6 +70,9 @@
 		&.small {
 		}
 		&:disabled {
+			opacity: 0.5;
+			border: 2px solid theme-var($neutralBeige600);
+			color: theme-var($neutralBeige600);
 			cursor: not-allowed;
 		}
 	}

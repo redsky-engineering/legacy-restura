@@ -22,6 +22,8 @@ interface Window {
 	sf: any;
 }
 
+declare var Prism: any;
+
 declare namespace JSX {
 	interface IntrinsicElements {
 		rsButton: any;

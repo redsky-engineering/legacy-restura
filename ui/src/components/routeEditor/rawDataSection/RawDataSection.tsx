@@ -1,15 +1,98 @@
 import * as React from 'react';
 import './RawDataSection.scss';
-import { Box, Label } from '@redskytech/framework/ui';
+import { Box, Button, rsToastify } from '@redskytech/framework/ui';
+import { useEffect, useMemo, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import globalState from '../../../state/globalState';
+import type JSONEditor from 'jsoneditor';
+import type { JSONEditorOptions } from 'jsoneditor';
+import serviceFactory from '../../../services/serviceFactory';
+import SchemaService from '../../../services/schema/SchemaService';
 
 interface RawDataSectionProps {}
 
+let editor: JSONEditor | null = null;
+
 const RawDataSection: React.FC<RawDataSectionProps> = (props) => {
+	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
+	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
+	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
+	const [initialRouteDataText, setInitialRouteDataText] = useState<string>('');
+	const [currentRouteDataText, setCurrentRouteDataText] = useState<string>('');
+
+	const routeData = useMemo<Restura.RouteData | undefined>(() => {
+		if (!schema || !selectedRoute) return undefined;
+		let endpoints = schema.endpoints.find((item) => item.baseUrl === selectedRoute.baseUrl);
+		if (!endpoints) return undefined;
+		return endpoints.routes.find((item) => item.path === selectedRoute.path);
+	}, [schema, selectedRoute]);
+
+	useEffect(() => {
+		if (editor) return; // only initialize once
+
+		// create the editor
+		const container = document.getElementById('jsoneditor');
+		if (!container) return;
+		const options: JSONEditorOptions = {
+			mode: 'code',
+			theme: 'ace/theme/dracula',
+			modes: ['code', 'form', 'text', 'tree', 'view', 'preview'], // allowed modes
+			onChange: () => {
+				if (!editor) return;
+				setCurrentRouteDataText(editor.getText());
+			}
+		};
+		// @ts-ignore
+		editor = new JSONEditor(container, options);
+		if (routeData) editor.set(routeData);
+		setInitialRouteDataText(editor.getText());
+		setCurrentRouteDataText(editor.getText());
+		editor.getText();
+		return () => {
+			if (!editor) return;
+			editor.destroy();
+			editor = null;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!editor) return;
+		if (routeData) editor.set(routeData);
+	}, [routeData]);
+
+	if (!selectedRoute) return null;
+
 	return (
 		<Box className={'rsRawDataSection'}>
-			<Label variant={'h3'} weight={'semiBold'}>
-				Raw Data
-			</Label>
+			<Box display={'flex'} gap={16} mb={16}>
+				<Button
+					look={'outlinedPrimary'}
+					disabled={currentRouteDataText === initialRouteDataText}
+					onClick={() => {
+						if (!editor) return;
+						editor?.setText(initialRouteDataText);
+						setCurrentRouteDataText(initialRouteDataText);
+					}}
+				>
+					Reset
+				</Button>
+				<Button
+					look={'containedPrimary'}
+					disabled={currentRouteDataText === initialRouteDataText}
+					onClick={() => {
+						if (!editor) return;
+						try {
+							let newRouteData = editor.get() as Restura.RouteData;
+							schemaService.updateRouteData(newRouteData, selectedRoute.path, selectedRoute.baseUrl);
+						} catch (e) {
+							rsToastify.error('Invalid JSON, please fix the errors and try again', 'Invalid JSON');
+						}
+					}}
+				>
+					Apply
+				</Button>
+			</Box>
+			<Box height={'calc(100vh - 225px)'} id={'jsoneditor'} />
 		</Box>
 	);
 };

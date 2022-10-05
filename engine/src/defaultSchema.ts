@@ -150,6 +150,7 @@ const defaultSchema: Restura.Schema = {
 					type: 'ARRAY',
 					method: 'GET',
 					name: 'user',
+					description: 'Get all users with firstname filter',
 					path: '/user',
 					table: 'user',
 					roles: [],
@@ -231,6 +232,7 @@ const defaultSchema: Restura.Schema = {
 					type: 'ONE',
 					method: 'GET',
 					name: 'get my user',
+					description: 'Get my user',
 					path: '/user/me',
 					table: 'user',
 					roles: ['admin'],
@@ -266,6 +268,7 @@ const defaultSchema: Restura.Schema = {
 					type: 'CUSTOM',
 					method: 'GET',
 					name: 'order slim details',
+					description: 'Get order slim details',
 					path: '/order/slim-details',
 					roles: ['admin'],
 					request: [
