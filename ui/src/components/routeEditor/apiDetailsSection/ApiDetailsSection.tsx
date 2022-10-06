@@ -11,6 +11,7 @@ import BaseTableInput from '../../baseTableInput/BaseTableInput';
 import RequestParamInput from '../../requestParamInput/RequestParamInput';
 import RouteNameInput from '../../routeNameInput/RouteNameInput';
 import RouteDescriptionInput from '../../routeDescriptionInput/RouteDescriptionInput';
+import JoinTableInput from "../../joinTableInput/JoinTableInput";
 
 interface ApiDetailsSectionProps {}
 
@@ -36,6 +37,7 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 			<BaseTableInput routeData={routeData} />
 			<MethodPathInput routeData={routeData} />
 			<RequestParamInput routeData={routeData} />
+			<JoinTableInput routeData={routeData} />
 		</Box>
 	);
 };

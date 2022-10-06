@@ -56,6 +56,18 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	updateJoinData(joinIndex: number, joinData: Restura.JoinData, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData).joins[
+			joinIndex
+		] = joinData;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
 	updateValidator(
 		paramIndex: number,
 		validatorIndex: number,
