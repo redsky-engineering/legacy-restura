@@ -85,6 +85,30 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	addJoin(joinData: Restura.JoinData, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+			] as Restura.StandardRouteData).joins.push(joinData);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	removeJoin(joinIndex: number, routePath: string, baseUrl: string) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToRoute(schema, baseUrl, routePath);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).joins.splice(joinIndex, 1);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
 	addValidator(requestParamIndex: number, routePath: string, baseUrl: string) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;

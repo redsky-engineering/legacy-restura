@@ -23,6 +23,9 @@
 	}
 
 	.paramValidators {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
 		padding-left: 32px;
 		.rsSelect {
 			width: 175px;
@@ -36,13 +39,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+		margin-bottom: 32px;
 
 		.paramNameRequired {
 			position: relative;
 			display: flex;
-			//border: 1px solid theme-var($neutralBeige500);
-			//padding: 8px 16px;
-			//border-radius: 4px;
 			align-items: center;
 			gap: 8px;
 			.rsInputText {

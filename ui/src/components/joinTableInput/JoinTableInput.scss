@@ -10,7 +10,6 @@
 		min-width: 135px;
 	}
 
-
 	.joinItem {
 		display: flex;
 		align-items: center;
@@ -19,6 +18,15 @@
 		border-radius: 4px;
 		padding-right: 16px;
 		gap: 8px;
+		position: relative;
+
+		.deleteIcon {
+			color: theme-var($neutralBeige500);
+			cursor: pointer;
+			position: absolute;
+			left: -24px;
+			top: 19px;
+		}
 
 		.customJoin {
 			width: 100%;

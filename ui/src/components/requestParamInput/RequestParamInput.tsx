@@ -102,7 +102,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 			</Label>
 			{props.routeData.request.map((requestParam, paramIndex) => {
 				return (
-					<Box key={`${requestParam.name}_${paramIndex}`} mb={24} className={'requestParam'}>
+					<Box key={`${requestParam.name}_${paramIndex}`} className={'requestParam'}>
 						<Box className={'paramNameRequired'}>
 							<Icon
 								iconImg={'icon-delete'}
@@ -153,7 +153,6 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 										display={'flex'}
 										gap={8}
 										key={`${validator.type}_${validatorIndex}`}
-										mb={16}
 										position={'relative'}
 									>
 										<Icon
