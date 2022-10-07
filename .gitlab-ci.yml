@@ -20,9 +20,7 @@ Clean Node Modules:
   cache:
     key:
       files:
-        - ui/yarn.lock
         - ui/package.json
-        - engine/yarn.lock
         - engine/package.json
     paths:
       - node_modules/
@@ -38,9 +36,7 @@ Prettier Check:
   cache:
     key:
       files:
-        - ui/yarn.lock
         - ui/package.json
-        - engine/yarn.lock
         - engine/package.json
     paths:
       - node_modules/
