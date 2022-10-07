@@ -11,14 +11,19 @@ Clean Node Modules:
     - cd ../ui && yarn install --silent
   rules:
     - changes:
-        - package.json
+        - ui/yarn.lock
+        - ui/package.json
+        - engine/yarn.lock
+        - engine/package.json
     - if: $FORCE_CLEAN == "true"
 
   cache:
     key:
       files:
-        - yarn.lock
-        - package.json
+        - ui/yarn.lock
+        - ui/package.json
+        - engine/yarn.lock
+        - engine/package.json
     paths:
       - node_modules/
     policy: push
@@ -33,8 +38,10 @@ Prettier Check:
   cache:
     key:
       files:
-        - yarn.lock
-        - package.json
+        - ui/yarn.lock
+        - ui/package.json
+        - engine/yarn.lock
+        - engine/package.json
     paths:
       - node_modules/
     policy: pull
