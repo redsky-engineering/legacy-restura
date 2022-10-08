@@ -12,6 +12,8 @@ import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
 import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
+import apiGenerator from './apiGenerator.js';
+import fs from 'fs';
 
 class ResturaEngine {
 	private metaDbConnection: Connection;
@@ -110,6 +112,11 @@ class ResturaEngine {
 	async seedDatabase(schema: Restura.Schema) {
 		await this.storeDatabaseSchema(schema);
 		await sqlEngine.createDatabaseFromSchema(schema);
+	}
+
+	async generateApiFromDatabase(outputFile: string): Promise<void> {
+		const schema = await this.getLatestDatabaseSchema();
+		await fs.writeFileSync(outputFile, apiGenerator(schema));
 	}
 
 	@boundMethod
