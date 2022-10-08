@@ -12,7 +12,6 @@ interface BaseTableInputProps {
 
 const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	const tableList = useMemo<string[]>(() => {
@@ -22,8 +21,7 @@ const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
 		});
 	}, [schema]);
 
-	if (!selectedRoute || !props.routeData) return null;
-	if (props.routeData.type === 'CUSTOM') return null;
+	if (!SchemaService.isStandardRouteData(props.routeData)) return null;
 
 	return (
 		<Box className={'rsBaseTableInput'}>
@@ -38,9 +36,7 @@ const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
 				onChange={(newValue) => {
 					if (!newValue) return;
 					schemaService.updateRouteData(
-						{ ...(props.routeData as Restura.StandardRouteData), table: newValue.value },
-						selectedRoute.path,
-						selectedRoute!.baseUrl
+						{ ...(props.routeData as Restura.StandardRouteData), table: newValue.value }
 					);
 				}}
 			/>

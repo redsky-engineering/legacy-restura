@@ -60,9 +60,7 @@ const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 					onChange={(newValue) => {
 						if (!newValue || !props.routeData) return;
 						schemaService.updateRouteData(
-							{ ...props.routeData, method: newValue.value },
-							selectedRoute.path,
-							selectedRoute!.baseUrl
+							{ ...props.routeData, method: newValue.value }
 						);
 					}}
 				/>
@@ -107,9 +105,7 @@ const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 							return;
 						}
 						schemaService.updateRouteData(
-							{ ...props.routeData, path: newPath },
-							selectedRoute.path,
-							selectedRoute!.baseUrl
+							{ ...props.routeData, path: newPath }
 						);
 						setSelectedRoute({ ...selectedRoute, path: newPath });
 					}}

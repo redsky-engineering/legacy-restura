@@ -12,6 +12,7 @@ import RequestParamInput from '../../requestParamInput/RequestParamInput';
 import RouteNameInput from '../../routeNameInput/RouteNameInput';
 import RouteDescriptionInput from '../../routeDescriptionInput/RouteDescriptionInput';
 import JoinTableInput from "../../joinTableInput/JoinTableInput";
+import WhereClauseInput from '../../whereClauseInput/WhereClauseInput';
 
 interface ApiDetailsSectionProps {}
 
@@ -38,6 +39,7 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 			<MethodPathInput routeData={routeData} />
 			<RequestParamInput routeData={routeData} />
 			<JoinTableInput routeData={routeData} />
+			<WhereClauseInput routeData={routeData} />
 		</Box>
 	);
 };

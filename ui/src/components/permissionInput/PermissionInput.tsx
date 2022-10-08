@@ -12,7 +12,6 @@ interface PermissionInputProps {
 
 const PermissionInput: React.FC<PermissionInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	const roles = useMemo<string[]>(() => {
@@ -20,7 +19,7 @@ const PermissionInput: React.FC<PermissionInputProps> = (props) => {
 		return schema.roles;
 	}, [schema]);
 
-	if (!selectedRoute || !props.routeData) return null;
+	if (!props.routeData) return null;
 	return (
 		<Box className={'rsPermissionInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
@@ -37,9 +36,7 @@ const PermissionInput: React.FC<PermissionInputProps> = (props) => {
 				onChange={(newValue) => {
 					if (!newValue) return;
 					schemaService.updateRouteData(
-						{ ...props.routeData!, roles: newValue.map((item) => item.value) },
-						selectedRoute.path,
-						selectedRoute!.baseUrl
+						{ ...props.routeData!, roles: newValue.map((item) => item.value) }
 					);
 				}}
 			/>

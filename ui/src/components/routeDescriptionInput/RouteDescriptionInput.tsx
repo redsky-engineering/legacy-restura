@@ -11,9 +11,8 @@ interface RouteDescriptionInputProps {
 
 const RouteDescriptionInput: React.FC<RouteDescriptionInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
 
-	if (!props.routeData || !selectedRoute) return <></>;
+	if (!props.routeData) return <></>;
 
 	return (
 		<Box className={'rsRouteNameInput'}>
@@ -25,11 +24,7 @@ const RouteDescriptionInput: React.FC<RouteDescriptionInputProps> = (props) => {
 				placeholder={'description...'}
 				value={props.routeData.description}
 				onChange={(value) => {
-					schemaService.updateRouteData(
-						{ ...props.routeData!, description: value },
-						selectedRoute.path,
-						selectedRoute!.baseUrl
-					);
+					schemaService.updateRouteData({ ...props.routeData!, description: value });
 				}}
 			/>
 		</Box>

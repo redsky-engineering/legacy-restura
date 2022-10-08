@@ -7,6 +7,7 @@ import {
 	Loadable
 } from 'recoil';
 import * as React from 'react';
+import { SelectedRoute } from '../services/schema/SchemaService';
 
 enum GlobalStateKeys {
 	LOGIN_DETAILS = 'LoginDetails',
@@ -19,7 +20,7 @@ const KEY_PREFIX = 'restura-';
 class GlobalState {
 	loginDetails: RecoilState<Restura.LoginDetails | undefined>;
 	schema: RecoilState<Restura.Schema | undefined>;
-	selectedRoute: RecoilState<{ baseUrl: string; path: string } | undefined>;
+	selectedRoute: RecoilState<SelectedRoute | undefined>;
 
 	saveToStorageList: string[] = [];
 

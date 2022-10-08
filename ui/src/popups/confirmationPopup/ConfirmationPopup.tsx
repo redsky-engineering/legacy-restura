@@ -28,11 +28,11 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 		if (props.reverseOrder) {
 			return (
 				<>
-					<Button look={'outlinedPrimary'} onClick={onAccept} className={'small'}>
+					<Button look={'outlinedPrimary'} onClick={onAccept}>
 						{props.acceptLabel}
 					</Button>
 					{!!props.rejectLabel && (
-						<Button look={'containedPrimary'} onClick={onReject} className={'small'}>
+						<Button look={'containedPrimary'} onClick={onReject}>
 							{props.rejectLabel}
 						</Button>
 					)}
@@ -42,11 +42,11 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 		return (
 			<>
 				{!!props.rejectLabel && (
-					<Button look={'outlinedPrimary'} onClick={onReject} className={'small'}>
+					<Button look={'outlinedPrimary'} onClick={onReject} >
 						{props.rejectLabel}
 					</Button>
 				)}
-				<Button look={'containedPrimary'} onClick={onAccept} className={'small'}>
+				<Button look={'containedPrimary'} onClick={onAccept} >
 					{props.acceptLabel}
 				</Button>
 			</>
@@ -56,13 +56,13 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 	return (
 		<Popup {...props} preventCloseByBackgroundClick>
 			<Box className={'rsConfirmationPopup'}>
-				<Box height={36} bgColor={themes.neutralBeige900} p={'6px 8px'}>
+				<Box height={36} bgColor={themes.neutralBeige700} p={'6px 8px'}>
 					<Label variant={'h6'} color={themes.neutralWhite} weight={'medium'}>
 						{props.headerLabel}
 					</Label>
 				</Box>
 				<Box p={'16px 24px 24px 24px'}>
-					<Label variant={'subheader1'} mb={24} weight={'medium'}>
+					<Label variant={'subheader2'} mb={24} weight={'medium'}>
 						{props.label}
 					</Label>
 					<Box display={'flex'} alignItems={'center'} justifyContent={'space-around'} gap={24}>

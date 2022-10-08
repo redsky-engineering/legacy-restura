@@ -13,7 +13,6 @@ interface RequestParamInputProps {
 
 const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
 	const [newParameterName, setNewParameterName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
@@ -37,7 +36,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	}
 
 	function handleAddNewParameter() {
-		if (!schema || !props.routeData || !selectedRoute) return;
+		if (!schema || !props.routeData) return;
 		if (!newParameterName) {
 			rsToastify.error('Please enter a name for the new parameter', 'Missing Parameter Name');
 			return;
@@ -57,14 +56,12 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		};
 
 		schemaService.updateRouteData(
-			{ ...props.routeData, request: [...props.routeData.request, newParameter] },
-			selectedRoute.path,
-			selectedRoute.baseUrl
+			{ ...props.routeData, request: [...props.routeData.request, newParameter] }
 		);
 		setNewParameterName('');
 	}
 
-	if (!selectedRoute || !props.routeData) return null;
+	if (!props.routeData) return null;
 
 	function isValidValueFromType(validatorType: Restura.ValidatorData['type'], value: string): boolean {
 		switch (validatorType) {
@@ -110,9 +107,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								className={'deleteIcon'}
 								onClick={() => {
 									schemaService.removeRequestParam(
-										paramIndex,
-										selectedRoute.path,
-										selectedRoute.baseUrl
+										paramIndex
 									);
 								}}
 							/>
@@ -126,9 +121,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 									if (!sanitizedName) return;
 									schemaService.updateRequestParam(
 										paramIndex,
-										{ ...requestParam, name: sanitizedName },
-										selectedRoute.path,
-										selectedRoute.baseUrl
+										{ ...requestParam, name: sanitizedName }
 									);
 								}}
 							/>
@@ -139,9 +132,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								onChange={(newValue) => {
 									schemaService.updateRequestParam(
 										paramIndex,
-										{ ...requestParam, required: newValue.target.checked },
-										selectedRoute.path,
-										selectedRoute.baseUrl
+										{ ...requestParam, required: newValue.target.checked }
 									);
 								}}
 							/>
@@ -162,9 +153,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 											onClick={() => {
 												schemaService.removeValidator(
 													paramIndex,
-													validatorIndex,
-													selectedRoute.path,
-													selectedRoute.baseUrl
+													validatorIndex
 												);
 											}}
 										/>
@@ -185,9 +174,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 														...validator,
 														type: newValidatorType,
 														value: sanitizedValue
-													},
-													selectedRoute.path,
-													selectedRoute.baseUrl
+													}
 												);
 											}}
 										/>
@@ -214,9 +201,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 												schemaService.updateValidator(
 													paramIndex,
 													validatorIndex,
-													{ ...validator, value: sanitizedValue },
-													selectedRoute.path,
-													selectedRoute.baseUrl
+													{ ...validator, value: sanitizedValue }
 												);
 											}}
 										/>
@@ -228,7 +213,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 							look={'containedPrimary'}
 							className={'circleButton'}
 							onClick={() => {
-								schemaService.addValidator(paramIndex, selectedRoute.path, selectedRoute.baseUrl);
+								schemaService.addValidator(paramIndex);
 							}}
 						>
 							<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />

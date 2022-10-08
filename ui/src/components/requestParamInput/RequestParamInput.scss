@@ -20,6 +20,9 @@
 		position: absolute;
 		left: -24px;
 		top: 11px;
+		&:hover {
+			color: theme-var($secondaryOrange500);
+		}
 	}
 
 	.paramValidators {

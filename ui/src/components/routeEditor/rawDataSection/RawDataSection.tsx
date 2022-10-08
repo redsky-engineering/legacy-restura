@@ -83,7 +83,7 @@ const RawDataSection: React.FC<RawDataSectionProps> = (props) => {
 						if (!editor) return;
 						try {
 							let newRouteData = editor.get() as Restura.RouteData;
-							schemaService.updateRouteData(newRouteData, selectedRoute.path, selectedRoute.baseUrl);
+							schemaService.updateRouteData(newRouteData);
 						} catch (e) {
 							rsToastify.error('Invalid JSON, please fix the errors and try again', 'Invalid JSON');
 						}

@@ -1,7 +1,9 @@
+@import "src/themes/themes";
+
 .rsConfirmationPopup {
 	max-width: 352px;
 	position: absolute;
-	background: #fff;
+	background: theme-var($neutralBeige900);
 	box-shadow: 1px 3px 8px -4px rgba(0, 0, 0, 0.3);
 	z-index: 10;
 

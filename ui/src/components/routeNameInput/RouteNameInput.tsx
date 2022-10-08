@@ -26,9 +26,7 @@ const RouteNameInput: React.FC<RouteNameInputProps> = (props) => {
 				value={props.routeData.name}
 				onChange={(value) => {
 					schemaService.updateRouteData(
-						{ ...props.routeData!, name: value },
-						selectedRoute.path,
-						selectedRoute!.baseUrl
+						{ ...props.routeData!, name: value }
 					);
 				}}
 			/>

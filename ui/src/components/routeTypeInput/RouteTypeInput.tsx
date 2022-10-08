@@ -12,7 +12,6 @@ interface RouteTypeInputProps {
 
 const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
 
 	const routeTypeOptions = useMemo(() => {
 		return [
@@ -23,7 +22,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 		];
 	}, []);
 
-	if (!selectedRoute || !props.routeData) return null;
+	if (!props.routeData) return null;
 
 	return (
 		<Box className={'rsRouteTypeInput'}>
@@ -40,9 +39,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 							{
 								...props.routeData,
 								type: newValue.value as Restura.StandardRouteData['type']
-							} as Restura.StandardRouteData,
-							selectedRoute.path,
-							selectedRoute.baseUrl
+							} as Restura.StandardRouteData
 						);
 					}}
 				/>
