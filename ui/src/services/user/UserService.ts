@@ -40,6 +40,10 @@ export default class UserService extends Service {
 		// }
 	}
 
+	logout() {
+		setRecoilExternalValue<Restura.LoginDetails | undefined>(globalState.loginDetails, undefined);
+	}
+
 	async onAfterLogin(user: Restura.LoginDetails) {
 		let axiosConfig = http.currentConfig();
 		axiosConfig.headers = {

@@ -25,6 +25,12 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 					value: 'TRUE',
 					conjunction: 'AND'
 				});
+			},
+			onCustomSelect: () => {
+				schemaService.addWhereClause({
+					custom: 'TRUE',
+					conjunction: 'AND'
+				});
 			}
 		});
 	}
@@ -58,48 +64,73 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 							}}
 						/>
 					)}
-					<Box className={'whereItem'}>
-						<Icon
-							iconImg={'icon-delete'}
-							fontSize={16}
-							className={'deleteIcon'}
-							onClick={() => {
-								schemaService.removeWhereClause(whereIndex);
-							}}
-						/>
-						<Label variant={'body1'} weight={'regular'} className={'keyword'}>
-							{whereData.tableName}.{whereData.columnName}
-						</Label>
-						<Select
-							value={{ label: whereData.operator, value: whereData.operator }}
-							options={[
-								{ label: '=', value: '=' },
-								{ label: '<', value: '<' },
-								{ label: '>', value: '>' },
-								{ label: '<=', value: '<=' },
-								{ label: '>=', value: '>=' },
-								{ label: '!=', value: '!=' },
-								{ label: 'LIKE', value: 'LIKE' },
-								{ label: 'IN', value: 'IN' },
-								{ label: 'NOT IN', value: 'NOT IN' },
-								{ label: 'STARTS WITH', value: 'STARTS WITH' },
-								{ label: 'ENDS WITH', value: 'ENDS WITH' }
-							]}
-							onChange={(newValue) => {
-								if (!newValue) return;
-								schemaService.updateWhereData(whereIndex, { ...whereData, operator: newValue.value });
-							}}
-						/>
-						<InputText
-							inputMode={'text'}
-							placeholder={'value'}
-							value={whereData.value}
-							onChange={(newValue) => {
-								if (!newValue) return;
-								schemaService.updateWhereData(whereIndex, { ...whereData, value: newValue });
-							}}
-						/>
-					</Box>
+					{whereData.custom ? (
+						<Box className={'whereItem'}>
+							<Icon
+								iconImg={'icon-delete'}
+								fontSize={16}
+								className={'deleteIcon'}
+								onClick={() => {
+									schemaService.removeWhereClause(whereIndex);
+								}}
+							/>
+							<InputText
+								inputMode={'text'}
+								placeholder={'value'}
+								value={whereData.custom}
+								onChange={(newValue) => {
+									if (!newValue) return;
+									schemaService.updateWhereData(whereIndex, { ...whereData, custom: newValue });
+								}}
+							/>
+						</Box>
+					) : (
+						<Box className={'whereItem'}>
+							<Icon
+								iconImg={'icon-delete'}
+								fontSize={16}
+								className={'deleteIcon'}
+								onClick={() => {
+									schemaService.removeWhereClause(whereIndex);
+								}}
+							/>
+							<Label variant={'body1'} weight={'regular'} className={'keyword'}>
+								{whereData.tableName}.{whereData.columnName}
+							</Label>
+							<Select
+								value={{ label: whereData.operator, value: whereData.operator }}
+								options={[
+									{ label: '=', value: '=' },
+									{ label: '<', value: '<' },
+									{ label: '>', value: '>' },
+									{ label: '<=', value: '<=' },
+									{ label: '>=', value: '>=' },
+									{ label: '!=', value: '!=' },
+									{ label: 'LIKE', value: 'LIKE' },
+									{ label: 'IN', value: 'IN' },
+									{ label: 'NOT IN', value: 'NOT IN' },
+									{ label: 'STARTS WITH', value: 'STARTS WITH' },
+									{ label: 'ENDS WITH', value: 'ENDS WITH' }
+								]}
+								onChange={(newValue) => {
+									if (!newValue) return;
+									schemaService.updateWhereData(whereIndex, {
+										...whereData,
+										operator: newValue.value
+									});
+								}}
+							/>
+							<InputText
+								inputMode={'text'}
+								placeholder={'value'}
+								value={whereData.value}
+								onChange={(newValue) => {
+									if (!newValue) return;
+									schemaService.updateWhereData(whereIndex, { ...whereData, value: newValue });
+								}}
+							/>
+						</Box>
+					)}
 				</React.Fragment>
 			);
 		});

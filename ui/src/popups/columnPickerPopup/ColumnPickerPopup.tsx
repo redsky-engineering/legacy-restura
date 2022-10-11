@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './ColumnPickerPopup.scss';
-import { Box, Icon, InputText, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
+import { Box, Button, Icon, InputText, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useEffect, useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
@@ -12,6 +12,7 @@ export interface ColumnPickerPopupProps extends PopupProps {
 	baseTable: string;
 	headerText: string;
 	onColumnSelect: (tableName: string, columnData: Restura.ColumnData) => void;
+	onCustomSelect: () => void;
 }
 
 const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
@@ -33,6 +34,16 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 	}, [tableList]);
 
 	function onReject() {
+		popupController.close(ColumnPickerPopup);
+	}
+
+	function handleCustom() {
+		props.onCustomSelect();
+		popupController.close(ColumnPickerPopup);
+	}
+
+	function handleColumnClick(columnData: Restura.ColumnData) {
+		props.onColumnSelect(selectedTable, columnData);
 		popupController.close(ColumnPickerPopup);
 	}
 
@@ -79,11 +90,6 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		});
 	}
 
-	function handleColumnClick(columnData: Restura.ColumnData) {
-		props.onColumnSelect(selectedTable, columnData);
-		popupController.close(ColumnPickerPopup);
-	}
-
 	function renderColumnList() {
 		if (!schema) return null;
 		let foundTable = schema.database.find((item) => item.name === selectedTable);
@@ -95,7 +101,11 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 			})
 			.map((columnData) => {
 				return (
-					<Box key={columnData.name} className={'columnListItem'} onClick={()=>handleColumnClick(columnData)}>
+					<Box
+						key={columnData.name}
+						className={'columnListItem'}
+						onClick={() => handleColumnClick(columnData)}
+					>
 						<Label variant={'caption1'} weight={'regular'}>
 							{columnData.name}
 						</Label>
@@ -128,6 +138,11 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 					<Box className={'content'}>
 						<Box className={'tableList'}>
 							{renderTableList()}
+							<Box className={'customButton'}>
+								<Button look={'containedPrimary'} onClick={handleCustom} small>
+									Custom
+								</Button>
+							</Box>
 							<Box className={'footer'} />
 						</Box>
 						<Box className={'columnList'}>{renderColumnList()}</Box>
