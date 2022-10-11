@@ -116,8 +116,8 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 		<Popup {...props} preventCloseByBackgroundClick>
 			<Box className={'rsJoinSelectorPopup'}>
 				<Box className={'header'}>
-					<Label variant={'h6'} color={themes.neutralWhite} weight={'medium'}>
-						Join onto {props.baseTable}
+					<Label variant={'h4'} color={themes.neutralWhite} weight={'medium'}>
+						Join Onto {props.baseTable} Table
 					</Label>
 					<Icon
 						iconImg={'icon-close'}

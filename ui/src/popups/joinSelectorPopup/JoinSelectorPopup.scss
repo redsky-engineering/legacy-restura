@@ -10,12 +10,12 @@
 	z-index: 10;
 
 	.header {
-		height: 36px;
-		background-color: theme-var($neutralBeige700);
-		padding: 6px 8px;
+		height: 64px;
+		padding: 0 16px;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		border-bottom: 1px solid theme-var($neutralBeige600);
 	}
 
 	.keyGrid {
@@ -23,8 +23,9 @@
 		grid-template-columns: repeat(3, 1fr) 65px;
 
 		.tableHeader {
+			color: theme-var($neutralBeige500);
 			padding: 8px 16px;
-			border-bottom: 1px solid theme-var($neutralBeige500);
+			background: theme-var($neutralBeige800);
 			margin-bottom: 8px;
 		}
 
