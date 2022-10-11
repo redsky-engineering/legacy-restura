@@ -171,6 +171,8 @@ class SqlEngine {
 	private generateWhereClause(req: RsRequest<any>, routeData: Restura.StandardRouteData, sqlParams: any[]): string {
 		let whereClause = '';
 		routeData.where.forEach((item, index) => {
+			if (index === 0) whereClause = 'WHERE ';
+
 			if (item.custom) {
 				let customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				customReplaced = this.replaceGlobalParamKeywords(customReplaced, routeData, req, sqlParams);
@@ -202,13 +204,12 @@ class SqlEngine {
 				sqlParams[sqlParams.length - 1] = `%${sqlParams[sqlParams.length - 1]}`;
 			}
 
-			if (index === 0) whereClause = 'WHERE ';
 			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${
 				item.columnName
 			}\` ${operator} ${replacedValue}\n`;
 		});
 
-		return whereClause || 'TRUE';
+		return whereClause;
 	}
 
 	private replaceParamKeywords(

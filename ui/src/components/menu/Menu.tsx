@@ -3,7 +3,10 @@ import './Menu.scss';
 import MenuItem from './menuItem/MenuItem';
 import router from '../../utils/router';
 
-import { Box } from '@redskytech/framework/ui';
+import { Box, Icon, Label } from '@redskytech/framework/ui';
+import classNames from 'classnames';
+import serviceFactory from '../../services/serviceFactory';
+import UserService from '../../services/user/UserService';
 
 const Menu: React.FC = () => {
 	const [currentPath, setCurrentPath] = useState<string>('');
@@ -22,6 +25,11 @@ const Menu: React.FC = () => {
 		return currentPath.startsWith(pathBase);
 	}
 
+	function handleLogout() {
+		const userService = serviceFactory.get<UserService>('UserService');
+		userService.logout();
+	}
+
 	return (
 		<Box className="rsMenu">
 			<MenuItem
@@ -31,7 +39,14 @@ const Menu: React.FC = () => {
 				iconName={'icon-home'}
 			/>
 			<MenuItem isSelected={isSelected('/endpoints')} name={'API'} path={'/endpoints'} iconName={'icon-store'} />
-			<MenuItem isSelected={isSelected('/submit')} name={'Submit'} path={'/submit'} iconName={'icon-send'} />
+			<MenuItem isSelected={isSelected('/submit')} name={'Submit'} path={'/submit'} iconName={'icon-submit'} />
+			<MenuItem isSelected={isSelected('/global')} name={'Global'} path={'/global'} iconName={'icon-globe'} />
+			<Box className={classNames('rsMenuItem', 'logout')}>
+				<Icon iconImg={'icon-logout'} fontSize={16} />
+				<Label variant={'body1'} weight={'medium'} onClick={handleLogout}>
+					Log Out
+				</Label>
+			</Box>
 		</Box>
 	);
 };

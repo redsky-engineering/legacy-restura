@@ -30,6 +30,10 @@
 		margin-bottom: 8px;
 	}
 
+	.customButton {
+		border-right: 1px solid theme-var($primaryRed500_50);
+	}
+
 	.tableList {
 		display: flex;
 		flex-direction: column;

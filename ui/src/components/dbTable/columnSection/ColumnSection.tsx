@@ -355,7 +355,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					/>
 					<DbTableCell
 						cellType={'multiSelect'}
-						selectOptions={getAllRoles()}
+						selectOptions={schema.roles}
 						value={column.roles}
 						onMultiSelectChange={(value) => {
 							let updatedSchema = cloneDeep(schema);

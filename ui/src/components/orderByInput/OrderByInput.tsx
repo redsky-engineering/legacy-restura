@@ -1,48 +1,21 @@
 import * as React from 'react';
 import { Box, Label, Select } from '@redskytech/framework/ui';
 import SchemaService from '../../services/schema/SchemaService';
-import { useMemo } from 'react';
 import serviceFactory from '../../services/serviceFactory';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import './OrderByInput.scss';
+import useJoinedColumnList from '../../customHooks/useJoinedColumnList';
 
 interface OrderByInputProps {
 	routeData: Restura.RouteData | undefined;
 }
 
-type CombinedTableColumnName = { tableName: string; columnName: string };
-
 const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
-	const joinedColumnList = useMemo<CombinedTableColumnName[]>(() => {
-		if (!schema || !props.routeData) return [];
-		if (!SchemaService.isStandardRouteData(props.routeData)) return [];
-
-		let baseTable = schema.database.find(
-			(table) => table.name === (props.routeData as Restura.StandardRouteData).table
-		);
-		if (!baseTable) return [];
-		let columnList: CombinedTableColumnName[] = baseTable.columns.map((column) => {
-			return { tableName: baseTable!.name, columnName: column.name };
-		});
-
-		if (props.routeData.joins) {
-			props.routeData.joins.forEach((join) => {
-				let joinTable = schema.database.find((table) => table.name === join.table);
-				if (!joinTable) return;
-				columnList = columnList.concat(
-					joinTable.columns.map((column) => {
-						return { tableName: joinTable!.name, columnName: column.name };
-					})
-				);
-			});
-		}
-
-		return columnList;
-	}, [schema, props.routeData]);
+	const joinedColumnList = useJoinedColumnList(schema, props.routeData);
 
 	if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
 	if (props.routeData.type === 'ONE') return <></>;

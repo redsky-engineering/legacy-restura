@@ -137,7 +137,12 @@ const DbTableCell: React.FC<DbTableCellProps> = (props) => {
 			return props.value ? <span style={{ color: themes.secondaryOrange500 }}>Yes</span> : 'No';
 		if (Array.isArray(props.value)) {
 			if (props.value.length === 0) return props.emptyValue || '-';
-			return props.value.join(', ');
+			let mutatableValue = [...props.value];
+			return mutatableValue
+				.sort((a, b) => {
+					return a.localeCompare(b);
+				})
+				.join(', ');
 		}
 		if (!props.value) return props.emptyValue || '-';
 		return props.value;
