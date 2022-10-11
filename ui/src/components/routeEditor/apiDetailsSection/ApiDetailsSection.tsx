@@ -13,6 +13,8 @@ import RouteNameInput from '../../routeNameInput/RouteNameInput';
 import RouteDescriptionInput from '../../routeDescriptionInput/RouteDescriptionInput';
 import JoinTableInput from "../../joinTableInput/JoinTableInput";
 import WhereClauseInput from '../../whereClauseInput/WhereClauseInput';
+import GroupByInput from '../../groupByInput/GroupByInput';
+import OrderByInput from '../../orderByInput/OrderByInput';
 
 interface ApiDetailsSectionProps {}
 
@@ -40,6 +42,8 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 			<RequestParamInput routeData={routeData} />
 			<JoinTableInput routeData={routeData} />
 			<WhereClauseInput routeData={routeData} />
+			<GroupByInput routeData={routeData} />
+			<OrderByInput routeData={routeData} />
 		</Box>
 	);
 };

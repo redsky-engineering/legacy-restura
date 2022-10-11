@@ -35,12 +35,15 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 					options={routeTypeOptions}
 					onChange={(newValue) => {
 						if (!newValue) return;
-						schemaService.updateRouteData(
-							{
-								...props.routeData,
-								type: newValue.value as Restura.StandardRouteData['type']
-							} as Restura.StandardRouteData
-						);
+						let updatedRouteData = { ...props.routeData! };
+						if (newValue.value === 'ONE') {
+							delete (updatedRouteData as Restura.StandardRouteData).orderBy;
+						}
+
+						schemaService.updateRouteData({
+							...updatedRouteData,
+							type: newValue.value as Restura.StandardRouteData['type']
+						} as Restura.StandardRouteData);
 					}}
 				/>
 			</Box>

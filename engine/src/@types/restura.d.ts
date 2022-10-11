@@ -111,6 +111,17 @@ declare namespace Restura {
 		conjunction?: 'AND' | 'OR';
 	}
 
+	export interface OrderByData {
+		tableName: string;
+		columnName: string;
+		order: 'ASC' | 'DESC';
+	}
+
+	export interface GroupByData {
+		tableName: string;
+		columnName: string;
+	}
+
 	export interface RouteDataBase {
 		method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 		name: string;
@@ -126,6 +137,8 @@ declare namespace Restura {
 		table: string;
 		joins: JoinData[];
 		where: WhereData[];
+		groupBy?: GroupByData;
+		orderBy?: OrderByData;
 	}
 
 	export interface CustomRouteData extends RouteDataBase {

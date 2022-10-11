@@ -70,11 +70,19 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	updateValidator(
-		paramIndex: number,
-		validatorIndex: number,
-		validatorData: Restura.ValidatorData,
-	) {
+	updateWhereData(whereIndex: number, whereData: Restura.WhereData) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData).where[
+			whereIndex
+		] = whereData;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	updateValidator(paramIndex: number, validatorIndex: number, validatorData: Restura.ValidatorData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
@@ -93,7 +101,7 @@ export default class SchemaService extends Service {
 		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
-			] as Restura.StandardRouteData).joins.push(joinData);
+		] as Restura.StandardRouteData).joins.push(joinData);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -134,6 +142,39 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	addWhereClause(whereData: Restura.WhereData) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).where.push(whereData);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	removeWhereClause(whereIndex: number) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).where.splice(whereIndex, 1);
+		if (
+			(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData)
+				.where.length > 0 &&
+			(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData)
+				.where[0].conjunction
+		)
+			delete (updatedSchema.endpoints[indices.endpointIndex].routes[
+				indices.routeIndex
+			] as Restura.StandardRouteData).where[0].conjunction;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
 	removeRequestParam(requestParamIndex: number) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -143,9 +184,7 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	static getIndexesToSelectedRoute(
-		schema: Restura.Schema,
-	): { endpointIndex: number; routeIndex: number } {
+	static getIndexesToSelectedRoute(schema: Restura.Schema): { endpointIndex: number; routeIndex: number } {
 		let selectedRoute = getRecoilExternalValue<SelectedRoute | undefined>(globalState.selectedRoute);
 		let indices = {
 			endpointIndex: -1,
@@ -154,7 +193,9 @@ export default class SchemaService extends Service {
 		if (!selectedRoute) return indices;
 		indices.endpointIndex = schema.endpoints.findIndex((r) => r.baseUrl === selectedRoute!.baseUrl);
 		if (indices.endpointIndex === -1) throw new Error('Endpoint not found');
-		indices.routeIndex = schema.endpoints[indices.endpointIndex].routes.findIndex((r) => r.path === selectedRoute!.path);
+		indices.routeIndex = schema.endpoints[indices.endpointIndex].routes.findIndex(
+			(r) => r.path === selectedRoute!.path
+		);
 		if (indices.routeIndex === -1) throw new Error('Route not found');
 		return indices;
 	}
@@ -201,13 +242,35 @@ export default class SchemaService extends Service {
 		return errors;
 	}
 
-	static isCustomRouteData(data: Restura.RouteData | undefined) : data is Restura.CustomRouteData {
+	static isCustomRouteData(data: Restura.RouteData | undefined): data is Restura.CustomRouteData {
 		if (!data) return false;
 		return data.type === 'CUSTOM';
 	}
 
-	static isStandardRouteData(data: Restura.RouteData | undefined) : data is Restura.StandardRouteData {
+	static isStandardRouteData(data: Restura.RouteData | undefined): data is Restura.StandardRouteData {
 		if (!data) return false;
 		return data.type !== 'CUSTOM';
+	}
+
+	static convertSqlTypeToTypescriptType(sqlType: string): string {
+		switch (sqlType.toLowerCase()) {
+			case 'smallint':
+			case 'mediumint':
+			case 'int':
+			case 'bigint':
+			case 'float':
+			case 'double':
+				return 'number';
+			case 'varchar':
+				return 'string';
+			case 'date':
+				return 'Date';
+			case 'datetime':
+				return 'Date';
+			case 'tinyint':
+				return 'boolean';
+			default:
+				return 'any';
+		}
 	}
 }
