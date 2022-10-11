@@ -1,8 +1,9 @@
 import * as React from 'react';
 import './WhereClauseInput.scss';
-import { Box, Button, Icon, InputText, Label, Select } from '@redskytech/framework/ui';
+import { Box, Button, Icon, InputText, Label, popupController, Select } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
+import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
 
 interface WhereClauseInputProps {
 	routeData: Restura.RouteData | undefined;
@@ -10,6 +11,23 @@ interface WhereClauseInputProps {
 
 const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
+
+	function handleAddStatement() {
+		if (!SchemaService.isStandardRouteData(props.routeData)) return;
+		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
+			headerText: 'Select Column',
+			baseTable: props.routeData.table,
+			onColumnSelect: (tableName, columnData) => {
+				schemaService.addWhereClause({
+					tableName,
+					columnName: columnData.name,
+					operator: '=',
+					value: 'TRUE',
+					conjunction: 'AND'
+				});
+			}
+		});
+	}
 
 	function renderWhereStatements() {
 		if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
@@ -22,7 +40,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 
 		return props.routeData.where.map((whereData: Restura.WhereData, whereIndex) => {
 			return (
-				<>
+				<React.Fragment key={whereIndex}>
 					{!!whereData.conjunction && (
 						<Select
 							value={{ label: whereData.conjunction, value: whereData.conjunction }}
@@ -31,15 +49,22 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								{ label: 'OR', value: 'OR' }
 							]}
 							className={'conjunction'}
+							onChange={(newValue) => {
+								if (!newValue) return;
+								schemaService.updateWhereData(whereIndex, {
+									...whereData,
+									conjunction: newValue.value
+								});
+							}}
 						/>
 					)}
-					<Box key={whereIndex} className={'whereItem'}>
+					<Box className={'whereItem'}>
 						<Icon
 							iconImg={'icon-delete'}
 							fontSize={16}
 							className={'deleteIcon'}
 							onClick={() => {
-								// schemaService.removeJoin(joinIndex);
+								schemaService.removeWhereClause(whereIndex);
 							}}
 						/>
 						<Label variant={'body1'} weight={'regular'} className={'keyword'}>
@@ -60,10 +85,22 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								{ label: 'STARTS WITH', value: 'STARTS WITH' },
 								{ label: 'ENDS WITH', value: 'ENDS WITH' }
 							]}
+							onChange={(newValue) => {
+								if (!newValue) return;
+								schemaService.updateWhereData(whereIndex, { ...whereData, operator: newValue.value });
+							}}
 						/>
-						<InputText inputMode={'text'} placeholder={'value'} value={whereData.value} />
+						<InputText
+							inputMode={'text'}
+							placeholder={'value'}
+							value={whereData.value}
+							onChange={(newValue) => {
+								if (!newValue) return;
+								schemaService.updateWhereData(whereIndex, { ...whereData, value: newValue });
+							}}
+						/>
 					</Box>
-				</>
+				</React.Fragment>
 			);
 		});
 	}
@@ -76,7 +113,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 				Where Query
 			</Label>
 			{renderWhereStatements()}
-			<Button look={'containedPrimary'} onClick={() => {}} mt={16}>
+			<Button look={'containedPrimary'} onClick={handleAddStatement} mt={16}>
 				Add Statement
 			</Button>
 		</Box>

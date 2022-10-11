@@ -98,8 +98,10 @@ class SqlEngine {
 			})
 			.join(',\n\t')}\n`;
 		sqlStatement += `FROM \`${routeData.table}\`\n`;
-		sqlStatement += this.generateJoinStatements(routeData, schema, userRole);
+		sqlStatement += this.generateJoinStatements(req, routeData, schema, userRole, sqlParams);
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
+		sqlStatement += this.generateGroupBy(routeData);
+		sqlStatement += this.generateOrderBy(routeData);
 		sqlStatement += ';';
 		return sqlStatement;
 	}
@@ -123,17 +125,23 @@ class SqlEngine {
 	}
 
 	private generateJoinStatements(
+		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema,
-		userRole: string
+		userRole: string,
+		sqlParams: any[]
 	): string {
 		let joinStatements = '';
 		routeData.joins.forEach((item) => {
 			if (!this.doesRoleHavePermissionToTable(userRole, schema, item.table))
 				throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
-			if (item.custom) joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${item.custom}\n`;
-			else
-				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${routeData.table}\`.\`${item.localColumnName}\` = \`${item.table}.${item.foreignColumnName}\`\n`;
+			if (item.custom) {
+				let customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
+				customReplaced = this.replaceGlobalParamKeywords(customReplaced, routeData, req, sqlParams);
+				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${customReplaced}\n`;
+			} else {
+				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${routeData.table}\`.\`${item.localColumnName}\` = \`${item.table}\`.\`${item.foreignColumnName}\`\n`;
+			}
 		});
 		return joinStatements;
 	}
@@ -144,9 +152,25 @@ class SqlEngine {
 		return tableSchema;
 	}
 
+	private generateGroupBy(routeData: Restura.StandardRouteData): string {
+		let groupBy = '';
+		if (routeData.groupBy) {
+			groupBy = `GROUP BY \`${routeData.groupBy.tableName}\`.\`${routeData.groupBy.columnName}\`\n`;
+		}
+		return groupBy;
+	}
+
+	private generateOrderBy(routeData: Restura.StandardRouteData): string {
+		let orderBy = '';
+		if (routeData.orderBy) {
+			orderBy = `ORDER BY \`${routeData.orderBy.tableName}\`.\`${routeData.orderBy.columnName}\` ${routeData.orderBy.order}\n`;
+		}
+		return orderBy;
+	}
+
 	private generateWhereClause(req: RsRequest<any>, routeData: Restura.StandardRouteData, sqlParams: any[]): string {
 		let whereClause = '';
-		routeData.where.forEach((item) => {
+		routeData.where.forEach((item, index) => {
 			if (item.custom) {
 				let customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				customReplaced = this.replaceGlobalParamKeywords(customReplaced, routeData, req, sqlParams);
@@ -178,7 +202,8 @@ class SqlEngine {
 				sqlParams[sqlParams.length - 1] = `%${sqlParams[sqlParams.length - 1]}`;
 			}
 
-			whereClause += `\t${item.conjunction || ''} WHERE \`${item.tableName}\`.\`${
+			if (index === 0) whereClause = 'WHERE ';
+			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${
 				item.columnName
 			}\` ${operator} ${replacedValue}\n`;
 		});
