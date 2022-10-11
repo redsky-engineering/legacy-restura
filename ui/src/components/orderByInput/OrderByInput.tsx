@@ -47,14 +47,25 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 	if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
 	if (props.routeData.type === 'ONE') return <></>;
 
-	function getCurrentOrderByValue() {
+	function getOrderByValue() {
 		if (!SchemaService.isStandardRouteData(props.routeData)) return undefined;
-		if (!props.routeData.orderBy) return undefined;
+		if (!props.routeData.orderBy) return { value: 'not ordered', label: 'not ordered' };
 		const orderBy = props.routeData.orderBy;
 		return {
 			value: `${orderBy.tableName}.${orderBy.columnName}`,
 			label: `${orderBy.tableName}.${orderBy.columnName}`
 		};
+	}
+
+	function getOrderByOptions() {
+		let options: { value: string; label: string }[] = [ { value: 'not ordered', label: 'not ordered' } ];
+		options = options.concat(joinedColumnList.map((column) => {
+			return {
+				value: `${column.tableName}.${column.columnName}`,
+				label: `${column.tableName}.${column.columnName}`
+			};
+		}));
+		return options;
 	}
 
 	return (
@@ -64,19 +75,25 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 			</Label>
 			<Box className={'selectContainer'}>
 				<Select
-					value={getCurrentOrderByValue()}
-					options={joinedColumnList.map((table) => {
-						return {
-							value: `${table.tableName}.${table.columnName}`,
-							label: `${table.tableName}.${table.columnName}`
-						};
-					})}
+					value={getOrderByValue()}
+					options={getOrderByOptions()}
 					onChange={(newValue) => {
 						if (!newValue) return;
-						// schemaService.updateRouteData({
-						// 	...(props.routeData as Restura.StandardRouteData),
-						// 	orderBy: {...(props.routeData as Restura.StandardRouteData).orderBy }, { colu newValue.value
-						// });
+						if (!SchemaService.isStandardRouteData(props.routeData)) return;
+
+						let updatedRouteData = { ...props.routeData };
+						if (newValue.value === 'not ordered') {
+							delete updatedRouteData.orderBy;
+							schemaService.updateRouteData(updatedRouteData);
+							return;
+						}
+
+						updatedRouteData.orderBy = {
+							tableName: newValue.value.split('.')[0],
+							columnName: newValue.value.split('.')[1],
+							order: updatedRouteData.orderBy?.order || 'ASC'
+						}
+						schemaService.updateRouteData(updatedRouteData);
 					}}
 				/>
 				{!!props.routeData.orderBy && (
@@ -88,6 +105,15 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 						]}
 						onChange={(newValue) => {
 							if (!newValue) return;
+							if (!SchemaService.isStandardRouteData(props.routeData)) return;
+
+							let updatedRouteData = { ...props.routeData };
+
+							updatedRouteData.orderBy = {
+								...updatedRouteData.orderBy!,
+								order: newValue.value
+							}
+							schemaService.updateRouteData(updatedRouteData);
 						}}
 					/>
 				)}
