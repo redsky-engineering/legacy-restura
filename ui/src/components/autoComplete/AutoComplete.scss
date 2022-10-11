@@ -1,0 +1,22 @@
+@import '../../themes/themes';
+
+.rsAutoComplete {
+	position: absolute;
+	top: 100%;
+	background-color: theme-var($neutralBeige900);
+	border: 1px solid theme-var($neutralBeige700);
+	border-radius: 4px;
+	padding: 8px;
+	width: fit-content;
+	width: -moz-fit-content;
+	.rsLabel {
+		color: theme-var($neutralBeige600);
+		&:hover {
+			cursor: pointer;
+			text-decoration: underline;
+		}
+		&.highlighted {
+			color: theme-var($neutralWhite);
+		}
+	}
+}

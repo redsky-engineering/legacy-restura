@@ -4,6 +4,7 @@ import { Box, Button, Icon, InputText, Label, popupController, Select } from '@r
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSelectorPopup/JoinSelectorPopup';
+import AutoComplete from '../autoComplete/AutoComplete';
 
 interface JoinTableInputProps {
 	routeData: Restura.RouteData | undefined;
@@ -25,7 +26,9 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 						foreignColumnName: foreignColumn,
 						localColumnName: localColumn
 					}),
-					...(type === 'CUSTOM' && { custom: `${props.routeData.table}.${localColumn} = ${foreignTable}.${foreignColumn}` })
+					...(type === 'CUSTOM' && {
+						custom: `${props.routeData.table}.${localColumn} = ${foreignTable}.${foreignColumn}`
+					})
 				};
 				schemaService.addJoin(newJoin);
 			}
@@ -79,28 +82,19 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 									} = ${joinData.table}.${joinData.foreignColumnName}`;
 									delete updatedJoinData.localColumnName;
 									delete updatedJoinData.foreignColumnName;
-									schemaService.updateJoinData(
-										joinIndex,
-										updatedJoinData
-									);
+									schemaService.updateJoinData(joinIndex, updatedJoinData);
 								}}
 							/>
 						</Box>
 					) : (
-						<Box className={'customJoin'}>
-							<InputText
-								inputMode={'text'}
-								value={joinData.custom}
-								onChange={(newValue) => {
-									if (!newValue) return;
-									schemaService.updateJoinData(
-										joinIndex,
-										{ ...joinData, custom: newValue }
-
-									);
-								}}
-							/>
-						</Box>
+						<AutoComplete
+							options={props.routeData?.request.map((request) => `$${request.name}`) || []}
+							startSymbol={'$'}
+							value={joinData.custom || ''}
+							onChange={(newValue) => {
+								schemaService.updateJoinData(joinIndex, { ...joinData, custom: newValue });
+							}}
+						/>
 					)}
 					<Select
 						value={{ value: joinData.type, label: joinData.type }}
@@ -110,11 +104,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 						]}
 						onChange={(newValue) => {
 							if (!newValue) return;
-							schemaService.updateJoinData(
-								joinIndex,
-								{ ...joinData, type: newValue.value }
-
-							);
+							schemaService.updateJoinData(joinIndex, { ...joinData, type: newValue.value });
 						}}
 					/>
 				</Box>
