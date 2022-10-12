@@ -14,6 +14,7 @@ import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
+import CompareSchema from "./compareSchema";
 
 class ResturaEngine {
 	private metaDbConnection: Connection;
@@ -27,6 +28,7 @@ class ResturaEngine {
 	};
 	private expressApp!: express.Application;
 	private schema!: Restura.Schema;
+	private compareSchema!: CompareSchema;
 
 	constructor() {
 		this.metaDbConnection = mysql.createConnection({
@@ -50,6 +52,8 @@ class ResturaEngine {
 		this.metaDbConnection.on('error', (err) => {
 			logger.error(`Meta database connection error ${JSON.stringify(err)}`);
 		});
+
+		this.compareSchema = new CompareSchema();
 
 		return new Promise((resolve) => {
 			this.metaDbConnection.connect(async (err) => {
@@ -128,8 +132,9 @@ class ResturaEngine {
 	@boundMethod
 	private async previewCreateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
-			let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
-			res.send({ data: commands });
+			let latestSchema = await this.getLatestDatabaseSchema()
+			 let endpointDiff = this.compareSchema.diffSchema(req.data, latestSchema);
+			res.send({ data: endpointDiff});
 		} catch (err) {
 			res.status(400).send(err);
 		}

@@ -1,18 +1,20 @@
-import * as React from 'react';
-import './SubmitPage.scss';
-import { Page } from '@redskytech/framework/996';
-import { useEffect, useState } from 'react';
-import serviceFactory from '../../services/serviceFactory.js';
-import SchemaService from '../../services/schema/SchemaService.js';
+import React, { useEffect, useState } from 'react';
+import './SchemaPreview.scss';
+import { Box, Button, Label, rsToastify } from '@redskytech/framework/ui';
+import serviceFactory from '../../services/serviceFactory';
+import SchemaService from '../../services/schema/SchemaService';
 import { useRecoilValue } from 'recoil';
-import globalState from '../../state/globalState.js';
-import { Box, Button, InputTextarea, Label, rsToastify } from '@redskytech/framework/ui';
-import PageHeader from '../../components/pageHeader/PageHeader.js';
-import { WebUtils } from '../../utils/utils.js';
+import globalState from '../../state/globalState';
+import { WebUtils } from '../../utils/utils';
+import classNames from 'classnames';
+import PageHeader from '../pageHeader/PageHeader';
 
-interface SubmitPageProps {}
+interface SchemaPreviewProps {
+	onClose: () => void;
+	open: boolean;
+}
 
-const SubmitPage: React.FC<SubmitPageProps> = (props) => {
+const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 	const [sqlStatements, setSqlStatements] = useState<string>('');
@@ -37,6 +39,7 @@ const SubmitPage: React.FC<SubmitPageProps> = (props) => {
 		if (!schema) return;
 		try {
 			await schemaService.updateSchema(schema);
+			props.onClose();
 			rsToastify.success('Schema uploaded successfully', 'Success');
 		} catch (e) {
 			rsToastify.error(WebUtils.getRsErrorMessage(e, 'Failed to submit schema.'), 'Submit Error');
@@ -44,7 +47,7 @@ const SubmitPage: React.FC<SubmitPageProps> = (props) => {
 	}
 
 	return (
-		<Page className={'rsSubmitPage'}>
+		<Box className={classNames('rsSchemaPreview', { open: props.open })}>
 			<PageHeader
 				title={'Submit'}
 				rightNode={
@@ -66,8 +69,8 @@ const SubmitPage: React.FC<SubmitPageProps> = (props) => {
 					<code className={'sqlStatements language-sql'}>{sqlStatements}</code>
 				</pre>
 			</Box>
-		</Page>
+		</Box>
 	);
 };
 
-export default SubmitPage;
+export default SchemaPreview;

@@ -39,7 +39,6 @@ const Menu: React.FC = () => {
 				iconName={'icon-home'}
 			/>
 			<MenuItem isSelected={isSelected('/endpoints')} name={'API'} path={'/endpoints'} iconName={'icon-store'} />
-			<MenuItem isSelected={isSelected('/submit')} name={'Submit'} path={'/submit'} iconName={'icon-submit'} />
 			<MenuItem isSelected={isSelected('/global')} name={'Global'} path={'/global'} iconName={'icon-globe'} />
 			<Box className={classNames('rsMenuItem', 'logout')}>
 				<Icon iconImg={'icon-logout'} fontSize={16} />
