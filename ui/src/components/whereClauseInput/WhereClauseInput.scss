@@ -1,14 +1,14 @@
-@import "src/themes/themes";
+@import 'src/themes/themes';
 
 .rsWhereClauseInput {
-	.conjunction + .whereItem, .whereItem + .conjunction {
+	.conjunction + .whereItem,
+	.whereItem + .conjunction {
 		margin-top: 16px;
 	}
 
 	.conjunction {
 		width: 150px;
 	}
-
 
 	.whereItem {
 		display: flex;
@@ -20,7 +20,8 @@
 		gap: 8px;
 		position: relative;
 
-		.rsInputText {
+		.rsInputText,
+		.rsAutoComplete {
 			flex-grow: 1;
 		}
 
@@ -39,5 +40,4 @@
 			color: theme-var($secondaryOrange500);
 		}
 	}
-
 }

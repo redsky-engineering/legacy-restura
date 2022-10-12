@@ -1,4 +1,4 @@
-@import "src/themes/themes";
+@import 'src/themes/themes';
 
 .rsJoinTableInput {
 	.joinItem + .joinItem {
@@ -31,7 +31,8 @@
 			}
 		}
 
-		.customJoin {
+		.customJoin,
+		.rsAutoComplete {
 			width: 100%;
 			padding-left: 16px;
 		}

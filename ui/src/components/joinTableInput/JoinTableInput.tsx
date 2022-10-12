@@ -4,6 +4,8 @@ import { Box, Button, Icon, InputText, Label, popupController, Select } from '@r
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSelectorPopup/JoinSelectorPopup';
+import { useRecoilValue } from 'recoil';
+import globalState from '../../state/globalState';
 import AutoComplete from '../autoComplete/AutoComplete';
 
 interface JoinTableInputProps {
@@ -12,6 +14,7 @@ interface JoinTableInputProps {
 
 const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
+	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	function handleAddJoin() {
 		if (!SchemaService.isStandardRouteData(props.routeData)) return;
@@ -36,6 +39,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 	}
 
 	function renderJoins() {
+		if (!schema) return <></>;
 		if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
 		if (props.routeData.joins.length === 0)
 			return (
@@ -88,10 +92,17 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 						</Box>
 					) : (
 						<AutoComplete
-							options={props.routeData?.request.map((request) => `$${request.name}`) || []}
-							startSymbol={'$'}
+							options={
+								[
+									...schema.globalParams.map((param) => `#${param}`),
+									...props.routeData!.request.map((request) => `$${request.name}`)
+								] || []
+							}
+							startSymbols={['$', '#']}
 							value={joinData.custom || ''}
+							maxDisplay={5}
 							onChange={(newValue) => {
+								if (!newValue) return;
 								schemaService.updateJoinData(joinIndex, { ...joinData, custom: newValue });
 							}}
 						/>
