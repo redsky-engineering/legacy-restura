@@ -85,6 +85,7 @@ class SqlEngine {
 
 		let selectColumns: { selector: string; aliasName: string }[] = [];
 		routeData.response.forEach((item) => {
+			if (!item.selector) return;
 			let tableName = item.selector.split('.')[0];
 			let columnName = item.selector.split('.')[1];
 			if (this.doesRoleHavePermissionToColumn(userRole, schema, tableName, columnName))
