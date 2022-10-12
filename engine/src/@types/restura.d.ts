@@ -89,16 +89,15 @@ declare namespace Restura {
 
 	export interface ResponseStructureData {
 		name: string;
-		selector: string;
-		type: 'number' | 'string' | string;
-		join?: string;
+		type: 'number' | 'string' | 'Date' | 'object' | string;
+		selector?: string;
 		structure?: ResponseStructureData;
 	}
 
 	export interface ResponseData {
 		name: string;
-		selector: string;
-		type: 'number' | 'string' | 'structure' | string;
+		type: 'number' | 'string' | 'Date' | 'object' | string;
+		selector?: string;
 		structure?: ResponseStructureData;
 	}
 

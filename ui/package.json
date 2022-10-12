@@ -10,7 +10,7 @@
 		"@capacitor/core": "^4.0.1",
 		"@capacitor/ios": "^4.0.1",
 		"@react-hook/media-query": "^1.1.1",
-		"@redskytech/framework": "^0.9.3",
+		"@redskytech/framework": "^0.10.0",
 		"autobind-decorator": "^2.4.0",
 		"axios": "^0.19.2",
 		"classnames": "^2.3.1",

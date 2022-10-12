@@ -421,9 +421,11 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 				{renderColumnHeaderRow()}
 				{renderColumns()}
 			</Box>
-			<Button mt={8} look={'containedSecondary'} onClick={addNewTableColumn}>
-				+
-			</Button>
+			<Button mt={8} look={'iconPrimary'} onClick={addNewTableColumn} icon={[{
+				iconImg: 'icon-plus',
+				fontSize: 16,
+				position: 'LEFT'
+			}]} />
 		</Box>
 	);
 };

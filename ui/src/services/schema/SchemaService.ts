@@ -117,6 +117,24 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	addResponseParameter(responseData: Restura.ResponseData) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].response.push(responseData);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	removeResponseParameter(parameterIndex: number) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].response.splice(parameterIndex, 1);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
 	addValidator(requestParamIndex: number) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -258,6 +276,7 @@ export default class SchemaService extends Service {
 			case 'mediumint':
 			case 'int':
 			case 'bigint':
+			case 'decimal':
 			case 'float':
 			case 'double':
 				return 'number';

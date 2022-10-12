@@ -145,7 +145,9 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 							</Box>
 							<Box className={'footer'} />
 						</Box>
-						<Box className={'columnList'}>{renderColumnList()}</Box>
+						<Box className={'columnList'}>{renderColumnList()}
+							<Box className={'footer'} />
+						</Box>
 					</Box>
 				</Box>
 			</Box>
