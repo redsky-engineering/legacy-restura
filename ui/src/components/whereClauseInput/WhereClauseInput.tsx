@@ -4,6 +4,9 @@ import { Box, Button, Icon, InputText, Label, popupController, Select } from '@r
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
+import AutoComplete from '../autoComplete/AutoComplete';
+import { useRecoilValue } from 'recoil';
+import globalState from '../../state/globalState';
 
 interface WhereClauseInputProps {
 	routeData: Restura.RouteData | undefined;
@@ -11,6 +14,7 @@ interface WhereClauseInputProps {
 
 const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
+	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	function handleAddStatement() {
 		if (!SchemaService.isStandardRouteData(props.routeData)) return;
@@ -48,6 +52,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 			);
 
 		return props.routeData.where.map((whereData: Restura.WhereData, whereIndex) => {
+			if (!schema) return <></>;
 			return (
 				<React.Fragment key={whereIndex}>
 					{!!whereData.conjunction && (
@@ -77,9 +82,12 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 									schemaService.removeWhereClause(whereIndex);
 								}}
 							/>
-							<InputText
-								inputMode={'text'}
-								placeholder={'value'}
+							<AutoComplete
+								options={[
+									...schema.globalParams.map((param) => `#${param}`),
+									...props.routeData!.request.map((request) => `$${request.name}`)
+								]}
+								startSymbols={['$', '#']}
 								value={whereData.custom}
 								onChange={(newValue) => {
 									if (!newValue) return;
@@ -123,10 +131,13 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 									});
 								}}
 							/>
-							<InputText
-								inputMode={'text'}
-								placeholder={'value'}
-								value={whereData.value}
+							<AutoComplete
+								options={[
+									...schema.globalParams.map((param) => `#${param}`),
+									...props.routeData!.request.map((request) => `$${request.name}`)
+								]}
+								startSymbols={['$', '#']}
+								value={whereData.value || ''}
 								onChange={(newValue) => {
 									if (!newValue) return;
 									schemaService.updateWhereData(whereIndex, { ...whereData, value: newValue });
