@@ -121,7 +121,6 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 					</Label>
 					<Icon
 						iconImg={'icon-close'}
-						color={themes.neutralWhite}
 						onClick={onReject}
 						cursorPointer
 						p={4}

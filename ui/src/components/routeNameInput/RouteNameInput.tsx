@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Box, InputText, Label } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
-import SchemaService from '../../services/schema/SchemaService';
+import SchemaService, {SelectedRoute} from '../../services/schema/SchemaService';
 import globalState from '../../state/globalState';
 import { useRecoilValue } from 'recoil';
 
@@ -11,7 +11,7 @@ interface RouteNameInputProps {
 
 const RouteNameInput: React.FC<RouteNameInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
+	const selectedRoute = useRecoilValue<SelectedRoute | undefined>(globalState.selectedRoute);
 
 	if (!props.routeData || !selectedRoute) return <></>;
 

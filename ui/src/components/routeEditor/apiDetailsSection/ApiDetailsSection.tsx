@@ -1,7 +1,6 @@
 import * as React from 'react';
 import './ApiDetailsSection.scss';
 import { Box } from '@redskytech/framework/ui';
-import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState.js';
 import MethodPathInput from '../../methodPathInput/MethodPathInput';
@@ -15,21 +14,16 @@ import JoinTableInput from "../../joinTableInput/JoinTableInput";
 import WhereClauseInput from '../../whereClauseInput/WhereClauseInput';
 import GroupByInput from '../../groupByInput/GroupByInput';
 import OrderByInput from '../../orderByInput/OrderByInput';
+import useRouteData from "../../../customHooks/useRouteData";
+import {SelectedRoute} from "../../../services/schema/SchemaService";
 
 interface ApiDetailsSectionProps {}
 
 const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
-	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
+	const selectedRoute = useRecoilValue<SelectedRoute | undefined>(globalState.selectedRoute);
+	const routeData = useRouteData();
 
-	const routeData = useMemo<Restura.RouteData | undefined>(() => {
-		if (!schema || !selectedRoute) return undefined;
-		let endpoints = schema.endpoints.find((item) => item.baseUrl === selectedRoute.baseUrl);
-		if (!endpoints) return undefined;
-		return endpoints.routes.find((item) => item.path === selectedRoute.path);
-	}, [schema, selectedRoute]);
-
-	if (!selectedRoute) return <></>;
+	if (!selectedRoute || !routeData) return <></>;
 
 	return (
 		<Box className={'rsApiDetailsSection'}>

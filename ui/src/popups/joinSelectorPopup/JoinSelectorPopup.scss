@@ -16,6 +16,14 @@
 		justify-content: space-between;
 		align-items: center;
 		border-bottom: 1px solid theme-var($neutralBeige600);
+		gap: 16px;
+
+		.rsIcon {
+			color: theme-var($neutralWhite);
+			&:hover {
+				color: theme-var($secondaryOrange500);
+			}
+		}
 	}
 
 	.keyGrid {

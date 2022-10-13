@@ -105,6 +105,8 @@ function generateRouteModels(route: Restura.RouteData): string {
 
 function generateRequestParameters(route: Restura.RouteData): string {
 	let modelString: string = ``;
+	if (!route.request) return modelString;
+
 	modelString += `
 		 	export interface Req{
 		 					${route.request.map((p) => `${p.name}:any`).join(';\n')}
@@ -116,6 +118,8 @@ function generateRequestParameters(route: Restura.RouteData): string {
 
 function generateResponseParameters(route: Restura.RouteData): string {
 	let modelString: string = ``;
+	if (!('response' in route)) return modelString;
+
 	modelString += `
 		 	export interface Res{
 		 					${route.response.map((p) => `${p.name}:any`).join(';\n')}

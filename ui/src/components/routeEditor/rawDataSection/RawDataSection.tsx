@@ -1,13 +1,14 @@
 import * as React from 'react';
 import './RawDataSection.scss';
 import { Box, Button, rsToastify } from '@redskytech/framework/ui';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
 import type JSONEditor from 'jsoneditor';
 import type { JSONEditorOptions } from 'jsoneditor';
 import serviceFactory from '../../../services/serviceFactory';
-import SchemaService from '../../../services/schema/SchemaService';
+import SchemaService, {SelectedRoute} from '../../../services/schema/SchemaService';
+import useRouteData from "../../../customHooks/useRouteData";
 
 interface RawDataSectionProps {}
 
@@ -15,17 +16,11 @@ let editor: JSONEditor | null = null;
 
 const RawDataSection: React.FC<RawDataSectionProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
-	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
+	const selectedRoute = useRecoilValue<SelectedRoute | undefined>(globalState.selectedRoute);
 	const [initialRouteDataText, setInitialRouteDataText] = useState<string>('');
 	const [currentRouteDataText, setCurrentRouteDataText] = useState<string>('');
 
-	const routeData = useMemo<Restura.RouteData | undefined>(() => {
-		if (!schema || !selectedRoute) return undefined;
-		let endpoints = schema.endpoints.find((item) => item.baseUrl === selectedRoute.baseUrl);
-		if (!endpoints) return undefined;
-		return endpoints.routes.find((item) => item.path === selectedRoute.path);
-	}, [schema, selectedRoute]);
+	const routeData = useRouteData();
 
 	useEffect(() => {
 		if (editor) return; // only initialize once

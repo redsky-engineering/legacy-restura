@@ -196,9 +196,11 @@ const IndexSection: React.FC<IndexSectionProps> = (props) => {
 				{renderIndexesHeader()}
 				{renderIndexes()}
 			</Box>
-			<Button mt={8} look={'containedSecondary'} onClick={addNewTableIndex}>
-				+
-			</Button>
+			<Button mt={8} look={'iconPrimary'} onClick={addNewTableIndex} icon={[{
+				iconImg: 'icon-plus',
+				fontSize: 16,
+				position: 'LEFT'
+			}]} />
 		</Box>
 	);
 };

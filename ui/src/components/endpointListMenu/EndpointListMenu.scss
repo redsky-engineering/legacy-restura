@@ -45,7 +45,7 @@
 				border-style: solid;
 				border-color: theme-var($primaryRed700);
 
-				.rsLabel {
+				.path {
 					color: theme-var($neutralWhite);
 				}
 			}
@@ -57,8 +57,35 @@
 			justify-content: space-between;
 			align-items: center;
 			padding: 16px 24px 16px 8px;
+			gap: 24px;
 
 			border-radius: 4px 0 0 4px;
+
+			.rsIcon {
+				color: theme-var($neutralBeige500);
+				display: none;
+				padding: 4px;
+			}
+
+			&:hover {
+				background: theme-var($neutralBeige700);
+
+				.path {
+					color: theme-var($neutralWhite);
+				}
+				.public,
+				.method {
+					color: theme-var($neutralBeige500);
+				}
+
+				.rsIcon {
+					display: block;
+
+					&:hover {
+						color: theme-var($secondaryOrange500);
+					}
+				}
+			}
 
 			.path {
 				color: theme-var($neutralBeige400);

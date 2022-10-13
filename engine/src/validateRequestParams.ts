@@ -6,9 +6,20 @@ export default function validateRequestParams(req: RsRequest<any>, routeData: Re
 	let requestData = getRequestData(req);
 	req.data = requestData;
 
+	if (routeData.request === undefined) {
+		if (routeData.type !== 'CUSTOM_ONE' && routeData.type !== 'CUSTOM_ARRAY')
+			throw new RsError('BAD_REQUEST', `No request parameters provided for standard request.`);
+
+		if (routeData.responseType === undefined)
+			throw new RsError('BAD_REQUEST', `No response type defined for custom request.`);
+
+		// TODO: Now we need to validate the custom request, how should we handle this?
+		return;
+	}
+
 	// Make sure all passed in params are defined in the schema
 	Object.keys(req.data).forEach((requestParamName) => {
-		let requestParam = routeData.request.find((param) => param.name === requestParamName);
+		let requestParam = routeData.request!.find((param) => param.name === requestParamName);
 		if (!requestParam) {
 			throw new RsError('BAD_REQUEST', `Request param (${requestParamName}) is not allowed`);
 		}
