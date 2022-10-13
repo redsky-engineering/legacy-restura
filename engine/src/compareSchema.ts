@@ -17,16 +17,16 @@ class CompareSchema {
     @boundMethod
     private diffStringArray(newArray: string[], originalArray: string[]): Restura.Change[] {
         let stringsDiff: Restura.Change[] = [];
-        let originalClone = [...originalArray];
+        let originalClone = new Set(originalArray);
         newArray.forEach(item => {
-            let originalIndex = originalClone.findIndex(original => original === item);
-            if(originalIndex === -1) {
+            let originalIndex = originalClone.has(item);
+            if(!originalIndex) {
                 stringsDiff.push({
                     name: item,
                     changeType: 'NEW'
                 });
             } else {
-                originalClone.splice(originalIndex, 1);
+                originalClone.delete(item);
             }
         });
         originalClone.forEach(item => {

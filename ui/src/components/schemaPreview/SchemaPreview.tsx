@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './SchemaPreview.scss';
+import themes from '../../themes/themes.scss?export';
 import { Box, Button, Icon, Label, rsToastify } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
@@ -55,6 +56,13 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 		}
 	}
 
+	function chooseLabelColor(item: Restura.Change): string {
+		let color = themes.success;
+		if (item.changeType === 'MODIFIED') color = themes.secondaryOrange500;
+		else if (item.changeType === 'DELETED') color = themes.primaryRed500;
+		return color;
+	}
+
 	function renderShrunk() {
 		return (
 			<>
@@ -62,7 +70,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						SQL Statements
 					</Label>
-					<Label variant={'body1'} weight={'regular'}>
+					<Label color={themes.success} variant={'body1'} weight={'regular'}>
 						Changed
 					</Label>
 				</Box>
@@ -70,31 +78,54 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Endpoints
 					</Label>
-					<Label variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.endPoints.length} Changed
+					<Label color={themes.success} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'NEW').length} Added
+					</Label>
+					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'MODIFIED').length}{' '}
+						Modified
+					</Label>
+					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'DELETED').length} Deleted
 					</Label>
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Global Parameters
 					</Label>
-					<Label variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.globalParams.length} Changed
+					<Label color={themes.success} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'NEW').length} Added
+					</Label>
+					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'MODIFIED').length} Modified
+					</Label>
+					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'DELETED').length} Deleted
 					</Label>
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Roles
 					</Label>
-					<Label variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.roles.length} Changed
+					<Label color={themes.success} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.roles.filter((role) => role.changeType === 'NEW').length} Added
+					</Label>
+					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.roles.filter((role) => role.changeType === 'MODIFIED').length} Modified
+					</Label>
+					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+						{schemaDiffs?.roles.filter((role) => role.changeType === 'DELETED').length} Deleted
 					</Label>
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Custom Types
 					</Label>
-					<Label variant={'body1'} weight={'regular'}>
+					<Label
+						color={schemaDiffs?.customTypes ? themes.success : themes.secondaryOrange500}
+						variant={'body1'}
+						weight={'regular'}
+					>
 						{schemaDiffs?.customTypes ? 'Changed' : 'No Change'}
 					</Label>
 				</Box>
@@ -115,7 +146,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 				</Box>
 				{ObjectUtils.isArrayWithData(schemaDiffs?.endPoints) && (
 					<Box className={'sectionBox'} padding={24}>
-						<Label variant={'h6'} weight={'medium'} mb={8}>
+						<Label color={themes.success} variant={'h6'} weight={'medium'} mb={8}>
 							Endpoints
 						</Label>
 						<Box>
@@ -125,7 +156,11 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 										<Label variant={'body1'} weight={'regular'}>
 											{endpoint.name}
 										</Label>
-										<Label variant={'caption1'} weight={'regular'}>
+										<Label
+											color={chooseLabelColor(endpoint)}
+											variant={'caption1'}
+											weight={'regular'}
+										>
 											{endpoint.changeType}
 										</Label>
 									</Box>
@@ -146,7 +181,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 										<Label variant={'body1'} weight={'regular'}>
 											{param.name}
 										</Label>
-										<Label variant={'caption1'} weight={'regular'}>
+										<Label color={chooseLabelColor(param)} variant={'caption1'} weight={'regular'}>
 											{param.changeType}
 										</Label>
 									</Box>
@@ -167,7 +202,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 										<Label variant={'body1'} weight={'regular'}>
 											{role.name}
 										</Label>
-										<Label variant={'caption1'} weight={'regular'}>
+										<Label color={chooseLabelColor(role)} variant={'caption1'} weight={'regular'}>
 											{role.changeType}
 										</Label>
 									</Box>

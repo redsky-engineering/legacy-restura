@@ -32,6 +32,7 @@ $defaultTheme: (
 	// Burnt Orange
 	$burntOrange: #ff1e1e,
 	//Misc
+	$success: #5daa60,
 	$transitionTime: 300ms
 );
 
@@ -64,6 +65,7 @@ $defaultTheme: (
 
 	burntOrange: theme-var($burntOrange);
 	secondaryOrange500: theme-var($secondaryOrange500);
+	success: theme-var($success);
 
 	// Gradients
 	gradient90Deg: theme-var($gradient90Deg);
