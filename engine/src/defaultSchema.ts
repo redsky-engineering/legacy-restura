@@ -265,7 +265,7 @@ const defaultSchema: Restura.Schema = {
 					]
 				},
 				{
-					type: 'CUSTOM',
+					type: 'CUSTOM_ONE',
 					method: 'GET',
 					name: 'order slim details',
 					description: 'Get order slim details',
@@ -283,35 +283,14 @@ const defaultSchema: Restura.Schema = {
 							]
 						}
 					],
-					response: [
-						{
-							name: 'id',
-							selector: 'id',
-							type: 'number'
-						},
-						{
-							name: 'firstName',
-							selector: 'firstName',
-							type: 'string'
-						},
-						{
-							name: 'lastName',
-							selector: 'lastName',
-							type: 'string'
-						},
-						{
-							name: 'createdOn',
-							selector: 'createdOn',
-							type: 'datetime'
-						}
-					]
+					responseType: 'boolean'
 				}
 			]
 		}
 	],
 	globalParams: ['companyId', 'userId'],
-	roles: ['admin', 'user', 'anonymous']
+	roles: ['admin', 'user', 'anonymous'],
+	customTypes: ''
 };
 
-console.log(JSON.stringify(defaultSchema, null, 2));
 export default defaultSchema;

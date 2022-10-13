@@ -21,23 +21,7 @@ interface DbTableCellProps {
 
 const DbTableCell: React.FC<DbTableCellProps> = (props) => {
 	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [multiSelectValue, setMultiSelectValue] = useState<{ value: string; label: string }[]>(
-		getMultiSelectOptions()
-	);
-
-	function getMultiSelectOptions() {
-		if (props.cellType !== 'multiSelect') return [];
-		(props.value as string[]).map((item) => {
-			return { label: item, value: item };
-		});
-		const options = props.selectOptions?.map((option) => {
-			return {
-				value: option,
-				label: option
-			};
-		});
-		return options || [];
-	}
+	const [multiSelectValue, setMultiSelectValue] = useState<{ value: string; label: string }[]>([]);
 
 	function onBlur(event: React.FocusEvent<HTMLInputElement>) {
 		if (props.onChange) props.onChange(event.target.value);
@@ -122,9 +106,11 @@ const DbTableCell: React.FC<DbTableCellProps> = (props) => {
 						onChange={onMultiSelectChanged}
 						onMenuClose={onMultiSelectMenuClosed}
 						autoFocus
-						options={props.selectOptions!.map((item) => {
-							return { label: item, value: item };
-						})}
+						options={[...props.selectOptions!]
+							.sort((a, b) => a.localeCompare(b))
+							.map((item) => {
+								return { label: item, value: item };
+							})}
 						onBlur={() => setIsEditing(false)}
 					/>
 				);

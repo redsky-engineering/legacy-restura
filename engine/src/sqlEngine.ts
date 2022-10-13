@@ -85,6 +85,7 @@ class SqlEngine {
 
 		let selectColumns: { selector: string; aliasName: string }[] = [];
 		routeData.response.forEach((item) => {
+			if (!item.selector) return;
 			let tableName = item.selector.split('.')[0];
 			let columnName = item.selector.split('.')[1];
 			if (this.doesRoleHavePermissionToColumn(userRole, schema, tableName, columnName))
@@ -218,9 +219,11 @@ class SqlEngine {
 		req: RsRequest<any>,
 		sqlParams: any[]
 	): string {
+		if (!routeData.request) return value;
+
 		// Match any value that starts with a $
 		value.match(/\$[a-zA-Z][a-zA-Z0-9_]+/g)?.forEach((param) => {
-			let requestParam = routeData.request.find((item) => {
+			let requestParam = routeData.request!.find((item) => {
 				return item.name === param.replace('$', '');
 			});
 			if (!requestParam) throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);

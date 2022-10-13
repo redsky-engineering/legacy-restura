@@ -192,7 +192,7 @@ class ResturaEngine {
 			validateRequestParams(req, routeData);
 
 			// Check for custom logic
-			if (routeData.type === 'CUSTOM') {
+			if (this.isCustomRoute(routeData)) {
 				this.runCustomRouteLogic(req, res, routeData);
 				return;
 			}
@@ -205,6 +205,11 @@ class ResturaEngine {
 		} catch (e: any) {
 			next(e);
 		}
+	}
+
+	@boundMethod
+	private isCustomRoute(route: Restura.RouteData): route is Restura.CustomRouteData {
+		return route.type === 'CUSTOM_ONE' || route.type === 'CUSTOM_ARRAY';
 	}
 
 	@boundMethod

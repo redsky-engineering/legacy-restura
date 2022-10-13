@@ -161,4 +161,24 @@
 			color: theme-var($neutralBeige600);
 		}
 	}
+	&.iconPrimary {
+		padding: 8px;
+		width: 40px;
+		border-radius: 50%;
+		background-color: theme-var($primaryRed500);
+		.rsIcon {
+			color: theme-var($neutralBlack);
+		}
+		&:hover {
+		}
+		&:active {
+		}
+		&:focus {
+		}
+		&.small {
+		}
+		&:disabled {
+			cursor: not-allowed;
+		}
+	}
 }
