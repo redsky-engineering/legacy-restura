@@ -3,11 +3,11 @@ import './AppBar.scss';
 import UserBadge from '../userBadge/UserBadge';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
-import { Box, Button, Icon, Img } from '@redskytech/framework/ui';
+import { Box, Button, Img } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory.js';
 import SchemaService from '../../services/schema/SchemaService.js';
 import adminLogo from '../../images/redsky_logo.png?webp&imagetools';
-import SchemaPreview from '../schemaPreview/ShemaPreview';
+import SchemaPreview from '../schemaPreview/SchemaPreview';
 
 const AppBar: React.FC = () => {
 	const loginDetails = useRecoilValue<Restura.LoginDetails | undefined>(globalState.loginDetails);
@@ -24,7 +24,9 @@ const AppBar: React.FC = () => {
 			<Box display={'flex'} alignItems={'center'}>
 				<Button
 					look={'containedPrimary'}
-					onClick={() => setShowPreview((prev) => !prev)}
+					onClick={() => {
+						setShowPreview(true);
+					}}
 					disabled={!schemaService.isSchemaChanged(schema)}
 					mr={16}
 				>

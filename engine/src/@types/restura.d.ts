@@ -164,6 +164,19 @@ declare namespace Restura {
         customTypes: string;
     }
 
+    export interface Change {
+        name: string;
+        changeType: 'NEW' | 'MODIFIED' | 'DELETED';
+    }
+
+    export interface SchemaPreview {
+        commands: string;
+        endPoints: Change[];
+        globalParams: Change[];
+        roles: Change[];
+        customTypes: boolean;
+    }
+
     export interface LoginDetails {
         token: string;
         refreshToken: string;

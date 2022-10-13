@@ -21,8 +21,11 @@ export default class SchemaService extends Service {
 		return this.lastSchema;
 	}
 
-	async getSchemaPreview(schema: Restura.Schema): Promise<string> {
-		let res = await http.post<RedSky.RsResponseData<string>, Restura.Schema>('/schema/preview', schema);
+	async getSchemaPreview(schema: Restura.Schema): Promise<Restura.SchemaPreview> {
+		let res = await http.post<RedSky.RsResponseData<Restura.SchemaPreview>, Restura.Schema>(
+			'/schema/preview',
+			schema
+		);
 		return res.data.data;
 	}
 
