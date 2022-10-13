@@ -1,28 +1,24 @@
 import * as React from 'react';
 import './ResponseSection.scss';
-import { Box, Button, Icon, Label, popupController } from '@redskytech/framework/ui';
+import { Box, Button, Icon, InputText, Label, popupController } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
-import { useMemo } from 'react';
+import { useState } from 'react';
 import themes from '../../../themes/themes.scss?export';
 import serviceFactory from '../../../services/serviceFactory';
 import SchemaService from '../../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../../popups/columnPickerPopup/ColumnPickerPopup';
 import { StringUtils } from '../../../utils/utils';
+import useRouteData from "../../../customHooks/useRouteData";
 
 interface ResponseSectionProps {}
 
 const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const selectedRoute = useRecoilValue<{ baseUrl: string; path: string } | undefined>(globalState.selectedRoute);
+	const [editingAliasIndex, setEditingAliasIndex] = useState<number>(-1);
 
-	const routeData = useMemo<Restura.RouteData | undefined>(() => {
-		if (!schema || !selectedRoute) return undefined;
-		let endpoints = schema.endpoints.find((item) => item.baseUrl === selectedRoute.baseUrl);
-		if (!endpoints) return undefined;
-		return endpoints.routes.find((item) => item.path === selectedRoute.path);
-	}, [schema, selectedRoute]);
+	const routeData = useRouteData();
 
 	function getTypeForResponseProperty(selector: string): string {
 		if (!schema || !routeData) return '';
@@ -50,7 +46,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 						: `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
 				// Check for duplicate name
 				if (routeData.response.find((item) => item.name === name))
-					name += '_' + Math.random().toString(36).substring(2, 5).toUpperCase();
+					name += '_' + Math.random().toString(36).substring(2, 6).toUpperCase();
 				schemaService.addResponseParameter({
 					name,
 					selector: `${tableName}.${columnData.name}`,
@@ -63,7 +59,8 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 
 	function renderResponseObject() {
 		if (!routeData) return <></>;
-		if (!routeData.response) return <></>;
+		if (!SchemaService.isStandardRouteData(routeData)) return <></>;
+
 		return routeData.response.map((responseData, parameterIndex) => {
 			return (
 				<Box key={responseData.name} className={'responseItem'}>
@@ -78,9 +75,41 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 						cursorPointer
 					/>
 					<Box>
-						<Label variant={'body1'} weight={'regular'}>
-							{responseData.name}:
-						</Label>
+						{editingAliasIndex === parameterIndex ? (
+							<InputText
+								inputMode={'text'}
+								autoFocus
+								onBlur={(event) => {
+									setEditingAliasIndex(-1);
+									schemaService.updateResponseParameter(parameterIndex, {
+										...responseData,
+										name: event.currentTarget.value
+									});
+								}}
+								onKeyDown={(event) => {
+									if (event.key === 'Escape') {
+										setEditingAliasIndex(-1);
+										return;
+									} else if (event.key === 'Enter') {
+										setEditingAliasIndex(-1);
+										schemaService.updateResponseParameter(parameterIndex, {
+											...responseData,
+											name: event.currentTarget.value
+										});
+									}
+								}}
+								defaultValue={responseData.name}
+							/>
+						) : (
+							<Label
+								variant={'body1'}
+								weight={'regular'}
+								className={'responseAlias'}
+								onClick={() => setEditingAliasIndex(parameterIndex)}
+							>
+								{responseData.name}:
+							</Label>
+						)}
 						<Label variant={'caption2'} weight={'regular'} color={themes.neutralBeige600}>
 							{responseData.selector
 								? getTypeForResponseProperty(responseData.selector)

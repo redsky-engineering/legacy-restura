@@ -4,7 +4,7 @@ import defaultSchema from '../../../../engine/src/defaultSchema.js';
 import http from '../../utils/http.js';
 import cloneDeep from 'lodash.clonedeep';
 
-export type SelectedRoute = { baseUrl: string; path: string };
+export type SelectedRoute = { baseUrl: string; path: string; method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' };
 
 export default class SchemaService extends Service {
 	private lastSchema: Restura.Schema | undefined = undefined;
@@ -54,7 +54,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex] = requestData;
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request === undefined) return;
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request![paramIndex] = requestData;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -63,7 +64,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData).joins[
 			joinIndex
 		] = joinData;
@@ -75,7 +77,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData).where[
 			whereIndex
 		] = whereData;
@@ -87,7 +90,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[paramIndex].validator[
+		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request === undefined) return;
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request![paramIndex].validator[
 			validatorIndex
 		] = validatorData;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
@@ -98,7 +102,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
 		] as Restura.StandardRouteData).joins.push(joinData);
@@ -110,7 +115,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
 		] as Restura.StandardRouteData).joins.splice(joinIndex, 1);
@@ -122,7 +128,11 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].response.push(responseData);
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).response.push(responseData);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -131,7 +141,24 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].response.splice(parameterIndex, 1);
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).response.splice(parameterIndex, 1);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	updateResponseParameter(parameterIndex: number, responseData: Restura.ResponseData) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).response[parameterIndex] = responseData;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -140,9 +167,11 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[
-			requestParamIndex
-		].validator.push({
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		(updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).request[requestParamIndex].validator.push({
 			type: 'MIN',
 			value: 0
 		});
@@ -154,7 +183,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request[
+		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request![
 			requestParamIndex
 		].validator.splice(validatorIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
@@ -165,7 +195,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
 		] as Restura.StandardRouteData).where.push(whereData);
@@ -177,7 +208,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].type === 'CUSTOM') return;
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
 		(updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
 		] as Restura.StandardRouteData).where.splice(whereIndex, 1);
@@ -198,7 +230,8 @@ export default class SchemaService extends Service {
 		if (!schema) return;
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
-		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request.splice(requestParamIndex, 1);
+		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
+		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request!.splice(requestParamIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -211,9 +244,9 @@ export default class SchemaService extends Service {
 		if (!selectedRoute) return indices;
 		indices.endpointIndex = schema.endpoints.findIndex((r) => r.baseUrl === selectedRoute!.baseUrl);
 		if (indices.endpointIndex === -1) throw new Error('Endpoint not found');
-		indices.routeIndex = schema.endpoints[indices.endpointIndex].routes.findIndex(
-			(r) => r.path === selectedRoute!.path
-		);
+		indices.routeIndex = schema.endpoints[indices.endpointIndex].routes.findIndex((r) => {
+			return r.path === selectedRoute!.path && r.method === selectedRoute!.method;
+		});
 		if (indices.routeIndex === -1) throw new Error('Route not found');
 		return indices;
 	}
@@ -262,12 +295,12 @@ export default class SchemaService extends Service {
 
 	static isCustomRouteData(data: Restura.RouteData | undefined): data is Restura.CustomRouteData {
 		if (!data) return false;
-		return data.type === 'CUSTOM';
+		return data.type === 'CUSTOM_ONE' || data.type === 'CUSTOM_ARRAY';
 	}
 
 	static isStandardRouteData(data: Restura.RouteData | undefined): data is Restura.StandardRouteData {
 		if (!data) return false;
-		return data.type !== 'CUSTOM';
+		return data.type !== 'CUSTOM_ONE' && data.type !== 'CUSTOM_ARRAY';
 	}
 
 	static convertSqlTypeToTypescriptType(sqlType: string): string {

@@ -3,7 +3,7 @@ import './MethodPathInput.scss';
 import { Box, InputText, Label, rsToastify, Select } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import serviceFactory from '../../services/serviceFactory';
-import SchemaService from '../../services/schema/SchemaService';
+import SchemaService, { SelectedRoute } from '../../services/schema/SchemaService';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import { useEffect, useState } from 'react';
@@ -14,9 +14,7 @@ interface MethodPathInputProps {
 
 const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const [selectedRoute, setSelectedRoute] = useRecoilState<{ baseUrl: string; path: string } | undefined>(
-		globalState.selectedRoute
-	);
+	const [selectedRoute, setSelectedRoute] = useRecoilState<SelectedRoute | undefined>(globalState.selectedRoute);
 	const [routePath, setRoutePath] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
@@ -26,6 +24,23 @@ const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 	}, [selectedRoute]);
 
 	if (!props.routeData || !selectedRoute) return <></>;
+
+	function isDuplicate(path: string, method: string): boolean {
+		if (!selectedRoute) return false;
+		let endpointIndex = schema!.endpoints.findIndex((item) => item.baseUrl === selectedRoute.baseUrl);
+		if (endpointIndex === -1) {
+			rsToastify.error(`Endpoints with base url ${selectedRoute.baseUrl} not found`, 'Invalid Base Url');
+			return true;
+		}
+		let routeIndex = schema!.endpoints[endpointIndex].routes.findIndex((item) => {
+			return item.path === path && item.method === method;
+		});
+		if (routeIndex !== -1) {
+			rsToastify.error(`Route with path ${path} and method ${method} already exists`, 'Duplicate Route');
+			return true;
+		}
+		return false;
+	}
 
 	return (
 		<Box className={'rsMethodPathInput'}>
@@ -59,9 +74,13 @@ const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 					]}
 					onChange={(newValue) => {
 						if (!newValue || !props.routeData) return;
-						schemaService.updateRouteData(
-							{ ...props.routeData, method: newValue.value }
-						);
+						// Check if they didn't change anything
+						if (newValue.value === selectedRoute.method) return;
+
+						if (isDuplicate(props.routeData.path, newValue.value)) return;
+
+						schemaService.updateRouteData({ ...props.routeData, method: newValue.value });
+						setSelectedRoute({ ...selectedRoute, method: newValue.value });
 					}}
 				/>
 			</Box>
@@ -86,27 +105,9 @@ const MethodPathInput: React.FC<MethodPathInputProps> = (props) => {
 						// Check if they didn't change anything
 						if (newPath === selectedRoute.path) return;
 
-						// Check for duplicates
-						let endpointIndex = schema!.endpoints.findIndex(
-							(item) => item.baseUrl === selectedRoute.baseUrl
-						);
-						if (endpointIndex === -1) {
-							rsToastify.error(
-								`Endpoints with base url ${selectedRoute.baseUrl} not found`,
-								'Invalid Base Url'
-							);
-							return;
-						}
-						let routeIndex = schema!.endpoints[endpointIndex].routes.findIndex(
-							(item) => item.path === newPath
-						);
-						if (routeIndex !== -1) {
-							rsToastify.error(`Route with path ${newPath} already exists`, 'Duplicate Route');
-							return;
-						}
-						schemaService.updateRouteData(
-							{ ...props.routeData, path: newPath }
-						);
+						if (isDuplicate(newPath, props.routeData.method)) return;
+
+						schemaService.updateRouteData({ ...props.routeData, path: newPath });
 						setSelectedRoute({ ...selectedRoute, path: newPath });
 					}}
 				/>

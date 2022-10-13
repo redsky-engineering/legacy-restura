@@ -35,7 +35,7 @@ class GlobalState {
 			default: undefined
 		});
 
-		this.selectedRoute = atom<{ baseUrl: string; path: string } | undefined>({
+		this.selectedRoute = atom<SelectedRoute | undefined>({
 			key: GlobalStateKeys.Route,
 			default: undefined
 		});

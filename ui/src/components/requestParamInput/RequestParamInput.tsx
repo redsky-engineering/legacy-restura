@@ -28,7 +28,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	function sanitizeCheckForDuplicateName(newName: string): string {
 		if (!props.routeData) return '';
 		let sanitizedName = newName.replace(/[$#]/g, '');
-		if (props.routeData.request.find((item) => item.name === sanitizedName)) {
+		if (props.routeData.request && props.routeData.request.find((item) => item.name === sanitizedName)) {
 			rsToastify.error('Parameter name already exists', 'Duplicate Parameter Name');
 			return '';
 		}
@@ -36,7 +36,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	}
 
 	function handleAddNewParameter() {
-		if (!schema || !props.routeData) return;
+		if (!schema || !props.routeData || !props.routeData.request) return;
 		if (!newParameterName) {
 			rsToastify.error('Please enter a name for the new parameter', 'Missing Parameter Name');
 			return;
@@ -55,9 +55,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 			]
 		};
 
-		schemaService.updateRouteData(
-			{ ...props.routeData, request: [...props.routeData.request, newParameter] }
-		);
+		schemaService.updateRouteData({ ...props.routeData, request: [...props.routeData.request, newParameter] });
 		setNewParameterName('');
 	}
 
@@ -92,6 +90,8 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		}
 	}
 
+	if (!props.routeData.request) return <></>;
+
 	return (
 		<Box className={'rsRequestParamInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
@@ -106,9 +106,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								fontSize={16}
 								className={'deleteIcon'}
 								onClick={() => {
-									schemaService.removeRequestParam(
-										paramIndex
-									);
+									schemaService.removeRequestParam(paramIndex);
 								}}
 							/>
 							<InputText
@@ -119,10 +117,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 									if (newValue.target.value === requestParam.name) return;
 									let sanitizedName = sanitizeCheckForDuplicateName(newValue.target.value);
 									if (!sanitizedName) return;
-									schemaService.updateRequestParam(
-										paramIndex,
-										{ ...requestParam, name: sanitizedName }
-									);
+									schemaService.updateRequestParam(paramIndex, {
+										...requestParam,
+										name: sanitizedName
+									});
 								}}
 							/>
 							<Checkbox
@@ -130,10 +128,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								look={'containedPrimary'}
 								checked={requestParam.required}
 								onChange={(newValue) => {
-									schemaService.updateRequestParam(
-										paramIndex,
-										{ ...requestParam, required: newValue.target.checked }
-									);
+									schemaService.updateRequestParam(paramIndex, {
+										...requestParam,
+										required: newValue.target.checked
+									});
 								}}
 							/>
 						</Box>
@@ -151,10 +149,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 											fontSize={16}
 											className={'deleteIcon'}
 											onClick={() => {
-												schemaService.removeValidator(
-													paramIndex,
-													validatorIndex
-												);
+												schemaService.removeValidator(paramIndex, validatorIndex);
 											}}
 										/>
 										<Select
@@ -167,15 +162,11 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 													newValidatorType,
 													validator.value.toString()
 												);
-												schemaService.updateValidator(
-													paramIndex,
-													validatorIndex,
-													{
-														...validator,
-														type: newValidatorType,
-														value: sanitizedValue
-													}
-												);
+												schemaService.updateValidator(paramIndex, validatorIndex, {
+													...validator,
+													type: newValidatorType,
+													value: sanitizedValue
+												});
 											}}
 										/>
 										<InputText
@@ -198,11 +189,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 													validator.type,
 													event.target.value
 												);
-												schemaService.updateValidator(
-													paramIndex,
-													validatorIndex,
-													{ ...validator, value: sanitizedValue }
-												);
+												schemaService.updateValidator(paramIndex, validatorIndex, {
+													...validator,
+													value: sanitizedValue
+												});
 											}}
 										/>
 									</Box>

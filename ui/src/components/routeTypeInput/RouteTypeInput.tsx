@@ -1,7 +1,5 @@
 import * as React from 'react';
 import { Box, Label, Select } from '@redskytech/framework/ui';
-import { useRecoilValue } from 'recoil';
-import globalState from '../../state/globalState';
 import { useMemo } from 'react';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
@@ -18,7 +16,8 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 			{ label: 'One Item', value: 'ONE' },
 			{ label: 'Array of Items', value: 'ARRAY' },
 			{ label: 'Paginated List', value: 'PAGE' },
-			{ label: 'Custom', value: 'CUSTOM' }
+			{ label: 'Custom One Item', value: 'CUSTOM_ONE' },
+			{ label: 'Custom Array', value: 'CUSTOM_ARRAY' }
 		];
 	}, []);
 

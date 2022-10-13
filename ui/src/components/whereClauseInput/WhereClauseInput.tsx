@@ -18,12 +18,15 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 			headerText: 'Select Column',
 			baseTable: props.routeData.table,
 			onColumnSelect: (tableName, columnData) => {
+				if (!SchemaService.isStandardRouteData(props.routeData)) return;
+				let whereClauseLength = props.routeData.where.length;
+
 				schemaService.addWhereClause({
 					tableName,
 					columnName: columnData.name,
 					operator: '=',
 					value: 'TRUE',
-					conjunction: 'AND'
+					...(whereClauseLength > 0 && { conjunction: 'AND' })
 				});
 			},
 			onCustomSelect: () => {

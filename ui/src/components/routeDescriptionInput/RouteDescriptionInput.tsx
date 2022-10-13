@@ -17,7 +17,7 @@ const RouteDescriptionInput: React.FC<RouteDescriptionInputProps> = (props) => {
 	return (
 		<Box className={'rsRouteNameInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
-				Name
+				Description
 			</Label>
 			<InputTextarea
 				inputMode={'text'}
