@@ -10,6 +10,7 @@ import logger from '../../../../src/utils/logger.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
+import compareSchema from "./compareSchema.js";
 import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
@@ -125,11 +126,14 @@ class ResturaEngine {
 		else next();
 	}
 
+
+
 	@boundMethod
 	private async previewCreateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
-			let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
-			res.send({ data: commands });
+			const latestSchema = await this.getLatestDatabaseSchema();
+			const schemaDiff = await compareSchema.diffSchema(req.data, latestSchema);
+			res.send({ data: schemaDiff });
 		} catch (err) {
 			res.status(400).send(err);
 		}
