@@ -164,16 +164,16 @@ declare namespace Restura {
         customTypes: string;
     }
 
-    export interface Change {
+    export interface SchemaChangeValue {
         name: string;
         changeType: 'NEW' | 'MODIFIED' | 'DELETED';
     }
 
     export interface SchemaPreview {
         commands: string;
-        endPoints: Change[];
-        globalParams: Change[];
-        roles: Change[];
+        endPoints: SchemaChangeValue[];
+        globalParams: SchemaChangeValue[];
+        roles: SchemaChangeValue[];
         customTypes: boolean;
     }
 

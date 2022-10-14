@@ -56,7 +56,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 		}
 	}
 
-	function chooseLabelColor(item: Restura.Change): string {
+	function chooseLabelColor(item: Restura.SchemaChangeValue): string {
 		let color = themes.success;
 		if (item.changeType === 'MODIFIED') color = themes.secondaryOrange500;
 		else if (item.changeType === 'DELETED') color = themes.primaryRed500;

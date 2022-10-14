@@ -1,11 +1,10 @@
 import sqlEngine from "./sqlEngine.js";
 import {boundMethod} from "autobind-decorator";
-import restura from "./restura.js";
+import cloneDeep from "lodash.clonedeep";
 
 class CompareSchema {
     @boundMethod
-    async diffSchema(newSchema: Restura.Schema): Promise<Restura.SchemaPreview> {
-        const latestSchema = await restura.getLatestDatabaseSchema();
+    async diffSchema(newSchema: Restura.Schema, latestSchema: Restura.Schema): Promise<Restura.SchemaPreview> {
         let endPoints = this.diffEndPoints(newSchema.endpoints[0].routes, latestSchema.endpoints[0].routes);
         let globalParams = this.diffStringArray(newSchema.globalParams, latestSchema.globalParams);
         let roles = this.diffStringArray(newSchema.roles, latestSchema.roles);
@@ -15,8 +14,8 @@ class CompareSchema {
     }
 
     @boundMethod
-    private diffStringArray(newArray: string[], originalArray: string[]): Restura.Change[] {
-        let stringsDiff: Restura.Change[] = [];
+    private diffStringArray(newArray: string[], originalArray: string[]): Restura.SchemaChangeValue[] {
+        let stringsDiff: Restura.SchemaChangeValue[] = [];
         let originalClone = new Set(originalArray);
         newArray.forEach(item => {
             let originalIndex = originalClone.has(item);
@@ -39,9 +38,9 @@ class CompareSchema {
     }
 
     @boundMethod
-    private diffEndPoints(newEndPoints: Restura.RouteData[], originalEndpoints: Restura.RouteData[]): Restura.Change[] {
-        let originalClone = [...originalEndpoints];
-        let diffObj: Restura.Change[] = [];
+    private diffEndPoints(newEndPoints: Restura.RouteData[], originalEndpoints: Restura.RouteData[]): Restura.SchemaChangeValue[] {
+        let originalClone = cloneDeep(originalEndpoints);
+        let diffObj: Restura.SchemaChangeValue[] = [];
         newEndPoints.forEach(endPoint => {
             let {path, method} = endPoint;
             let endPointIndex = originalClone.findIndex(original => {

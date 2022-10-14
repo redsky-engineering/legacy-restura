@@ -131,7 +131,8 @@ class ResturaEngine {
 	@boundMethod
 	private async previewCreateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
-			const schemaDiff = await compareSchema.diffSchema(req.data);
+			const latestSchema = await this.getLatestDatabaseSchema();
+			const schemaDiff = await compareSchema.diffSchema(req.data, latestSchema);
 			res.send({ data: schemaDiff });
 		} catch (err) {
 			res.status(400).send(err);
@@ -232,7 +233,7 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	async getLatestDatabaseSchema(): Promise<Restura.Schema> {
+	private async getLatestDatabaseSchema(): Promise<Restura.Schema> {
 		return new Promise((resolve, reject) => {
 			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
 				if (err) reject(err);
