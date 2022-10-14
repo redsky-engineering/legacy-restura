@@ -35,9 +35,10 @@ const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
 				})}
 				onChange={(newValue) => {
 					if (!newValue) return;
-					schemaService.updateRouteData(
-						{ ...(props.routeData as Restura.StandardRouteData), table: newValue.value }
-					);
+					schemaService.updateRouteData({
+						...(props.routeData as Restura.StandardRouteData),
+						table: newValue.value
+					});
 				}}
 			/>
 		</Box>

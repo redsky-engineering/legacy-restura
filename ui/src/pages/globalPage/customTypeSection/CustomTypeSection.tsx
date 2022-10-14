@@ -8,8 +8,6 @@ import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 
-
-
 import { useRecoilState } from 'recoil';
 import globalState from '../../../state/globalState';
 

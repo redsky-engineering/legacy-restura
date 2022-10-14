@@ -119,13 +119,7 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 					<Label variant={'h4'} color={themes.neutralWhite} weight={'medium'}>
 						Join Onto {props.baseTable} Table
 					</Label>
-					<Icon
-						iconImg={'icon-close'}
-						onClick={onReject}
-						cursorPointer
-						p={4}
-						fontSize={16}
-					/>
+					<Icon iconImg={'icon-close'} onClick={onReject} cursorPointer p={4} fontSize={16} />
 				</Box>
 				<Box p={'16px 24px 24px 24px'}>{renderForeignKeys()}</Box>
 			</Box>

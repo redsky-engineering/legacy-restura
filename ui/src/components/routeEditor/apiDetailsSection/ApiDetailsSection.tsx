@@ -10,12 +10,12 @@ import BaseTableInput from '../../baseTableInput/BaseTableInput';
 import RequestParamInput from '../../requestParamInput/RequestParamInput';
 import RouteNameInput from '../../routeNameInput/RouteNameInput';
 import RouteDescriptionInput from '../../routeDescriptionInput/RouteDescriptionInput';
-import JoinTableInput from "../../joinTableInput/JoinTableInput";
+import JoinTableInput from '../../joinTableInput/JoinTableInput';
 import WhereClauseInput from '../../whereClauseInput/WhereClauseInput';
 import GroupByInput from '../../groupByInput/GroupByInput';
 import OrderByInput from '../../orderByInput/OrderByInput';
-import useRouteData from "../../../customHooks/useRouteData";
-import {SelectedRoute} from "../../../services/schema/SchemaService";
+import useRouteData from '../../../customHooks/useRouteData';
+import { SelectedRoute } from '../../../services/schema/SchemaService';
 
 interface ApiDetailsSectionProps {}
 

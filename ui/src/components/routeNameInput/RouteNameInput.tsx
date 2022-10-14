@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Box, InputText, Label } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
-import SchemaService, {SelectedRoute} from '../../services/schema/SchemaService';
+import SchemaService, { SelectedRoute } from '../../services/schema/SchemaService';
 import globalState from '../../state/globalState';
 import { useRecoilValue } from 'recoil';
 
@@ -25,9 +25,7 @@ const RouteNameInput: React.FC<RouteNameInputProps> = (props) => {
 				placeholder={'descriptive name'}
 				value={props.routeData.name}
 				onChange={(value) => {
-					schemaService.updateRouteData(
-						{ ...props.routeData!, name: value }
-					);
+					schemaService.updateRouteData({ ...props.routeData!, name: value });
 				}}
 			/>
 		</Box>

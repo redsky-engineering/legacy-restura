@@ -1,14 +1,11 @@
-@import "src/themes/themes";
+@import 'src/themes/themes';
 
 .rsOrderByInput {
-
-	.selectContainer{
+	.selectContainer {
 		display: flex;
 		gap: 16px;
 		& > .rsSelect {
 			width: 50%;
 		}
 	}
-
-
 }

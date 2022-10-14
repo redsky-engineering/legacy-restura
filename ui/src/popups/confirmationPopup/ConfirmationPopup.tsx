@@ -56,9 +56,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 	return (
 		<Popup {...props} preventCloseByBackgroundClick>
 			<Box className={'rsConfirmationPopup'}>
-				<Box
-					className={'header'}
-				>
+				<Box className={'header'}>
 					<Label variant={'h4'} weight={'semiBold'}>
 						{props.headerLabel}
 					</Label>

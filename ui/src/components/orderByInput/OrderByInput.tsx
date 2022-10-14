@@ -31,13 +31,15 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 	}
 
 	function getOrderByOptions() {
-		let options: { value: string; label: string }[] = [ { value: 'not ordered', label: 'not ordered' } ];
-		options = options.concat(joinedColumnList.map((column) => {
-			return {
-				value: `${column.tableName}.${column.columnName}`,
-				label: `${column.tableName}.${column.columnName}`
-			};
-		}));
+		let options: { value: string; label: string }[] = [{ value: 'not ordered', label: 'not ordered' }];
+		options = options.concat(
+			joinedColumnList.map((column) => {
+				return {
+					value: `${column.tableName}.${column.columnName}`,
+					label: `${column.tableName}.${column.columnName}`
+				};
+			})
+		);
 		return options;
 	}
 
@@ -65,7 +67,7 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 							tableName: newValue.value.split('.')[0],
 							columnName: newValue.value.split('.')[1],
 							order: updatedRouteData.orderBy?.order || 'ASC'
-						}
+						};
 						schemaService.updateRouteData(updatedRouteData);
 					}}
 				/>
@@ -85,7 +87,7 @@ const OrderByInput: React.FC<OrderByInputProps> = (props) => {
 							updatedRouteData.orderBy = {
 								...updatedRouteData.orderBy!,
 								order: newValue.value
-							}
+							};
 							schemaService.updateRouteData(updatedRouteData);
 						}}
 					/>

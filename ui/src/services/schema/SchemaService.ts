@@ -136,7 +136,7 @@ export default class SchemaService extends Service {
 			return;
 		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
 			indices.routeIndex
-			] as Restura.StandardRouteData).response;
+		] as Restura.StandardRouteData).response;
 		let path = rootPath.split('.');
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {

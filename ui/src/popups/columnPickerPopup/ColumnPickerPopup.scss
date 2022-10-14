@@ -1,4 +1,4 @@
-@import "src/themes/themes";
+@import 'src/themes/themes';
 
 .rsColumnPickerPopup {
 	width: fit-content;
@@ -64,8 +64,6 @@
 		}
 	}
 
-
-
 	.columnList {
 		background: theme-var($neutralBlack);
 		border-width: 1px 1px 1px 0;
@@ -82,8 +80,6 @@
 				background: theme-var($neutralBeige800);
 			}
 		}
-
-
 	}
 
 	.footer {
