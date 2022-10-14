@@ -73,8 +73,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					selector: `${tableName}.${columnData.name}`,
 					type: getTypeForResponseProperty(`${tableName}.${columnData.name}`)
 				});
-			},
-			onCustomSelect: () => {}
+			}
 		});
 	}
 

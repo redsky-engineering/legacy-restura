@@ -64,6 +64,20 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 	}
 
 	function renderShrunk() {
+		if (!schemaDiffs) return null;
+
+		const newEndpointsCount = schemaDiffs.endPoints.filter((c) => c.changeType === 'NEW').length;
+		const modifiedEndpointsCount = schemaDiffs.endPoints.filter((c) => c.changeType === 'MODIFIED').length;
+		const deletedEndpointsCount = schemaDiffs.endPoints.filter((c) => c.changeType === 'DELETED').length;
+
+		const newGlobalsCount = schemaDiffs.globalParams.filter((c) => c.changeType === 'NEW').length;
+		const modifiedGlobalsCount = schemaDiffs.globalParams.filter((c) => c.changeType === 'MODIFIED').length;
+		const deletedGlobalsCount = schemaDiffs.globalParams.filter((c) => c.changeType === 'DELETED').length;
+
+		const newRolesCount = schemaDiffs.roles.filter((c) => c.changeType === 'NEW').length;
+		const modifiedRolesCount = schemaDiffs.roles.filter((c) => c.changeType === 'MODIFIED').length;
+		const deletedRolesCount = schemaDiffs.roles.filter((c) => c.changeType === 'DELETED').length;
+
 		return (
 			<>
 				<Box className={'sectionBox'} padding={24}>
@@ -78,51 +92,83 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Endpoints
 					</Label>
-					<Label color={themes.success} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'NEW').length} Added
-					</Label>
-					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'MODIFIED').length}{' '}
-						Modified
-					</Label>
-					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.endPoints.filter((endpoint) => endpoint.changeType === 'DELETED').length} Deleted
-					</Label>
+					{!newEndpointsCount && !modifiedEndpointsCount && !deletedEndpointsCount && (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							No Change
+						</Label>
+					)}
+					{!!newEndpointsCount && (
+						<Label color={themes.primaryRed300} variant={'body1'} weight={'regular'}>
+							{newEndpointsCount} Added
+						</Label>
+					)}
+					{!!modifiedEndpointsCount && (
+						<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+							{modifiedEndpointsCount} Modified
+						</Label>
+					)}
+					{!!deletedEndpointsCount && (
+						<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+							{deletedEndpointsCount} Deleted
+						</Label>
+					)}
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Global Parameters
 					</Label>
-					<Label color={themes.success} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'NEW').length} Added
-					</Label>
-					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'MODIFIED').length} Modified
-					</Label>
-					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.globalParams.filter((param) => param.changeType === 'DELETED').length} Deleted
-					</Label>
+					{!newGlobalsCount && !modifiedGlobalsCount && !deletedGlobalsCount && (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							No Change
+						</Label>
+					)}
+					{!!newGlobalsCount && (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							{newGlobalsCount} Added
+						</Label>
+					)}
+					{!!modifiedGlobalsCount && (
+						<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+							{modifiedGlobalsCount} Modified
+						</Label>
+					)}
+					{!!deletedGlobalsCount && (
+						<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+							{deletedGlobalsCount} Deleted
+						</Label>
+					)}
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Roles
 					</Label>
-					<Label color={themes.success} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.roles.filter((role) => role.changeType === 'NEW').length} Added
-					</Label>
-					<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.roles.filter((role) => role.changeType === 'MODIFIED').length} Modified
-					</Label>
-					<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
-						{schemaDiffs?.roles.filter((role) => role.changeType === 'DELETED').length} Deleted
-					</Label>
+					{!newRolesCount && !modifiedRolesCount && !deletedRolesCount && (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							No Change
+						</Label>
+					)}
+					{!!newRolesCount && (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							{newRolesCount} Added
+						</Label>
+					)}
+					{!!modifiedRolesCount && (
+						<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+							{modifiedRolesCount} Modified
+						</Label>
+					)}
+					{!!deletedRolesCount && (
+						<Label color={themes.primaryRed500} variant={'body1'} weight={'regular'}>
+							{deletedRolesCount} Deleted
+						</Label>
+					)}
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						Custom Types
 					</Label>
 					<Label
-						color={schemaDiffs?.customTypes ? themes.success : themes.secondaryOrange500}
+						color={schemaDiffs?.customTypes ? themes.secondaryOrange500 : themes.success}
 						variant={'body1'}
 						weight={'regular'}
 					>
