@@ -5,7 +5,6 @@ import LoginPage from './pages/loginPage/LoginPage.js';
 import LoadingPage from './pages/loadingPage/LoadingPage.js';
 import DatabasePage from './pages/databasePage/DatabasePage.js';
 import EndpointsPage from './pages/endpointsPage/EndpointsPage.js';
-import SubmitPage from './pages/submitPage/SubmitPage.js';
 import GlobalPage from './pages/globalPage/GlobalPage';
 
 export type RoutePaths = '/' | '/database' | '/endpoints' | '/submit' | '/global' | '*' | '/search';
@@ -28,13 +27,6 @@ const routes: I996.RouteDetails<RoutePaths>[] = [
 	{
 		path: '/endpoints',
 		page: EndpointsPage,
-		options: {
-			view: 'admin'
-		}
-	},
-	{
-		path: '/submit',
-		page: SubmitPage,
 		options: {
 			view: 'admin'
 		}
