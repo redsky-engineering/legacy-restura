@@ -37,6 +37,19 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 						let updatedRouteData = { ...props.routeData! };
 						if (newValue.value === 'ONE') {
 							delete (updatedRouteData as Restura.StandardRouteData).orderBy;
+						} else if (newValue.value === 'CUSTOM_ONE' || newValue.value === 'CUSTOM_ARRAY') {
+							if (SchemaService.isStandardRouteData(updatedRouteData)) {
+								updatedRouteData = {
+									description: updatedRouteData.description,
+									method: updatedRouteData.method,
+									name: updatedRouteData.name,
+									path: updatedRouteData.path,
+									request: updatedRouteData.request,
+									roles: updatedRouteData.roles,
+									type: newValue.value,
+									responseType: 'boolean'
+								};
+							}
 						}
 
 						schemaService.updateRouteData({
