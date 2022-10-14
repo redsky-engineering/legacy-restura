@@ -6,7 +6,7 @@ import { Box, Label } from '@redskytech/framework/ui';
 import classNames from 'classnames';
 import GlobalParamSection from './globalParamSection/GlobalParamSection';
 import RoleSection from './roleSection/RoleSection';
-import CustomTypeSection from "./customTypeSection/CustomTypeSection";
+import CustomTypeSection from './customTypeSection/CustomTypeSection';
 
 interface GlobalPageProps {}
 
@@ -45,14 +45,16 @@ const GlobalPage: React.FC<GlobalPageProps> = (props) => {
 			</Box>
 		);
 	}
-	return <Page className={'rsGlobalPage'}>{renderTabHeader()}
-		<Box className={'content'}>
-			{displayedSection === 'CUSTOM_TYPES' && <CustomTypeSection />}
-			{displayedSection === 'GLOBAL_PARAMS' && <GlobalParamSection />}
-			{displayedSection === 'ROLES' && <RoleSection />}
-		</Box>
-
-	</Page>;
+	return (
+		<Page className={'rsGlobalPage'}>
+			{renderTabHeader()}
+			<Box className={'content'}>
+				{displayedSection === 'CUSTOM_TYPES' && <CustomTypeSection />}
+				{displayedSection === 'GLOBAL_PARAMS' && <GlobalParamSection />}
+				{displayedSection === 'ROLES' && <RoleSection />}
+			</Box>
+		</Page>
+	);
 };
 
 export default GlobalPage;

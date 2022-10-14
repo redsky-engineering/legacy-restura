@@ -12,7 +12,7 @@ export interface ColumnPickerPopupProps extends PopupProps {
 	baseTable: string;
 	headerText: string;
 	onColumnSelect: (tableName: string, columnData: Restura.ColumnData) => void;
-	onCustomSelect: () => void;
+	onCustomSelect?: () => void;
 }
 
 const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
@@ -38,7 +38,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 	}
 
 	function handleCustom() {
-		props.onCustomSelect();
+		props.onCustomSelect!();
 		popupController.close(ColumnPickerPopup);
 	}
 
@@ -133,20 +133,23 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 						fontSize={16}
 					/>
 				</Box>
-				<Box p={24}>
+				<Box p={24} height={'calc(60vh - 64px)'}>
 					{renderFilter()}
 					<Box className={'content'}>
 						<Box className={'tableList'}>
 							{renderTableList()}
-							<Box className={'customButton'}>
-								<Button look={'containedPrimary'} onClick={handleCustom} small>
-									Custom
-								</Button>
-							</Box>
+							{!!props.onCustomSelect && (
+								<Box className={'customButton'}>
+									<Button look={'containedPrimary'} onClick={handleCustom} small>
+										Custom
+									</Button>
+								</Box>
+							)}
 							<Box className={'footer'} />
 						</Box>
-						<Box className={'columnList'}>{renderColumnList()}
-							<Box className={'footer'} />
+						<Box className={'columnList'}>
+							{renderColumnList()}
+							<Box className={'columnListFooter'} />
 						</Box>
 					</Box>
 				</Box>

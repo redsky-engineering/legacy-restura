@@ -41,6 +41,7 @@
 
 	[class*='menu'] {
 		//Use to target Menu css
+		z-index: 100;
 		border: 1px solid theme-var($neutralBeige600);
 		box-shadow: unset;
 		background-color: theme-var($neutralBeige800);

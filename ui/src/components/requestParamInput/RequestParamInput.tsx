@@ -7,6 +7,13 @@ import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import { useMemo, useState } from 'react';
 
+import AceEditor from 'react-ace';
+
+import 'ace-builds/src-noconflict/mode-typescript';
+import 'ace-builds/src-noconflict/theme-terminal';
+import 'ace-builds/src-noconflict/ext-language_tools';
+import 'ace-builds/src-min-noconflict/ext-searchbox';
+
 interface RequestParamInputProps {
 	routeData: Restura.RouteData | undefined;
 }
@@ -24,6 +31,14 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 			{ label: 'One Of', value: 'ONE_OF' }
 		];
 	}, []);
+
+	const customRequestTypeOptions = useMemo<{ label: string; value: string }[]>(() => {
+		if (!schema) return [];
+
+		let matches = schema.customTypes.match(/(?<=\binterface\s)(\w+)/g);
+		if (!matches) return [];
+		return matches.map((item) => ({ label: item, value: item }));
+	}, [schema]);
 
 	function sanitizeCheckForDuplicateName(newName: string): string {
 		if (!props.routeData) return '';
@@ -90,144 +105,215 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		}
 	}
 
-	if (!props.routeData.request) return <></>;
+	function renderStandardRequestParameters() {
+		if (!props.routeData || !props.routeData.request) return null;
+
+		return (
+			<>
+				{props.routeData.request.map((requestParam, paramIndex) => {
+					return (
+						<Box key={`${requestParam.name}_${paramIndex}`} className={'requestParam'}>
+							<Box className={'paramNameRequired'}>
+								<Icon
+									iconImg={'icon-delete'}
+									fontSize={16}
+									className={'deleteIcon'}
+									onClick={() => {
+										schemaService.removeRequestParam(paramIndex);
+									}}
+								/>
+								<InputText
+									inputMode={'text'}
+									placeholder={'name'}
+									defaultValue={requestParam.name}
+									onBlur={(newValue) => {
+										if (newValue.target.value === requestParam.name) return;
+										let sanitizedName = sanitizeCheckForDuplicateName(newValue.target.value);
+										if (!sanitizedName) return;
+										schemaService.updateRequestParam(paramIndex, {
+											...requestParam,
+											name: sanitizedName
+										});
+									}}
+								/>
+								<Checkbox
+									labelText={'Required'}
+									look={'containedPrimary'}
+									checked={requestParam.required}
+									onChange={(newValue) => {
+										schemaService.updateRequestParam(paramIndex, {
+											...requestParam,
+											required: newValue.target.checked
+										});
+									}}
+								/>
+							</Box>
+							<Box className={'paramValidators'}>
+								{requestParam.validator.map((validator, validatorIndex) => {
+									return (
+										<Box
+											display={'flex'}
+											gap={8}
+											key={`${validator.type}_${validatorIndex}`}
+											position={'relative'}
+										>
+											<Icon
+												iconImg={'icon-delete'}
+												fontSize={16}
+												className={'deleteIcon'}
+												onClick={() => {
+													schemaService.removeValidator(paramIndex, validatorIndex);
+												}}
+											/>
+											<Select
+												value={paramValidatorOptions.find(
+													(item) => item.value === validator.type
+												)}
+												options={paramValidatorOptions}
+												onChange={(newValue) => {
+													if (!newValue) return;
+													let newValidatorType = newValue.value as Restura.ValidatorData['type'];
+													let sanitizedValue = parseValueFromType(
+														newValidatorType,
+														validator.value.toString()
+													);
+													schemaService.updateValidator(paramIndex, validatorIndex, {
+														...validator,
+														type: newValidatorType,
+														value: sanitizedValue
+													});
+												}}
+											/>
+											<InputText
+												inputMode={'text'}
+												placeholder={'value'}
+												defaultValue={
+													Array.isArray(validator.value)
+														? validator.value.join(',')
+														: validator.value
+												}
+												onBlur={(event) => {
+													if (!isValidValueFromType(validator.type, event.target.value)) {
+														rsToastify.error(
+															'Invalid value for given validator type.',
+															'Invalid value'
+														);
+														return;
+													}
+													let sanitizedValue = parseValueFromType(
+														validator.type,
+														event.target.value
+													);
+													schemaService.updateValidator(paramIndex, validatorIndex, {
+														...validator,
+														value: sanitizedValue
+													});
+												}}
+											/>
+										</Box>
+									);
+								})}
+							</Box>
+							<Button
+								look={'containedPrimary'}
+								className={'circleButton'}
+								onClick={() => {
+									schemaService.addValidator(paramIndex);
+								}}
+							>
+								<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
+								Validator
+							</Button>
+						</Box>
+					);
+				})}
+				<Box className={'parameterInput'}>
+					<InputText
+						value={newParameterName}
+						onChange={(value) => setNewParameterName(value)}
+						inputMode={'text'}
+						placeholder={'name'}
+						onKeyDown={(event) => {
+							if (event.key === 'Enter') {
+								handleAddNewParameter();
+							}
+						}}
+					/>
+					<Button look={'outlinedPrimary'} onClick={handleAddNewParameter}>
+						Add
+					</Button>
+				</Box>
+			</>
+		);
+	}
+
+	function renderCustomRequestType() {
+		if (!schema) return null;
+		if (!SchemaService.isCustomRouteData(props.routeData)) return null;
+		let requestPreviewText = props.routeData.requestType || 'SELECT A TYPE ABOVE!!!';
+		if (props.routeData.requestType)
+			requestPreviewText = SchemaService.getInterfaceFromCustomTypes(
+				props.routeData.requestType,
+				schema.customTypes
+			);
+
+		return (
+			<>
+				<Select
+					value={{ label: props.routeData.requestType, value: props.routeData.requestType }}
+					options={customRequestTypeOptions}
+					mb={32}
+					onChange={(newValue) => {
+						if (!newValue) return;
+						if (!SchemaService.isCustomRouteData(props.routeData)) return null;
+						schemaService.updateRouteData({ ...props.routeData, requestType: newValue.value });
+					}}
+				/>
+				<AceEditor
+					width={'100%'}
+					fontSize={14}
+					height={'500px'}
+					mode="typescript"
+					theme="terminal"
+					name="CustomType"
+					editorProps={{ $blockScrolling: true }}
+					value={requestPreviewText}
+					readOnly
+					highlightActiveLine={false}
+				/>
+			</>
+		);
+	}
 
 	return (
 		<Box className={'rsRequestParamInput'}>
-			<Label variant={'body1'} weight={'regular'} mb={4}>
-				Parameters ({props.routeData.request.length})
-			</Label>
-			{props.routeData.request.map((requestParam, paramIndex) => {
-				return (
-					<Box key={`${requestParam.name}_${paramIndex}`} className={'requestParam'}>
-						<Box className={'paramNameRequired'}>
-							<Icon
-								iconImg={'icon-delete'}
-								fontSize={16}
-								className={'deleteIcon'}
-								onClick={() => {
-									schemaService.removeRequestParam(paramIndex);
-								}}
-							/>
-							<InputText
-								inputMode={'text'}
-								placeholder={'name'}
-								defaultValue={requestParam.name}
-								onBlur={(newValue) => {
-									if (newValue.target.value === requestParam.name) return;
-									let sanitizedName = sanitizeCheckForDuplicateName(newValue.target.value);
-									if (!sanitizedName) return;
-									schemaService.updateRequestParam(paramIndex, {
-										...requestParam,
-										name: sanitizedName
-									});
-								}}
-							/>
-							<Checkbox
-								labelText={'Required'}
-								look={'containedPrimary'}
-								checked={requestParam.required}
-								onChange={(newValue) => {
-									schemaService.updateRequestParam(paramIndex, {
-										...requestParam,
-										required: newValue.target.checked
-									});
-								}}
-							/>
-						</Box>
-						<Box className={'paramValidators'}>
-							{requestParam.validator.map((validator, validatorIndex) => {
-								return (
-									<Box
-										display={'flex'}
-										gap={8}
-										key={`${validator.type}_${validatorIndex}`}
-										position={'relative'}
-									>
-										<Icon
-											iconImg={'icon-delete'}
-											fontSize={16}
-											className={'deleteIcon'}
-											onClick={() => {
-												schemaService.removeValidator(paramIndex, validatorIndex);
-											}}
-										/>
-										<Select
-											value={paramValidatorOptions.find((item) => item.value === validator.type)}
-											options={paramValidatorOptions}
-											onChange={(newValue) => {
-												if (!newValue) return;
-												let newValidatorType = newValue.value as Restura.ValidatorData['type'];
-												let sanitizedValue = parseValueFromType(
-													newValidatorType,
-													validator.value.toString()
-												);
-												schemaService.updateValidator(paramIndex, validatorIndex, {
-													...validator,
-													type: newValidatorType,
-													value: sanitizedValue
-												});
-											}}
-										/>
-										<InputText
-											inputMode={'text'}
-											placeholder={'value'}
-											defaultValue={
-												Array.isArray(validator.value)
-													? validator.value.join(',')
-													: validator.value
-											}
-											onBlur={(event) => {
-												if (!isValidValueFromType(validator.type, event.target.value)) {
-													rsToastify.error(
-														'Invalid value for given validator type.',
-														'Invalid value'
-													);
-													return;
-												}
-												let sanitizedValue = parseValueFromType(
-													validator.type,
-													event.target.value
-												);
-												schemaService.updateValidator(paramIndex, validatorIndex, {
-													...validator,
-													value: sanitizedValue
-												});
-											}}
-										/>
-									</Box>
-								);
-							})}
-						</Box>
-						<Button
-							look={'containedPrimary'}
-							className={'circleButton'}
-							onClick={() => {
-								schemaService.addValidator(paramIndex);
-							}}
-						>
-							<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
-							Validator
-						</Button>
-					</Box>
-				);
-			})}
-			<Box className={'parameterInput'}>
-				<InputText
-					value={newParameterName}
-					onChange={(value) => setNewParameterName(value)}
-					inputMode={'text'}
-					placeholder={'name'}
-					onKeyDown={(event) => {
-						if (event.key === 'Enter') {
-							handleAddNewParameter();
-						}
-					}}
-				/>
-				<Button look={'outlinedPrimary'} onClick={handleAddNewParameter}>
-					Add
-				</Button>
+			<Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
+				<Label variant={'body1'} weight={'regular'} mb={4}>
+					{!!props.routeData.request ? `Parameters (${props.routeData.request.length})` : 'Parameter Type'}
+				</Label>
+				{SchemaService.isCustomRouteData(props.routeData) && (
+					<Checkbox
+						labelText={'Standard Request'}
+						look={'textPrimary'}
+						labelPosition={'TOP'}
+						checked={!!props.routeData.request}
+						onChange={(event) => {
+							if (!schema || !props.routeData) return;
+							let updatedRouteData = { ...props.routeData };
+							if (event.currentTarget.checked) {
+								if ('requestType' in updatedRouteData) delete updatedRouteData.requestType;
+								updatedRouteData.request = [];
+								schemaService.updateRouteData(updatedRouteData);
+							} else {
+								delete updatedRouteData.request;
+								schemaService.updateRouteData(updatedRouteData);
+							}
+						}}
+					/>
+				)}
 			</Box>
+			{!!props.routeData.request && renderStandardRequestParameters()}
+			{!props.routeData.request && renderCustomRequestType()}
 		</Box>
 	);
 };

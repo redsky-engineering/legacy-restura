@@ -7,8 +7,8 @@ import globalState from '../../../state/globalState';
 import type JSONEditor from 'jsoneditor';
 import type { JSONEditorOptions } from 'jsoneditor';
 import serviceFactory from '../../../services/serviceFactory';
-import SchemaService, {SelectedRoute} from '../../../services/schema/SchemaService';
-import useRouteData from "../../../customHooks/useRouteData";
+import SchemaService, { SelectedRoute } from '../../../services/schema/SchemaService';
+import useRouteData from '../../../customHooks/useRouteData';
 
 interface RawDataSectionProps {}
 

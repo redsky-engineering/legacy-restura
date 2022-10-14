@@ -35,9 +35,7 @@ const PermissionInput: React.FC<PermissionInputProps> = (props) => {
 				})}
 				onChange={(newValue) => {
 					if (!newValue) return;
-					schemaService.updateRouteData(
-						{ ...props.routeData!, roles: newValue.map((item) => item.value) }
-					);
+					schemaService.updateRouteData({ ...props.routeData!, roles: newValue.map((item) => item.value) });
 				}}
 			/>
 		</Box>

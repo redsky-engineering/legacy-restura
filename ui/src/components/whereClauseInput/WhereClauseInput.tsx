@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './WhereClauseInput.scss';
-import { Box, Button, Icon, InputText, Label, popupController, Select } from '@redskytech/framework/ui';
+import { Box, Button, Icon, Label, popupController, Select } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
@@ -85,7 +85,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 							<AutoComplete
 								options={[
 									...schema.globalParams.map((param) => `#${param}`),
-									...props.routeData!.request.map((request) => `$${request.name}`)
+									...props.routeData!.request!.map((request) => `$${request.name}`)
 								]}
 								startSymbols={['$', '#']}
 								value={whereData.custom}
@@ -134,7 +134,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 							<AutoComplete
 								options={[
 									...schema.globalParams.map((param) => `#${param}`),
-									...props.routeData!.request.map((request) => `$${request.name}`)
+									...props.routeData!.request!.map((request) => `$${request.name}`)
 								]}
 								startSymbols={['$', '#']}
 								value={whereData.value || ''}

@@ -64,9 +64,7 @@ const RoleSection: React.FC<RoleSectionProps> = (props) => {
 								onClick={() => {
 									if (!schema) return;
 									let updatedSchema = cloneDeep(schema);
-									updatedSchema.roles = updatedSchema.roles.filter(
-										(item) => item !== role
-									);
+									updatedSchema.roles = updatedSchema.roles.filter((item) => item !== role);
 									setSchema(updatedSchema);
 								}}
 							/>

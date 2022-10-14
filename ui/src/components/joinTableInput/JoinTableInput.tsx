@@ -95,7 +95,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 							options={
 								[
 									...schema.globalParams.map((param) => `#${param}`),
-									...props.routeData!.request.map((request) => `$${request.name}`)
+									...props.routeData!.request!.map((request) => `$${request.name}`)
 								] || []
 							}
 							startSymbols={['$', '#']}

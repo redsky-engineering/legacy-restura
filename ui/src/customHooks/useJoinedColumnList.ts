@@ -3,14 +3,15 @@ import SchemaService from '../services/schema/SchemaService';
 
 export type CombinedTableColumnName = { tableName: string; columnName: string };
 
-export default function useJoinedColumnList(schema: Restura.Schema | undefined, routeData: Restura.RouteData | undefined) : CombinedTableColumnName[]{
+export default function useJoinedColumnList(
+	schema: Restura.Schema | undefined,
+	routeData: Restura.RouteData | undefined
+): CombinedTableColumnName[] {
 	const joinedColumnList = useMemo<CombinedTableColumnName[]>(() => {
 		if (!schema || !routeData) return [];
 		if (!SchemaService.isStandardRouteData(routeData)) return [];
 
-		let baseTable = schema.database.find(
-			(table) => table.name === (routeData as Restura.StandardRouteData).table
-		);
+		let baseTable = schema.database.find((table) => table.name === (routeData as Restura.StandardRouteData).table);
 		if (!baseTable) return [];
 		let columnList: CombinedTableColumnName[] = baseTable.columns.map((column) => {
 			return { tableName: baseTable!.name, columnName: column.name };

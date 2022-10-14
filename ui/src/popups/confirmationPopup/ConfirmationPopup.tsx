@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './ConfirmationPopup.scss';
-import { Box, Button, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
+import { Box, Button, Icon, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 
 export interface ConfirmationPopupProps extends PopupProps {
@@ -42,11 +42,11 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 		return (
 			<>
 				{!!props.rejectLabel && (
-					<Button look={'outlinedPrimary'} onClick={onReject} >
+					<Button look={'outlinedPrimary'} onClick={onReject}>
 						{props.rejectLabel}
 					</Button>
 				)}
-				<Button look={'containedPrimary'} onClick={onAccept} >
+				<Button look={'containedPrimary'} onClick={onAccept}>
 					{props.acceptLabel}
 				</Button>
 			</>
@@ -56,13 +56,14 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = (props) => {
 	return (
 		<Popup {...props} preventCloseByBackgroundClick>
 			<Box className={'rsConfirmationPopup'}>
-				<Box height={36} bgColor={themes.neutralBeige700} p={'6px 8px'}>
-					<Label variant={'h6'} color={themes.neutralWhite} weight={'medium'}>
+				<Box className={'header'}>
+					<Label variant={'h4'} weight={'semiBold'}>
 						{props.headerLabel}
 					</Label>
+					<Icon iconImg={'icon-close'} fontSize={24} onClick={onReject} />
 				</Box>
 				<Box p={'16px 24px 24px 24px'}>
-					<Label variant={'subheader2'} mb={24} weight={'medium'}>
+					<Label variant={'body1'} mb={24} weight={'regular'}>
 						{props.label}
 					</Label>
 					<Box display={'flex'} alignItems={'center'} justifyContent={'space-around'} gap={24}>

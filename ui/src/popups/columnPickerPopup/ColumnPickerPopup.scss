@@ -1,10 +1,10 @@
-@import "src/themes/themes";
+@import 'src/themes/themes';
 
 .rsColumnPickerPopup {
 	width: fit-content;
 	min-width: 385px;
 	max-width: 500px;
-	min-height: 50vh;
+	height: 60vh;
 	position: absolute;
 	background: theme-var($neutralBeige900);
 	border: 1px solid theme-var($neutralBeige700);
@@ -24,6 +24,7 @@
 	.content {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
+		height: calc(100% - 48px);
 	}
 
 	.filter {
@@ -63,8 +64,6 @@
 		}
 	}
 
-
-
 	.columnList {
 		background: theme-var($neutralBlack);
 		border-width: 1px 1px 1px 0;
@@ -72,6 +71,7 @@
 		border-color: theme-var($primaryRed700);
 		border-radius: 0 4px 4px 0;
 		cursor: pointer;
+		overflow-y: auto;
 
 		.columnListItem {
 			padding: 10px 8px;
@@ -80,12 +80,14 @@
 				background: theme-var($neutralBeige800);
 			}
 		}
-
-
 	}
 
 	.footer {
 		border-right: 1px solid theme-var($primaryRed500_50);
+		flex-grow: 1;
+	}
+
+	.columnListFooter {
 		flex-grow: 1;
 	}
 }

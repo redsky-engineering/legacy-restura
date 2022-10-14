@@ -210,11 +210,18 @@ const ForeignKeySection: React.FC<ForeignKeySectionProps> = (props) => {
 				{renderForeignKeysHeader()}
 				{renderForeignKeys()}
 			</Box>
-			<Button mt={8} look={'iconPrimary'} onClick={addNewForeignKey} icon={[{
-				iconImg: 'icon-plus',
-				fontSize: 16,
-				position: 'LEFT'
-			}]} />
+			<Button
+				mt={8}
+				look={'iconPrimary'}
+				onClick={addNewForeignKey}
+				icon={[
+					{
+						iconImg: 'icon-plus',
+						fontSize: 16,
+						position: 'LEFT'
+					}
+				]}
+			/>
 		</Box>
 	);
 };
