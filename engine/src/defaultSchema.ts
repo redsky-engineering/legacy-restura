@@ -190,33 +190,27 @@ const defaultSchema: Restura.Schema = {
 					response: [
 						{
 							name: 'id',
-							selector: 'user.id',
-							type: 'number'
+							selector: 'user.id'
 						},
 						{
 							name: 'firstName',
-							selector: 'user.firstName',
-							type: 'string'
+							selector: 'user.firstName'
 						},
 						{
 							name: 'lastName',
-							selector: 'user.lastName',
-							type: 'string'
+							selector: 'user.lastName'
 						},
 						{
 							name: 'createdOn',
-							selector: 'user.createdOn',
-							type: 'datetime'
+							selector: 'user.createdOn'
 						},
 						{
 							name: 'bigBadCompanyName',
-							selector: 'company.name',
-							type: 'string'
+							selector: 'company.name'
 						},
 						{
 							name: 'companyCreatedOn',
-							selector: 'company.createdOn',
-							type: 'datetime'
+							selector: 'company.createdOn'
 						}
 					],
 					where: [
@@ -241,18 +235,15 @@ const defaultSchema: Restura.Schema = {
 					response: [
 						{
 							name: 'id',
-							selector: 'user.id',
-							type: 'number'
+							selector: 'user.id'
 						},
 						{
 							name: 'firstName',
-							selector: 'user.firstName',
-							type: 'string'
+							selector: 'user.firstName'
 						},
 						{
 							name: 'lastName',
-							selector: 'user.lastName',
-							type: 'string'
+							selector: 'user.lastName'
 						}
 					],
 					where: [

@@ -251,17 +251,16 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		if (!schema) return null;
 		if (!SchemaService.isCustomRouteData(props.routeData)) return null;
 		let requestPreviewText = props.routeData.requestType || 'SELECT A TYPE ABOVE!!!';
-		if (props.routeData.requestType) {
-			let start = schema.customTypes.indexOf(`interface ${props.routeData.requestType}`);
-			if (start !== -1) {
-				let end = schema.customTypes.indexOf('}', start);
-				requestPreviewText = schema.customTypes.substring(start, end + 1);
-			}
-		}
+		if (props.routeData.requestType)
+			requestPreviewText = SchemaService.getInterfaceFromCustomTypes(
+				props.routeData.requestType,
+				schema.customTypes
+			);
 
 		return (
 			<>
 				<Select
+					value={{ label: props.routeData.requestType, value: props.routeData.requestType }}
 					options={customRequestTypeOptions}
 					mb={32}
 					onChange={(newValue) => {
@@ -300,10 +299,12 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 						checked={!!props.routeData.request}
 						onChange={(event) => {
 							if (!schema || !props.routeData) return;
+							let updatedRouteData = { ...props.routeData };
 							if (event.currentTarget.checked) {
-								schemaService.updateRouteData({ ...props.routeData, request: [] });
+								if ('requestType' in updatedRouteData) delete updatedRouteData.requestType;
+								updatedRouteData.request = [];
+								schemaService.updateRouteData(updatedRouteData);
 							} else {
-								let updatedRouteData = { ...props.routeData };
 								delete updatedRouteData.request;
 								schemaService.updateRouteData(updatedRouteData);
 							}

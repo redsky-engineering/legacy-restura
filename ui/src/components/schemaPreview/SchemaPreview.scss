@@ -8,7 +8,7 @@
 	background-color: theme-var($neutralBlack);
 	width: 0;
 	height: 100%;
-	transition: width 0.5s ease-in-out, height 0.5s ease-in-out;
+	transition: width theme-var($transitionTime) ease-in-out, height theme-var($transitionTime) ease-in-out;
 	box-shadow: -7px 9px 15px 0px theme-var($primaryRed700);
 	&.open {
 		width: 500px;
@@ -24,7 +24,12 @@
 		}
 	}
 
-	.expandShrink:hover {
+	.expandShrink {
 		cursor: pointer;
+		color: theme-var($neutralBeige300);
+		padding: 4px;
+		&:hover {
+			color: theme-var($secondaryOrange500);
+		}
 	}
 }

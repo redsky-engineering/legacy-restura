@@ -1,10 +1,9 @@
 import * as React from 'react';
 import './ResponseSection.scss';
-import { Box, Button, Icon, InputText, Label, popupController, Select } from '@redskytech/framework/ui';
+import { Box, Button, Label, popupController, Select } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
-import { useMemo, useState } from 'react';
-import themes from '../../../themes/themes.scss?export';
+import { useMemo } from 'react';
 import serviceFactory from '../../../services/serviceFactory';
 import SchemaService from '../../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../../popups/columnPickerPopup/ColumnPickerPopup';
@@ -17,13 +16,14 @@ import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
+import ResponseProperty from '../../responseProperty/ResponseProperty';
+import ResponseObjectArray from '../../responseObjectArray/ResponseObjectArray';
 
 interface ResponseSectionProps {}
 
 const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const [editingAliasIndex, setEditingAliasIndex] = useState<number>(-1);
 
 	const routeData = useRouteData();
 
@@ -41,19 +41,6 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		return [...options, ...matches.map((item) => ({ label: item, value: item }))];
 	}, [schema]);
 
-	function getTypeForResponseProperty(selector: string): string {
-		if (!schema || !routeData) return '';
-		let tableName = selector.split('.')[0];
-		let columnName = selector.split('.')[1];
-
-		let table = schema.database.find((item) => item.name === tableName);
-		if (!table) return '';
-		let column = table.columns.find((item) => item.name === columnName);
-		if (!column) return '';
-
-		return SchemaService.convertSqlTypeToTypescriptType(column.type);
-	}
-
 	function handleAddProperty() {
 		if (!routeData) return;
 		if (!SchemaService.isStandardRouteData(routeData)) return;
@@ -65,79 +52,40 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					tableName === routeData.table
 						? columnData.name
 						: `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
-				// Check for duplicate name
-				if (routeData.response.find((item) => item.name === name))
-					name += '_' + Math.random().toString(36).substring(2, 6).toUpperCase();
-				schemaService.addResponseParameter({
+				schemaService.addResponseParameter('root', {
 					name,
-					selector: `${tableName}.${columnData.name}`,
-					type: getTypeForResponseProperty(`${tableName}.${columnData.name}`)
+					selector: `${tableName}.${columnData.name}`
 				});
 			}
 		});
 	}
 
+	function handleAddObjectArray() {
+		schemaService.addResponseParameter('root', {
+			name: 'newObjectArray_' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+			objectArray: []
+		});
+	}
+
 	function renderResponseObject(standardRouteData: Restura.StandardRouteData) {
 		return standardRouteData.response.map((responseData, parameterIndex) => {
-			return (
-				<Box key={responseData.name} className={'responseItem'}>
-					<Icon
-						fontSize={16}
-						iconImg={'icon-delete'}
-						className={'deleteIcon'}
-						onClick={() => {
-							if (!routeData) return;
-							schemaService.removeResponseParameter(parameterIndex);
-						}}
-						cursorPointer
+			{
+				return responseData.objectArray ? (
+					<ResponseObjectArray
+						key={responseData.name}
+						responseData={responseData}
+						parameterIndex={parameterIndex}
+						rootPath={'root'}
 					/>
-					<Box>
-						{editingAliasIndex === parameterIndex ? (
-							<InputText
-								inputMode={'text'}
-								autoFocus
-								onBlur={(event) => {
-									setEditingAliasIndex(-1);
-									schemaService.updateResponseParameter(parameterIndex, {
-										...responseData,
-										name: event.currentTarget.value
-									});
-								}}
-								onKeyDown={(event) => {
-									if (event.key === 'Escape') {
-										setEditingAliasIndex(-1);
-										return;
-									} else if (event.key === 'Enter') {
-										setEditingAliasIndex(-1);
-										schemaService.updateResponseParameter(parameterIndex, {
-											...responseData,
-											name: event.currentTarget.value
-										});
-									}
-								}}
-								defaultValue={responseData.name}
-							/>
-						) : (
-							<Label
-								variant={'body1'}
-								weight={'regular'}
-								className={'responseAlias'}
-								onClick={() => setEditingAliasIndex(parameterIndex)}
-							>
-								{responseData.name}:
-							</Label>
-						)}
-						<Label variant={'caption2'} weight={'regular'} color={themes.neutralBeige600}>
-							{responseData.selector
-								? getTypeForResponseProperty(responseData.selector)
-								: responseData.type}
-						</Label>
-					</Box>
-					<Label variant={'body1'} weight={'regular'} color={themes.secondaryOrange500} p={8}>
-						{responseData.selector}
-					</Label>
-				</Box>
-			);
+				) : (
+					<ResponseProperty
+						key={responseData.name}
+						responseData={responseData}
+						parameterIndex={parameterIndex}
+						rootPath={'root'}
+					/>
+				);
+			}
 		});
 	}
 
@@ -148,7 +96,9 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					<Button look={'textPrimary'} onClick={handleAddProperty}>
 						Add Property
 					</Button>
-					<Button look={'textPrimary'}>Add Array of Objects</Button>
+					<Button look={'textPrimary'} onClick={handleAddObjectArray}>
+						Add Array of Objects
+					</Button>
 				</Box>
 				{renderResponseObject(standardRouteData)}
 			</>
@@ -158,13 +108,11 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	function renderCustomResponse(customRouteData: Restura.CustomRouteData) {
 		if (!schema) return <></>;
 		let responsePreviewText = customRouteData.responseType;
-		if (!['boolean', 'string', 'number'].includes(customRouteData.responseType)) {
-			let start = schema.customTypes.indexOf(`interface ${customRouteData.responseType}`);
-			if (start !== -1) {
-				let end = schema.customTypes.indexOf('}', start);
-				responsePreviewText = schema.customTypes.substring(start, end + 1);
-			}
-		}
+		if (!['boolean', 'string', 'number'].includes(customRouteData.responseType))
+			responsePreviewText = SchemaService.getInterfaceFromCustomTypes(
+				customRouteData.requestType || '',
+				schema.customTypes
+			);
 
 		return (
 			<Box>

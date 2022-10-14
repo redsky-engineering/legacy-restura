@@ -87,18 +87,10 @@ declare namespace Restura {
         type: 'INNER' | 'LEFT';
     }
 
-    export interface ResponseStructureData {
-        name: string;
-        type: 'number' | 'string' | 'Date' | 'object' | string;
-        selector?: string;
-        structure?: ResponseStructureData;
-    }
-
     export interface ResponseData {
         name: string;
-        type: 'number' | 'string' | 'Date' | 'object' | 'array' | string;
         selector?: string;
-        structure?: ResponseStructureData;
+        objectArray?: ResponseData[];
     }
 
     export interface WhereData {
