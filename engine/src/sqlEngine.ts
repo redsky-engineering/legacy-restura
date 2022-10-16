@@ -2,6 +2,7 @@ import connection from '../../../../src/database/connection.js';
 import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
+import mysql from "mysql";
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema): Promise<string> {
@@ -15,10 +16,21 @@ class SqlEngine {
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
 	): Promise<any> {
+		if (!this.doesRoleHavePermissionToTable(req.requesterDetails.role, schema, routeData.table))
+			throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
+
 		let sqlParams: any[] = [];
-		let sqlStatement = this.generateSqlFromRoute(req, routeData, schema, sqlParams);
-		if (routeData.type === 'ONE') return await connection.queryOne(sqlStatement, sqlParams);
-		else return await connection.runQuery(sqlStatement, sqlParams);
+		switch(routeData.method) {
+			case 'POST':
+				return this.executeCreateRequest(req, routeData, schema, sqlParams);
+			case 'GET':
+				return this.executeGetRequest(req, routeData, schema, sqlParams);
+			case 'PUT':
+			case 'PATCH':
+				return this.executeUpdateRequest(req, routeData, schema, sqlParams);
+			case 'DELETE':
+				return this.executeDeleteRequest(req, routeData, schema, sqlParams);
+		}
 	}
 
 	generateDatabaseSchemaFromSchema(schema: Restura.Schema): string {
@@ -71,17 +83,29 @@ class SqlEngine {
 		return sqlFullStatement;
 	}
 
-	private generateSqlFromRoute(
+	private async executeCreateRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema,
 		sqlParams: any[]
-	): string {
-		let userRole = req.requesterDetails.role;
-		let sqlStatement = 'SELECT \n';
+	): Promise<any> {
+		let sqlStatement = `INSERT INTO \`${routeData.table}\` SET ?;`;
+		const createdItem = await connection.runQuery(sqlStatement, req.body);
+		const insertId = createdItem.insertId;
+		const whereData: Restura.WhereData = {tableName: routeData.table, value: `${insertId}`, columnName: "id", operator: "="};
+		routeData.where = [whereData];
+		req.data = {id: insertId};
+		return this.executeGetRequest(req, routeData, schema, sqlParams);
+	}
 
-		if (!this.doesRoleHavePermissionToTable(userRole, schema, routeData.table))
-			throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
+	private async executeGetRequest(
+		req: RsRequest<any>,
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema,
+		sqlParams: any[]
+	): Promise<any> {
+		let userRole = req.requesterDetails.role;
+		let sqlStatement = '';
 
 		let selectColumns: { selector: string; aliasName: string }[] = [];
 		routeData.response.forEach((item) => {
@@ -92,8 +116,8 @@ class SqlEngine {
 				selectColumns.push({ selector: item.selector, aliasName: item.name });
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
-
-		sqlStatement += `\t${selectColumns
+		let selectStatement = 'SELECT \n';
+		selectStatement += `\t${selectColumns
 			.map((item) => {
 				return `${item.selector} AS ${item.aliasName}`;
 			})
@@ -104,7 +128,42 @@ class SqlEngine {
 		sqlStatement += this.generateGroupBy(routeData);
 		sqlStatement += this.generateOrderBy(routeData);
 		sqlStatement += ';';
-		return sqlStatement;
+		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement}`, sqlParams);
+		else if (routeData.type ==='PAGED') {
+			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement}SELECT COUNT(*) AS total\n${sqlStatement}`);
+			let total = 0;
+			if (ObjectUtils.isArrayWithData(pageResults)) {
+				total = pageResults[1][0].total;
+			}
+			return { data: pageResults[0], total };
+		}
+		else return await connection.runQuery(`${selectStatement}${sqlStatement}`, sqlParams);
+	}
+
+	private async executeUpdateRequest(
+		req: RsRequest<any>,
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema,
+		sqlParams: any[]
+	): Promise<any> {
+		let sqlStatement = `UPDATE \`${routeData.table}\` SET ? `;
+		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
+		sqlStatement += ';';
+		await connection.runQuery(sqlStatement, [req.body, ...sqlParams]);
+		return this.executeGetRequest(req, routeData, schema, sqlParams);
+	}
+
+	private async executeDeleteRequest(
+		req: RsRequest<any>,
+		routeData: Restura.StandardRouteData,
+		schema: Restura.Schema,
+		sqlParams: any[]
+	): Promise<any> {
+		let deleteStatement = `DELETE \n \tFROM ${routeData.table} `;
+		deleteStatement += this.generateWhereClause(req, routeData, sqlParams);
+		deleteStatement += ';';
+		await connection.runQuery(deleteStatement, sqlParams);
+		return req.data;
 	}
 
 	private doesRoleHavePermissionToColumn(
