@@ -47,6 +47,24 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		popupController.close(ColumnPickerPopup);
 	}
 
+	function handleAddAll() {
+		if (!schema) return;
+		let foundTable = schema.database.find((item) => item.name === selectedTable);
+		if (!foundTable) return null;
+		let filteredColumns = foundTable.columns.filter((columnData) => {
+			if (filterValue === '') return true;
+			return columnData.name.includes(filterValue);
+		});
+		filteredColumns.forEach((columnData, index) => {
+			// We have to delay because the recoil value will not be updated if we fired the event too quickly
+			setTimeout(() => {
+				console.log(columnData.name);
+				props.onColumnSelect(selectedTable, columnData);
+			}, 10*index);
+		});
+		popupController.close(ColumnPickerPopup);
+	}
+
 	function renderFilter() {
 		return (
 			<Box className={'filter'}>
@@ -148,6 +166,12 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 							<Box className={'footer'} />
 						</Box>
 						<Box className={'columnList'}>
+							<Box className={'addAllBtn columnListItem'} onClick={handleAddAll}>
+								<Icon iconImg={'icon-plus'} fontSize={16} />
+								<Label variant={'caption1'} weight={'regular'}>
+									Add All
+								</Label>
+							</Box>
 							{renderColumnList()}
 							<Box className={'columnListFooter'} />
 						</Box>

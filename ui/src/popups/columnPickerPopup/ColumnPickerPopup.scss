@@ -12,6 +12,26 @@
 	box-shadow: 1px 3px 8px -4px rgba(0, 0, 0, 0.3);
 	z-index: 10;
 
+	.addAllBtn {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		height: 32px;
+		gap: 8px;
+		padding: 8px;
+		border-bottom: 1px solid theme-var($neutralBeige800);
+
+		.rsIcon, .rsLabel {
+			color: theme-var($neutralBeige400);
+		}
+		&:hover {
+			background-color: theme-var($neutralBeige800);
+			.rsIcon, .rsLabel {
+				color: theme-var($secondaryOrange500);
+			}
+		}
+	}
+
 	.header {
 		height: 64px;
 		padding: 0 16px;
