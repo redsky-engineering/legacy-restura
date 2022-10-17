@@ -19,6 +19,7 @@ interface RequestParamInputProps {
 }
 
 const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
+	const pageParams = ['page', 'perPage', 'filter'];
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [newParameterName, setNewParameterName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
@@ -111,20 +112,24 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		return (
 			<>
 				{props.routeData.request.map((requestParam, paramIndex) => {
+					const isPageParam = pageParams.includes(requestParam.name);
 					return (
 						<Box key={`${requestParam.name}_${paramIndex}`} className={'requestParam'}>
 							<Box className={'paramNameRequired'}>
-								<Icon
-									iconImg={'icon-delete'}
-									fontSize={16}
-									className={'deleteIcon'}
-									onClick={() => {
-										schemaService.removeRequestParam(paramIndex);
-									}}
-								/>
+								{!isPageParam && (
+									<Icon
+										iconImg={'icon-delete'}
+										fontSize={16}
+										className={'deleteIcon'}
+										onClick={() => {
+											schemaService.removeRequestParam(paramIndex);
+										}}
+									/>
+								)}
 								<InputText
 									inputMode={'text'}
 									placeholder={'name'}
+									disabled={isPageParam}
 									defaultValue={requestParam.name}
 									onBlur={(newValue) => {
 										if (newValue.target.value === requestParam.name) return;
@@ -139,6 +144,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								<Checkbox
 									labelText={'Required'}
 									look={'containedPrimary'}
+									disabled={isPageParam}
 									checked={requestParam.required}
 									onChange={(newValue) => {
 										schemaService.updateRequestParam(paramIndex, {
@@ -157,19 +163,22 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 											key={`${validator.type}_${validatorIndex}`}
 											position={'relative'}
 										>
-											<Icon
-												iconImg={'icon-delete'}
-												fontSize={16}
-												className={'deleteIcon'}
-												onClick={() => {
-													schemaService.removeValidator(paramIndex, validatorIndex);
-												}}
-											/>
+											{!isPageParam && (
+												<Icon
+													iconImg={'icon-delete'}
+													fontSize={16}
+													className={'deleteIcon'}
+													onClick={() => {
+														schemaService.removeValidator(paramIndex, validatorIndex);
+													}}
+												/>
+											)}
 											<Select
 												value={paramValidatorOptions.find(
 													(item) => item.value === validator.type
 												)}
 												options={paramValidatorOptions}
+												isDisabled={isPageParam}
 												onChange={(newValue) => {
 													if (!newValue) return;
 													let newValidatorType = newValue.value as Restura.ValidatorData['type'];
@@ -187,6 +196,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 											<InputText
 												inputMode={'text'}
 												placeholder={'value'}
+												disabled={isPageParam}
 												defaultValue={
 													Array.isArray(validator.value)
 														? validator.value.join(',')
@@ -214,16 +224,18 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 									);
 								})}
 							</Box>
-							<Button
-								look={'containedPrimary'}
-								className={'circleButton'}
-								onClick={() => {
-									schemaService.addValidator(paramIndex);
-								}}
-							>
-								<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
-								Validator
-							</Button>
+							{!isPageParam && (
+								<Button
+									look={'containedPrimary'}
+									className={'circleButton'}
+									onClick={() => {
+										schemaService.addValidator(paramIndex);
+									}}
+								>
+									<Icon iconImg={'icon-plus'} fontSize={16} mr={8} />
+									Validator
+								</Button>
+							)}
 						</Box>
 					);
 				})}
