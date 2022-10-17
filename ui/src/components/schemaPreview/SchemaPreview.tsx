@@ -6,7 +6,7 @@ import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
-import { ObjectUtils, WebUtils } from '../../utils/utils';
+import { ObjectUtils, StringUtils, WebUtils } from '../../utils/utils';
 import classNames from 'classnames';
 import PageHeader from '../pageHeader/PageHeader';
 import { useOnClickOutsideRef } from '@redskytech/framework/hooks';
@@ -30,6 +30,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 	});
 
 	useEffect(() => {
+		if (!expand) return;
 		Prism.highlightAll();
 	}, [schemaDiffs?.commands, expand]);
 
@@ -183,9 +184,21 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 		return (
 			<>
 				<Box className={'sectionBox'} padding={24}>
-					<Label variant={'h6'} weight={'medium'} mb={8}>
-						SQL Statements
-					</Label>
+					<Box display={'flex'} gap={8} alignItems={'flex-end'} justifyContent={'space-between'} mb={8}>
+						<Label variant={'h6'} weight={'medium'} >
+							SQL Statements
+						</Label>
+						<Button
+							look={'outlinedPrimary'}
+							onClick={() => {
+								StringUtils.copyToClipboard(schemaDiffs?.commands || '');
+								rsToastify.success('SQL statements copied to clipboard','Copied SQL');
+							}}
+							small
+						>
+							Copy SQL to Clipboard
+						</Button>
+					</Box>
 					<pre>
 						<code className={'sqlStatements language-sql'}>{schemaDiffs?.commands}</code>
 					</pre>
@@ -198,7 +211,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 						<Box>
 							{schemaDiffs?.endPoints.map((endpoint) => {
 								return (
-									<Box display={'flex'} alignItems={'center'} gap={24}>
+									<Box key={endpoint.name} display={'flex'} alignItems={'center'} gap={24}>
 										<Label variant={'body1'} weight={'regular'}>
 											{endpoint.name}
 										</Label>
@@ -223,7 +236,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 						<Box>
 							{schemaDiffs?.globalParams.map((param) => {
 								return (
-									<Box display={'flex'} alignItems={'center'} gap={24}>
+									<Box key={param.name} display={'flex'} alignItems={'center'} gap={24}>
 										<Label variant={'body1'} weight={'regular'}>
 											{param.name}
 										</Label>
@@ -244,7 +257,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 						<Box>
 							{schemaDiffs?.roles.map((role) => {
 								return (
-									<Box display={'flex'} alignItems={'center'} gap={24}>
+									<Box key={role.name} display={'flex'} alignItems={'center'} gap={24}>
 										<Label variant={'body1'} weight={'regular'}>
 											{role.name}
 										</Label>
@@ -296,7 +309,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					/>
 				}
 			/>
-			{expand ? renderExpanded() : renderShrunk()}
+			<Box className={'content'}>{expand ? renderExpanded() : renderShrunk()}</Box>
 		</Box>
 	);
 };
