@@ -1,33 +1,64 @@
 import * as React from 'react';
-import './JoinSelectorPopup.scss';
+import './NestedObjectSelectorPopup.scss';
 import { Box, Icon, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import { useMemo } from 'react';
 
-export interface JoinSelectorPopupProps extends PopupProps {
+export interface NestedObjectSelectorPopupProps extends PopupProps {
 	baseTable: string;
-	onSelect: (type: 'CUSTOM' | 'STANDARD', localColumn: string, foreignTable: string, foreignColumn: string) => void;
+	onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => void;
 }
 
-const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
+const NestedObjectSelectorPopup: React.FC<NestedObjectSelectorPopupProps> = (props) => {
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
-	const tableForeignKeys = useMemo<Restura.ForeignKeyData[]>(() => {
+	const tableForeignKeys = useMemo<{ table: string; column: string; refTable: string; refColumn: string }[]>(() => {
 		if (!schema) return [];
 		let table = schema.database.find((item) => item.name === props.baseTable);
 		if (!table) return [];
-		return table.foreignKeys;
+		let foreignKeys = table.foreignKeys.map((fk) => {
+			return {
+				table: props.baseTable,
+				column: fk.column,
+				refTable: fk.refTable,
+				refColumn: fk.refColumn
+			};
+		});
+		foreignKeys = foreignKeys.concat(
+			schema.database
+				.filter((item) => {
+					if (item.name === props.baseTable) return false;
+					return item.foreignKeys.find((fk) => fk.refTable === props.baseTable) !== undefined;
+				})
+				.map((item) =>
+					item.foreignKeys
+						.filter((fk) => {
+							return fk.refTable === props.baseTable;
+						})
+						.map((fk) => {
+							return {
+								table: props.baseTable,
+								column: fk.refColumn,
+								refTable: item.name,
+								refColumn: fk.column
+							};
+						})
+				)
+				.flat()
+		);
+		console.log(foreignKeys);
+		return foreignKeys;
 	}, [schema]);
 
-	function onAccept(type: 'CUSTOM' | 'STANDARD', localColumn: string, foreignTable: string, foreignColumn: string) {
-		props.onSelect(type, localColumn, foreignTable, foreignColumn);
-		popupController.close(JoinSelectorPopup);
+	function onAccept(localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) {
+		props.onSelect(localTable, localColumn, foreignTable, foreignColumn);
+		popupController.close(NestedObjectSelectorPopup);
 	}
 
 	function onReject() {
-		popupController.close(JoinSelectorPopup);
+		popupController.close(NestedObjectSelectorPopup);
 	}
 
 	function renderForeignKeys() {
@@ -50,17 +81,9 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 					Ref Column
 				</Label>
 				<Box className={'tableHeader'} />
-				{tableForeignKeys.map((foreignKey) => {
+				{tableForeignKeys.map((foreignKey, index) => {
 					return (
-						<Box key={foreignKey.name} display={'contents'} className={'tableRow'}>
-							<Label
-								className={'tableItem'}
-								variant={'caption1'}
-								color={themes.neutralWhite}
-								weight={'regular'}
-							>
-								{foreignKey.refTable}
-							</Label>
+						<Box key={index} display={'contents'} className={'tableRow'}>
 							<Label
 								className={'tableItem'}
 								variant={'caption1'}
@@ -68,6 +91,14 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 								weight={'regular'}
 							>
 								{foreignKey.column}
+							</Label>
+							<Label
+								className={'tableItem'}
+								variant={'caption1'}
+								color={themes.neutralWhite}
+								weight={'regular'}
+							>
+								{foreignKey.refTable}
 							</Label>
 							<Label
 								className={'tableItem'}
@@ -84,20 +115,7 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 									cursorPointer
 									onClick={() => {
 										onAccept(
-											'STANDARD',
-											foreignKey.column,
-											foreignKey.refTable,
-											foreignKey.refColumn
-										);
-									}}
-								/>
-								<Icon
-									iconImg={'icon-edit'}
-									fontSize={16}
-									cursorPointer
-									onClick={() => {
-										onAccept(
-											'CUSTOM',
+											foreignKey.table,
 											foreignKey.column,
 											foreignKey.refTable,
 											foreignKey.refColumn
@@ -114,10 +132,10 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 
 	return (
 		<Popup {...props} preventCloseByBackgroundClick>
-			<Box className={'rsJoinSelectorPopup'}>
+			<Box className={'rsNestedObjectSelector'}>
 				<Box className={'header'}>
 					<Label variant={'h4'} color={themes.neutralWhite} weight={'medium'}>
-						Join Onto {props.baseTable} Table
+						Select Foreign Relationship
 					</Label>
 					<Icon iconImg={'icon-close'} onClick={onReject} cursorPointer p={4} fontSize={16} />
 				</Box>
@@ -127,4 +145,4 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 	);
 };
 
-export default JoinSelectorPopup;
+export default NestedObjectSelectorPopup;

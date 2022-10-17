@@ -7,7 +7,9 @@ import { useState } from 'react';
 import themes from '../../themes/themes.scss?export';
 import ResponseProperty from '../responseProperty/ResponseProperty';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
-import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSelectorPopup/JoinSelectorPopup';
+import NestedObjectSelectorPopup, {
+	NestedObjectSelectorPopupProps
+} from '../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
 
 interface ResponseObjectArrayProps {
 	responseData: Restura.ResponseData;
@@ -21,22 +23,14 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 
 	function handleAddObjectArray() {
 		if (!props.responseData.objectArray) return;
-		popupController.open<JoinSelectorPopupProps>(JoinSelectorPopup, {
+		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
 			baseTable: props.responseData.objectArray.table,
-			disallowCustom: true,
-			onSelect: (
-				type: 'CUSTOM' | 'STANDARD',
-				localColumn: string,
-				foreignTable: string,
-				foreignColumn: string
-			) => {
-				schemaService.addResponseParameter('root', {
+			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
+				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
 					name: foreignTable,
 					objectArray: {
 						table: foreignTable,
-						join: `${
-							props.responseData.objectArray!.table
-						}.${localColumn} = ${foreignTable}.${foreignColumn}`,
+						join: `${localTable}.${localColumn} = ${foreignTable}.${foreignColumn}`,
 						properties: []
 					}
 				});

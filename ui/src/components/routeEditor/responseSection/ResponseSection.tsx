@@ -18,7 +18,9 @@ import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import ResponseProperty from '../../responseProperty/ResponseProperty';
 import ResponseObjectArray from '../../responseObjectArray/ResponseObjectArray';
-import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../../popups/joinSelectorPopup/JoinSelectorPopup';
+import NestedObjectSelectorPopup, {
+	NestedObjectSelectorPopupProps
+} from '../../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
 
 interface ResponseSectionProps {}
 
@@ -42,6 +44,24 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		return [...options, ...matches.map((item) => ({ label: item, value: item }))];
 	}, [schema]);
 
+	function handleAddObjectArray() {
+		if (!routeData) return;
+		if (!SchemaService.isStandardRouteData(routeData)) return;
+		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
+			baseTable: routeData.table,
+			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
+				schemaService.addResponseParameter('root', {
+					name: foreignTable,
+					objectArray: {
+						table: foreignTable,
+						join: `${localTable}.${localColumn} = ${foreignTable}.${foreignColumn}`,
+						properties: []
+					}
+				});
+			}
+		});
+	}
+
 	function handleAddProperty() {
 		if (!routeData) return;
 		if (!SchemaService.isStandardRouteData(routeData)) return;
@@ -56,30 +76,6 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 				schemaService.addResponseParameter('root', {
 					name,
 					selector: `${tableName}.${columnData.name}`
-				});
-			}
-		});
-	}
-
-	function handleAddObjectArray() {
-		if (!routeData) return;
-		if (!SchemaService.isStandardRouteData(routeData)) return;
-		popupController.open<JoinSelectorPopupProps>(JoinSelectorPopup, {
-			baseTable: routeData.table,
-			disallowCustom: true,
-			onSelect: (
-				type: 'CUSTOM' | 'STANDARD',
-				localColumn: string,
-				foreignTable: string,
-				foreignColumn: string
-			) => {
-				schemaService.addResponseParameter('root', {
-					name: foreignTable,
-					objectArray: {
-						table: foreignTable,
-						join: `${routeData.table}.${localColumn} = ${foreignTable}.${foreignColumn}`,
-						properties: []
-					}
 				});
 			}
 		});
