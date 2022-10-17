@@ -15,7 +15,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 		return [
 			{ label: 'One Item', value: 'ONE' },
 			{ label: 'Array of Items', value: 'ARRAY' },
-			{ label: 'Paginated List', value: 'PAGE' },
+			{ label: 'Paginated List', value: 'PAGED' },
 			{ label: 'Custom One Item', value: 'CUSTOM_ONE' },
 			{ label: 'Custom Array', value: 'CUSTOM_ARRAY' }
 		];
