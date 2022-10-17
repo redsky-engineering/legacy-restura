@@ -145,7 +145,7 @@ export default class SchemaService extends Service {
 				return item.name === path[i] && !!item.objectArray;
 			}) as Restura.ResponseData | undefined;
 			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray;
+			currentResponseData = objectArrayData.objectArray?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		// Check for duplicate name
@@ -173,7 +173,7 @@ export default class SchemaService extends Service {
 				return item.name === path[i] && !!item.objectArray;
 			}) as Restura.ResponseData | undefined;
 			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray;
+			currentResponseData = objectArrayData.objectArray?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		currentResponseData.splice(parameterIndex, 1);
@@ -198,7 +198,7 @@ export default class SchemaService extends Service {
 				return item.name === path[i] && !!item.objectArray;
 			}) as Restura.ResponseData | undefined;
 			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray;
+			currentResponseData = objectArrayData.objectArray?.properties;
 		}
 		if (currentResponseData === undefined) return;
 
