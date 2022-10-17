@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 
 export interface JoinSelectorPopupProps extends PopupProps {
 	baseTable: string;
+	disallowCustom?: boolean;
 	onSelect: (type: 'CUSTOM' | 'STANDARD', localColumn: string, foreignTable: string, foreignColumn: string) => void;
 }
 
@@ -91,19 +92,21 @@ const JoinSelectorPopup: React.FC<JoinSelectorPopupProps> = (props) => {
 										);
 									}}
 								/>
-								<Icon
-									iconImg={'icon-edit'}
-									fontSize={16}
-									cursorPointer
-									onClick={() => {
-										onAccept(
-											'CUSTOM',
-											foreignKey.column,
-											foreignKey.refTable,
-											foreignKey.refColumn
-										);
-									}}
-								/>
+								{!props.disallowCustom && (
+									<Icon
+										iconImg={'icon-edit'}
+										fontSize={16}
+										cursorPointer
+										onClick={() => {
+											onAccept(
+												'CUSTOM',
+												foreignKey.column,
+												foreignKey.refTable,
+												foreignKey.refColumn
+											);
+										}}
+									/>
+								)}
 							</Box>
 						</Box>
 					);

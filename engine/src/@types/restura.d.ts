@@ -90,7 +90,11 @@ declare namespace Restura {
     export interface ResponseData {
         name: string;
         selector?: string;
-        objectArray?: ResponseData[];
+        objectArray?: {
+            table: string;
+            join: string;
+            properties: ResponseData[];
+        };
     }
 
     export interface WhereData {

@@ -7,8 +7,7 @@ import { useState } from 'react';
 import themes from '../../themes/themes.scss?export';
 import ResponseProperty from '../responseProperty/ResponseProperty';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
-import { StringUtils } from '../../utils/utils';
-import useRouteData from '../../customHooks/useRouteData';
+import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSelectorPopup/JoinSelectorPopup';
 
 interface ResponseObjectArrayProps {
 	responseData: Restura.ResponseData;
@@ -20,28 +19,40 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 
-	const routeData = useRouteData();
-
 	function handleAddObjectArray() {
-		schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
-			name: 'newObjectArray_' + Math.random().toString(36).substring(2, 6).toUpperCase(),
-			objectArray: []
+		if (!props.responseData.objectArray) return;
+		popupController.open<JoinSelectorPopupProps>(JoinSelectorPopup, {
+			baseTable: props.responseData.objectArray.table,
+			disallowCustom: true,
+			onSelect: (
+				type: 'CUSTOM' | 'STANDARD',
+				localColumn: string,
+				foreignTable: string,
+				foreignColumn: string
+			) => {
+				schemaService.addResponseParameter('root', {
+					name: foreignTable,
+					objectArray: {
+						table: foreignTable,
+						join: `${
+							props.responseData.objectArray!.table
+						}.${localColumn} = ${foreignTable}.${foreignColumn}`,
+						properties: []
+					}
+				});
+			}
 		});
 	}
 
 	function handleAddProperty() {
-		if (!routeData) return;
-		if (!SchemaService.isStandardRouteData(routeData)) return;
+		if (!props.responseData.objectArray) return;
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
-			baseTable: routeData.table,
+			baseTable: props.responseData.objectArray.table,
+			baseTableOnly: true,
 			headerText: 'Select Column',
 			onColumnSelect: (tableName, columnData) => {
-				let name =
-					tableName === routeData.table
-						? columnData.name
-						: `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
 				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
-					name,
+					name: columnData.name,
 					selector: `${tableName}.${columnData.name}`
 				});
 			}
@@ -97,7 +108,7 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 						</Label>
 					)}
 					<Label variant={'caption2'} weight={'regular'} color={themes.neutralBeige600}>
-						Object Array
+						Object Array ({props.responseData.objectArray?.table})
 					</Label>
 				</Box>
 				<Button look={'textPrimary'} onClick={handleAddProperty}>
@@ -108,7 +119,7 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 				</Button>
 			</Box>
 			<Box pl={40}>
-				{props.responseData.objectArray?.map((item, parameterIndex) => {
+				{props.responseData.objectArray?.properties.map((item, parameterIndex) => {
 					if (item.objectArray) {
 						return (
 							<ResponseObjectArray

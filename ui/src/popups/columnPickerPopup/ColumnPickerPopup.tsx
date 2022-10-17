@@ -11,6 +11,7 @@ import SchemaService from '../../services/schema/SchemaService';
 export interface ColumnPickerPopupProps extends PopupProps {
 	baseTable: string;
 	headerText: string;
+	baseTableOnly?: boolean;
 	onColumnSelect: (tableName: string, columnData: Restura.ColumnData) => void;
 	onCustomSelect?: () => void;
 }
@@ -25,6 +26,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		if (!schema) return [props.baseTable];
 		let table = schema.database.find((item) => item.name === props.baseTable);
 		if (!table) return [props.baseTable];
+		if (props.baseTableOnly) return [props.baseTable];
 		return [props.baseTable, ...table.foreignKeys.map((item) => item.refTable)];
 	}, [schema]);
 

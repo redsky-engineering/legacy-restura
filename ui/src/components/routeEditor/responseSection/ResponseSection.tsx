@@ -18,6 +18,7 @@ import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import ResponseProperty from '../../responseProperty/ResponseProperty';
 import ResponseObjectArray from '../../responseObjectArray/ResponseObjectArray';
+import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../../popups/joinSelectorPopup/JoinSelectorPopup';
 
 interface ResponseSectionProps {}
 
@@ -61,9 +62,26 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	}
 
 	function handleAddObjectArray() {
-		schemaService.addResponseParameter('root', {
-			name: 'newObjectArray_' + Math.random().toString(36).substring(2, 6).toUpperCase(),
-			objectArray: []
+		if (!routeData) return;
+		if (!SchemaService.isStandardRouteData(routeData)) return;
+		popupController.open<JoinSelectorPopupProps>(JoinSelectorPopup, {
+			baseTable: routeData.table,
+			disallowCustom: true,
+			onSelect: (
+				type: 'CUSTOM' | 'STANDARD',
+				localColumn: string,
+				foreignTable: string,
+				foreignColumn: string
+			) => {
+				schemaService.addResponseParameter('root', {
+					name: foreignTable,
+					objectArray: {
+						table: foreignTable,
+						join: `${routeData.table}.${localColumn} = ${foreignTable}.${foreignColumn}`,
+						properties: []
+					}
+				});
+			}
 		});
 	}
 
@@ -90,6 +108,14 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	}
 
 	function renderStandardResponse(standardRouteData: Restura.StandardRouteData) {
+		if (standardRouteData.method === 'DELETE')
+			return (
+				<Label variant={'body1'} weight={'regular'}>
+					Returns {'{'}data: true{'}'} on success otherwise an HTML failure code with appropriate error
+					response object.
+				</Label>
+			);
+
 		return (
 			<>
 				<Box display={'flex'} gap={8}>
