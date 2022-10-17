@@ -2,7 +2,7 @@ import connection from '../../../../src/database/connection.js';
 import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
-import mysql from "mysql";
+import filterSqlParser from "../../../../src/utils/filterSqlParser.js";
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema): Promise<string> {
@@ -84,6 +84,32 @@ class SqlEngine {
 		return sqlFullStatement;
 	}
 
+	private createNestedSelect(req: RsRequest<any>, schema: Restura.Schema, item: Restura.ResponseData): string {
+		if(!item.objectArray) return "";
+		if(!ObjectUtils.isArrayWithData(item.objectArray.properties.filter(nestedItem => {
+			return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem)
+		}))) {
+			return "'[]'";
+		}
+		return `IFNULL((
+						SELECT JSON_ARRAYAGG(
+							JSON_OBJECT(
+								${item.objectArray.properties.map(nestedItem => {
+									if(!this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem)) {
+										return;
+									}
+									if(nestedItem.objectArray) {
+										return `"${nestedItem.name}", ${this.createNestedSelect(req, schema, nestedItem)}`
+									}
+									return `"${nestedItem.name}", ${nestedItem.selector}`
+								}).filter(Boolean).join(",")}
+							)
+						) FROM
+							${item.objectArray.table}
+							WHERE ${item.objectArray.join}
+					), '[]')`
+	}
+
 	private async executeCreateRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
@@ -108,19 +134,19 @@ class SqlEngine {
 		let userRole = req.requesterDetails.role;
 		let sqlStatement = '';
 
-		let selectColumns: { selector: string; aliasName: string }[] = [];
+		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (!item.selector) return;
-			let tableName = item.selector.split('.')[0];
-			let columnName = item.selector.split('.')[1];
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, tableName, columnName))
-				selectColumns.push({ selector: item.selector, aliasName: item.name });
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray)
+				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
 		let selectStatement = 'SELECT \n';
 		selectStatement += `\t${selectColumns
 			.map((item) => {
-				return `${item.selector} AS ${item.aliasName}`;
+				if(item.objectArray) {
+					return `${this.createNestedSelect(req, schema, item)} AS ${item.name}`;
+				}
+				return `${item.selector} AS ${item.name}`;
 			})
 			.join(',\n\t')}\n`;
 		sqlStatement += `FROM \`${routeData.table}\`\n`;
@@ -128,17 +154,16 @@ class SqlEngine {
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += this.generateGroupBy(routeData);
 		sqlStatement += this.generateOrderBy(routeData);
-		sqlStatement += ';';
-		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement}`, sqlParams);
+		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
 		else if (routeData.type ==='PAGED') {
-			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement}SELECT COUNT(*) AS total\n${sqlStatement}`);
+			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [req.data.perPage, (req.data.page-1)*req.data.perPage]);
 			let total = 0;
 			if (ObjectUtils.isArrayWithData(pageResults)) {
 				total = pageResults[1][0].total;
 			}
 			return { data: pageResults[0], total };
 		}
-		else return await connection.runQuery(`${selectStatement}${sqlStatement}`, sqlParams);
+		else return await connection.runQuery(`${selectStatement}${sqlStatement};`, sqlParams);
 	}
 
 	private async executeUpdateRequest(
@@ -164,20 +189,29 @@ class SqlEngine {
 		deleteStatement += this.generateWhereClause(req, routeData, sqlParams);
 		deleteStatement += ';';
 		await connection.runQuery(deleteStatement, sqlParams);
-		return req.data;
+		return {data: true};
 	}
 
 	private doesRoleHavePermissionToColumn(
 		role: string,
 		schema: Restura.Schema,
-		tableName: string,
-		columnName: string
+		item: Restura.ResponseData
 	): boolean {
-		let tableSchema = schema.database.find((item) => item.name === tableName);
-		if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
-		let columnSchema = tableSchema.columns.find((item) => item.name === columnName);
-		if (!columnSchema) throw new RsError('SCHEMA_ERROR', `Column ${columnName} not found in table ${tableName}`);
-		return !(ObjectUtils.isArrayWithData(columnSchema.roles) && !columnSchema.roles.includes(role));
+		if(item.selector) {
+			let tableName = item.selector.split('.')[0];
+			let columnName = item.selector.split('.')[1];
+			let tableSchema = schema.database.find((item) => item.name === tableName);
+			if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
+			let columnSchema = tableSchema.columns.find((item) => item.name === columnName);
+			if (!columnSchema) throw new RsError('SCHEMA_ERROR', `Column ${columnName} not found in table ${tableName}`);
+			return !(ObjectUtils.isArrayWithData(columnSchema.roles) && !columnSchema.roles.includes(role));
+		}
+		if(item.objectArray) {
+			return ObjectUtils.isArrayWithData(item.objectArray.properties.filter(nestedItem => {
+				return this.doesRoleHavePermissionToColumn(role, schema, nestedItem)
+			}));
+		}
+		return false;
 	}
 
 	private doesRoleHavePermissionToTable(userRole: string, schema: Restura.Schema, tableName: string): boolean {
@@ -269,6 +303,30 @@ class SqlEngine {
 				item.columnName
 			}\` ${operator} ${replacedValue}\n`;
 		});
+		if(routeData.type === 'PAGED') {
+			let statement = req.data.filter.replace(/\$[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
+				let requestParam = routeData.request!.find((item) => {
+					return item.name === value.replace('$', '');
+				})
+				if (!requestParam) throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
+				return req.data[requestParam.name];
+			});
+
+			statement = statement.replace(/#[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
+				let requestParam = routeData.request!.find((item) => {
+					return item.name === value.replace('#', '');
+				})
+				if (!requestParam) throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
+				return req.data[requestParam.name];
+			});
+
+			statement = filterSqlParser.parse(statement);
+			if(whereClause.startsWith('WHERE')) {
+				whereClause += ` AND ${statement}\n`
+			} else {
+				whereClause += `WHERE ${statement}\n`;
+			}
+		}
 
 		return whereClause;
 	}
