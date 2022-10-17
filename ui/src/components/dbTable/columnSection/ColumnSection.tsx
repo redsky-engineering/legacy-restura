@@ -182,7 +182,12 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 			columnData.hasAutoIncrement = true;
 			columnData.isNullable = false;
 			delete columnData.length;
-		} else if (newColumnName === 'firstName' || newColumnName === 'lastName') {
+		} else if (newColumnName.endsWith('On')) {
+			columnData.type = 'DATETIME';
+			columnData.isNullable = false;
+			columnData.default = 'now()';
+			delete columnData.length;
+		} else if (newColumnName === 'firstName' || newColumnName === 'lastName' || newColumnName === 'name') {
 			columnData.type = 'VARCHAR';
 			columnData.length = 30;
 		} else if (newColumnName === 'address1') {

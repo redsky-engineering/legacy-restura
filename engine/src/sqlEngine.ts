@@ -59,13 +59,14 @@ class SqlEngine {
 		for (let table of schema.database) {
 			if (!table.foreignKeys.length) continue;
 			let sql = `ALTER TABLE \`${table.name}\`\n`;
+			let constraints : string [] = [];
 			for (let foreignKey of table.foreignKeys) {
-				sql += `\tADD CONSTRAINT \`${foreignKey.name}\` FOREIGN KEY (\`${foreignKey.column}\`) REFERENCES \`${foreignKey.refTable}\`(\`${foreignKey.refColumn}\`)`;
-				sql += ` ON DELETE ${foreignKey.onDelete}`;
-				sql += ` ON UPDATE ${foreignKey.onUpdate}`;
-				sql += ';\n';
+				let constraint = `\tADD CONSTRAINT \`${foreignKey.name}\` FOREIGN KEY (\`${foreignKey.column}\`) REFERENCES \`${foreignKey.refTable}\`(\`${foreignKey.refColumn}\`)`;
+				constraint += ` ON DELETE ${foreignKey.onDelete}`;
+				constraint += ` ON UPDATE ${foreignKey.onUpdate}`;
+				constraints.push(constraint);
 			}
-			sqlStatements.push(sql);
+			sqlStatements.push(sql + constraints.join(',\n') + ';');
 		}
 		let sqlFullStatement = sqlStatements.join('\n\n');
 		return sqlFullStatement;
