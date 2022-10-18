@@ -41,14 +41,20 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 								(request) => !['page', 'perPage', 'filter'].includes(request.name)
 							);
 						}
+
 						if (newValue.value === 'ONE') {
 							delete (updatedRouteData as Restura.StandardRouteData).orderBy;
 						} else if (newValue.value === 'CUSTOM_ONE' || newValue.value === 'CUSTOM_ARRAY') {
 							if (SchemaService.isStandardRouteData(updatedRouteData)) {
 								updatedRouteData = {
-									...updatedRouteData,
 									type: newValue.value,
-									responseType: 'boolean'
+									responseType: 'boolean',
+									request: updatedRouteData.request,
+									method: updatedRouteData.method,
+									name: updatedRouteData.name,
+									description: updatedRouteData.description,
+									path: updatedRouteData.path,
+									roles: updatedRouteData.roles
 								};
 							}
 						} else if (newValue.value === 'PAGED') {
