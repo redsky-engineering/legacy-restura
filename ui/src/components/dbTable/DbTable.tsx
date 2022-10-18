@@ -76,7 +76,7 @@ const DbTable: React.FC<DbTableProps> = (props) => {
 								onKeyDown={onKeyDown}
 							/>
 						) : (
-							<Label variant={'h3'} weight={'medium'}>
+							<Label variant={'subheader2'} weight={'regular'}>
 								{props.tableName}
 							</Label>
 						)}
