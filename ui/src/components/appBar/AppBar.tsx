@@ -3,7 +3,7 @@ import './AppBar.scss';
 import UserBadge from '../userBadge/UserBadge';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
-import { Box, Button, Img } from '@redskytech/framework/ui';
+import { Box, Button, Img, Label } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory.js';
 import SchemaService from '../../services/schema/SchemaService.js';
 import adminLogo from '../../images/redsky_logo.png?webp&imagetools';
@@ -21,7 +21,13 @@ const AppBar: React.FC = () => {
 			<Box className="topName">
 				<Img width={'auto'} height={32} src={adminLogo} alt="" disableImageKit />
 			</Box>
+
 			<Box display={'flex'} alignItems={'center'}>
+				{!!schema && (
+					<Label variant={'body1'} weight={'regular'} mr={16}>
+						Schema Version: {schema.version}
+					</Label>
+				)}
 				<Button
 					look={'containedPrimary'}
 					onClick={() => {

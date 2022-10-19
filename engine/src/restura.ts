@@ -10,11 +10,28 @@ import logger from '../../../../src/utils/logger.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
-import compareSchema from "./compareSchema.js";
+import compareSchema from './compareSchema.js';
 import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
+import { SCHEMA_VERSION } from '../../../../src/@types/schemaVersion.js';
+import modelGenerator from './modelGenerator.js';
+import prettier, { Options } from 'prettier';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const prettierConfig: Options = {
+	trailingComma: 'none',
+	tabWidth: 4,
+	useTabs: true,
+	endOfLine: 'lf',
+	printWidth: 120,
+	singleQuote: true
+};
 
 class ResturaEngine {
 	private metaDbConnection: Connection;
@@ -61,6 +78,9 @@ class ResturaEngine {
 				}
 				this.reloadEndpoints()
 					.then(() => {
+						if (this.schema.version !== SCHEMA_VERSION)
+							throw new Error('Schema version mismatch, please update the API and Model schema versions');
+
 						resolve();
 					})
 					.catch((error) => {
@@ -115,9 +135,31 @@ class ResturaEngine {
 		await sqlEngine.createDatabaseFromSchema(schema);
 	}
 
-	async generateApiFromDatabase(outputFile: string): Promise<void> {
+	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
+		const schema = providedSchema || (await this.getLatestDatabaseSchema());
+		const apiText = apiGenerator(schema);
+		const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
+		fs.writeFileSync(outputFile, apiTextPretty);
+	}
+
+	async generateModelFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
+		const schema = providedSchema || (await this.getLatestDatabaseSchema());
+		const modelText = modelGenerator(schema);
+		const modelTextPretty = prettier.format(modelText, { parser: 'typescript', ...prettierConfig });
+		fs.writeFileSync(outputFile, modelTextPretty);
+	}
+
+	async generateSchemaVersion(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
+		const schema = providedSchema || (await this.getLatestDatabaseSchema());
+		let schemaFileText = `/** Automatically generated file, do not edit manually **/\n`;
+		schemaFileText += `export const SCHEMA_VERSION = "${schema.version}";\n`;
+		const schemaFileTextPretty = prettier.format(schemaFileText, { parser: 'typescript', ...prettierConfig });
+		fs.writeFileSync(outputFile, schemaFileTextPretty);
+	}
+
+	async getSchemaVersion(): Promise<string> {
 		const schema = await this.getLatestDatabaseSchema();
-		await fs.writeFileSync(outputFile, apiGenerator(schema));
+		return schema.version;
 	}
 
 	@boundMethod
@@ -125,8 +167,6 @@ class ResturaEngine {
 		if (req.headers['x-auth-token'] !== '123') res.status(401).send('Unauthorized');
 		else next();
 	}
-
-
 
 	@boundMethod
 	private async previewCreateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
@@ -156,9 +196,13 @@ class ResturaEngine {
 			// Here is where we would need to update database structure, but for now we just update the meta database.
 			await this.storeDatabaseSchema(req.data);
 			await this.reloadEndpoints();
+			// Since we are in the dist folder in execution we have to go up one extra
+			await this.generateApiFromSchema(path.join(__dirname, '../../../../../src/@types/api.d.ts'), this.schema);
+			await this.generateModelFromSchema(path.join(__dirname, '../../../../../src/@types/models.d.ts'), this.schema);
+			await this.generateSchemaVersion(path.join(__dirname, '../../../../../src/@types/schemaVersion.ts'), this.schema);
 			res.send({ data: 'success' });
-		} catch (err) {
-			res.status(400).send(err);
+		} catch (err: any) {
+			res.status(400).send(err.message);
 		}
 	}
 

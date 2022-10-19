@@ -36,7 +36,9 @@ export default class SchemaService extends Service {
 	}
 
 	async updateSchema(schema: Restura.Schema) {
-		await http.put<RedSky.RsResponseData<string>, Restura.Schema>('/schema', schema);
+		let updatedVersionSchema = cloneDeep(schema);
+		this.bumpPatchVersion(updatedVersionSchema);
+		await http.put<RedSky.RsResponseData<string>, Restura.Schema>('/schema', updatedVersionSchema);
 		await this.getCurrentSchema();
 	}
 
@@ -282,6 +284,12 @@ export default class SchemaService extends Service {
 		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request!.splice(requestParamIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	private bumpPatchVersion(updatedVersionSchema: Restura.Schema) {
+		let versionSplit = updatedVersionSchema.version.split('.');
+		let patch = parseInt(versionSplit[2]);
+		updatedVersionSchema.version = `${versionSplit[0]}.${versionSplit[1]}.${patch + 1}`;
 	}
 
 	static getIndexesToSelectedRoute(schema: Restura.Schema): { endpointIndex: number; routeIndex: number } {
