@@ -30,14 +30,20 @@ export default class SchemaService extends Service {
 		return res.data.data;
 	}
 
-	async uploadSchema(schema: Restura.Schema) {
-		await http.post<RedSky.RsResponseData<string>, Restura.Schema>('/schema', schema);
-		await this.getCurrentSchema();
-	}
-
 	async updateSchema(schema: Restura.Schema) {
 		await http.put<RedSky.RsResponseData<string>, Restura.Schema>('/schema', schema);
 		await this.getCurrentSchema();
+	}
+
+	async checkForSchemaMismatch(): Promise<boolean> {
+		if (!this.lastSchema) return false;
+		try {
+			let res = await http.get<RedSky.RsResponseData<Restura.Schema>, void>('/schema');
+			return res.data.data.version !== this.lastSchema.version;
+		} catch (e) {
+			rsToastify.error('Error checking for schema mismatch, could not get latest schema');
+			return false;
+		}
 	}
 
 	isSchemaChanged(currentSchema: Restura.Schema | undefined): boolean {

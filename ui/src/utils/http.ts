@@ -26,7 +26,6 @@ const http = new HttpClient({
 });
 
 http.addRequestIntercepter(async (requestConfig) => {
-	console.log('Should append token here if logged in....');
 	return requestConfig;
 });
 

@@ -35,6 +35,8 @@ declare module '*.scss?export' {
 		secondaryOrange500: string;
 
 		success: string;
+		accentErrorDark: string;
+
 		// Gradients
 		gradient90Deg: string;
 		gradient90Deg_20: string;

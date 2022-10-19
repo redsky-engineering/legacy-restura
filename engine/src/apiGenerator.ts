@@ -68,8 +68,8 @@ class NamespaceTree {
 	}
 }
 
-export default function generateSchemaModel(schema: Restura.Schema): string {
-	let modelString = '/** Auto generated file. DO NOT MODIFY **/';
+export default function apiGenerator(schema: Restura.Schema): string {
+	let apiString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/`;
 	const rootNamespace = NamespaceTree.createRootNode();
 	for (let endpoint of schema.endpoints) {
 		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
@@ -79,14 +79,14 @@ export default function generateSchemaModel(schema: Restura.Schema): string {
 			rootNamespace.addData(fullNamespace, route);
 		}
 	}
-	modelString += rootNamespace.createApi();
+	apiString += rootNamespace.createApi();
 	if (schema.customTypes.length > 0) {
-		modelString += `\n
+		apiString += `\n
 		declare namespace CustomTypes {
 			${schema.customTypes}
 		}`;
 	}
-	return modelString;
+	return apiString;
 }
 
 function generateEndpointComments(endpoint: Restura.EndpointData): string {
@@ -115,7 +115,22 @@ function generateRequestParameters(route: Restura.RouteData): string {
 
 	modelString += `
 		 	export interface Req{
-		 					${route.request.map((p) => `${p.name}:any`).join(';\n')}
+		 					${route.request
+								.map((p) => {
+									let requestType = 'any';
+									let typeCheckValidator = p.validator.find((v) => v.type === 'TYPE_CHECK');
+									if (typeCheckValidator) {
+										switch (typeCheckValidator.value) {
+											case 'string':
+											case 'number':
+											case 'boolean':
+												requestType = typeCheckValidator.value;
+												break;
+										}
+									}
+									return `${p.name}:${requestType}`;
+								})
+								.join(';\n')}
 		 `;
 
 	modelString += `}`;

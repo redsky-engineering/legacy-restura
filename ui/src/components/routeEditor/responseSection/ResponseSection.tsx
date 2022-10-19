@@ -132,7 +132,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		let responsePreviewText = customRouteData.responseType;
 		if (!['boolean', 'string', 'number'].includes(customRouteData.responseType))
 			responsePreviewText = SchemaService.getInterfaceFromCustomTypes(
-				customRouteData.requestType || '',
+				customRouteData.responseType,
 				schema.customTypes
 			);
 
