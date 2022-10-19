@@ -181,19 +181,21 @@ class ResturaEngine {
 
 	@boundMethod
 	private async createSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
-		try {
-			let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
-			await this.storeDatabaseSchema(req.data);
-			res.send({ data: commands });
-		} catch (err) {
-			res.status(400).send(err);
-		}
+		throw new RsError('UPDATE_FORBIDDEN', 'Not implemented');
+		// try {
+		// 	let commands = sqlEngine.generateDatabaseSchemaFromSchema(req.data);
+		// 	await this.storeDatabaseSchema(req.data);
+		// 	res.send({ data: commands });
+		// } catch (err) {
+		// 	res.status(400).send(err);
+		// }
 	}
 
 	@boundMethod
 	private async updateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
 			// Here is where we would need to update database structure, but for now we just update the meta database.
+			this.bumpPatchVersion(req.data);
 			await this.storeDatabaseSchema(req.data);
 			await this.reloadEndpoints();
 			// Since we are in the dist folder in execution we have to go up one extra
@@ -303,6 +305,13 @@ class ResturaEngine {
 				}
 			);
 		});
+	}
+
+	@boundMethod
+	private bumpPatchVersion(updatedVersionSchema: Restura.Schema) {
+		let versionSplit = updatedVersionSchema.version.split('.');
+		let patch = parseInt(versionSplit[2]);
+		updatedVersionSchema.version = `${versionSplit[0]}.${versionSplit[1]}.${patch + 1}`;
 	}
 
 	private resetPublicEndpoints() {

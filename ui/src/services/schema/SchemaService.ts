@@ -30,16 +30,20 @@ export default class SchemaService extends Service {
 		return res.data.data;
 	}
 
-	async uploadSchema(schema: Restura.Schema) {
-		await http.post<RedSky.RsResponseData<string>, Restura.Schema>('/schema', schema);
+	async updateSchema(schema: Restura.Schema) {
+		await http.put<RedSky.RsResponseData<string>, Restura.Schema>('/schema', schema);
 		await this.getCurrentSchema();
 	}
 
-	async updateSchema(schema: Restura.Schema) {
-		let updatedVersionSchema = cloneDeep(schema);
-		this.bumpPatchVersion(updatedVersionSchema);
-		await http.put<RedSky.RsResponseData<string>, Restura.Schema>('/schema', updatedVersionSchema);
-		await this.getCurrentSchema();
+	async checkForSchemaMismatch(): Promise<boolean> {
+		if (!this.lastSchema) return false;
+		try {
+			let res = await http.get<RedSky.RsResponseData<Restura.Schema>, void>('/schema');
+			return res.data.data.version !== this.lastSchema.version;
+		} catch (e) {
+			rsToastify.error('Error checking for schema mismatch, could not get latest schema');
+			return false;
+		}
 	}
 
 	isSchemaChanged(currentSchema: Restura.Schema | undefined): boolean {
@@ -284,12 +288,6 @@ export default class SchemaService extends Service {
 		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request!.splice(requestParamIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
-	}
-
-	private bumpPatchVersion(updatedVersionSchema: Restura.Schema) {
-		let versionSplit = updatedVersionSchema.version.split('.');
-		let patch = parseInt(versionSplit[2]);
-		updatedVersionSchema.version = `${versionSplit[0]}.${versionSplit[1]}.${patch + 1}`;
 	}
 
 	static getIndexesToSelectedRoute(schema: Restura.Schema): { endpointIndex: number; routeIndex: number } {
