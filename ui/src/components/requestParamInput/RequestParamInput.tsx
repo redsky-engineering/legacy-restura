@@ -144,7 +144,6 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 								<Checkbox
 									labelText={'Required'}
 									look={'containedPrimary'}
-									disabled={isPageParam}
 									checked={requestParam.required}
 									onChange={(newValue) => {
 										schemaService.updateRequestParam(paramIndex, {

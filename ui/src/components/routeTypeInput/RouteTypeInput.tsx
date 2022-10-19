@@ -52,15 +52,30 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 								};
 							}
 						} else if (newValue.value === 'PAGED') {
-							const pagedParams: Restura.RequestData[] = [
-								{ name: 'page', required: true, validator: [{ type: 'TYPE_CHECK', value: 'number' }] },
-								{
-									name: 'perPage',
-									required: true,
-									validator: [{ type: 'TYPE_CHECK', value: 'number' }]
-								},
-								{ name: 'filter', required: true, validator: [{ type: 'TYPE_CHECK', value: 'string' }] }
-							];
+							let pagedParams: Restura.RequestData[] = [];
+							if (
+								updatedRouteData.request?.findIndex((route) =>
+									route.name.toLowerCase().includes('page')
+								) === -1
+							) {
+								pagedParams = [
+									{
+										name: 'page',
+										required: false,
+										validator: [{ type: 'TYPE_CHECK', value: 'number' }]
+									},
+									{
+										name: 'perPage',
+										required: false,
+										validator: [{ type: 'TYPE_CHECK', value: 'number' }]
+									},
+									{
+										name: 'filter',
+										required: false,
+										validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+									}
+								];
+							}
 							updatedRouteData = {
 								...updatedRouteData,
 								table: (updatedRouteData as Restura.StandardRouteData).table,
