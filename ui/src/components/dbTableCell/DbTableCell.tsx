@@ -156,7 +156,7 @@ const DbTableCell: React.FC<DbTableCellProps> = (props) => {
 							mr={4}
 						/>
 					)}
-					<Label variant={'body1'} weight={'bold'} className={'editableTextCell'}>
+					<Label variant={'caption1'} weight={'regular'} className={'editableTextCell'}>
 						{renderValue()}
 					</Label>
 				</Box>

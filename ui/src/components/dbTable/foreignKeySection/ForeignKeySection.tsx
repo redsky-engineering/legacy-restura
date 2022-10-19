@@ -38,22 +38,22 @@ const ForeignKeySection: React.FC<ForeignKeySectionProps> = (props) => {
 	function renderForeignKeysHeader() {
 		return (
 			<>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Name
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Column
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Ref Table
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Ref Column
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					On Delete
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					On Update
 				</Label>
 				<Box /> {/* Empty box for the delete button */}
@@ -203,7 +203,7 @@ const ForeignKeySection: React.FC<ForeignKeySectionProps> = (props) => {
 
 	return (
 		<Box className={'rsForeignKeySection'}>
-			<Label variant={'h4'} weight={'medium'} mt={32} mb={16}>
+			<Label variant={'subheader2'} weight={'regular'} mt={32} mb={16}>
 				Foreign Keys
 			</Label>
 			<Box className={'tableForeignKeysDetailsGrid'}>

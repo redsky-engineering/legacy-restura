@@ -5,6 +5,7 @@ import DbTableCell from '../../dbTableCell/DbTableCell';
 import cloneDeep from 'lodash.clonedeep';
 import { useRecoilState } from 'recoil';
 import globalState from '../../../state/globalState';
+import themes from '../../../themes/themes.scss?export';
 
 import SchemaService from '../../../services/schema/SchemaService.js';
 import MariaDbColumnNumericTypes = Restura.MariaDbColumnNumericTypes;
@@ -79,40 +80,40 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	function renderColumnHeaderRow() {
 		return (
 			<>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Name
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'} minWidth={150}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
 					Type
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Length
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Auto Inc
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Unique
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Nullable
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'} minWidth={150}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
 					Default
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'} minWidth={150}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
 					Comment
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Index
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					FK (Table)
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					FK (Column)
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Permissions
 				</Label>
 				<Box /> {/* Empty box for the delete button */}
@@ -419,7 +420,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 
 	return (
 		<Box className={'rsColumnSection'}>
-			<Label variant={'h4'} weight={'medium'} mt={32} mb={16}>
+			<Label variant={'subheader2'} weight={'regular'} mt={32} mb={16}>
 				Columns
 			</Label>
 			<Box className={'tableColumnDetailsGrid'}>

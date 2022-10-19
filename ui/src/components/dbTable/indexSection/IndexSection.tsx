@@ -17,16 +17,16 @@ const IndexSection: React.FC<IndexSectionProps> = (props) => {
 	function renderIndexesHeader() {
 		return (
 			<>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Name
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Unique
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'}>
 					Order
 				</Label>
-				<Label mb={8} variant={'body1'} weight={'bold'} minWidth={200}>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={200}>
 					Columns
 				</Label>
 				<Box /> {/* Empty box for the delete button */}
@@ -189,7 +189,7 @@ const IndexSection: React.FC<IndexSectionProps> = (props) => {
 
 	return (
 		<Box className={'rsIndexSection'}>
-			<Label variant={'h4'} weight={'medium'} mt={32} mb={16}>
+			<Label variant={'subheader2'} weight={'regular'} mt={32} mb={16}>
 				Indexes
 			</Label>
 			<Box className={'tableIndexesDetailsGrid'}>

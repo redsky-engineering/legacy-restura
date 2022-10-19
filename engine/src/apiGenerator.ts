@@ -69,7 +69,7 @@ class NamespaceTree {
 }
 
 export default function generateSchemaModel(schema: Restura.Schema): string {
-	let modelString = '';
+	let modelString = '/** Auto generated file. DO NOT MODIFY **/';
 	const rootNamespace = NamespaceTree.createRootNode();
 	for (let endpoint of schema.endpoints) {
 		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
@@ -80,6 +80,12 @@ export default function generateSchemaModel(schema: Restura.Schema): string {
 		}
 	}
 	modelString += rootNamespace.createApi();
+	if (schema.customTypes.length > 0) {
+		modelString += `\n
+		declare namespace CustomTypes {
+			${schema.customTypes}
+		}`;
+	}
 	return modelString;
 }
 

@@ -192,7 +192,7 @@ class ResturaEngine {
 
 			// Check for custom logic
 			if (this.isCustomRoute(routeData)) {
-				this.runCustomRouteLogic(req, res, routeData);
+				await this.runCustomRouteLogic(req, res, routeData);
 				return;
 			}
 
@@ -212,7 +212,7 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	private runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
+	private async runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
 		let version = req.baseUrl.split('/')[2];
 		let domain = routeData.path.split('/')[1];
 		let customApiName = `${StringUtils.capitalizeFirst(domain)}Api${StringUtils.capitalizeFirst(version)}`;
@@ -229,7 +229,7 @@ class ResturaEngine {
 			}, '')}`;
 		let customFunction = customApi[functionName];
 		if (!customFunction) throw new RsError('NOT_FOUND', `API path ${routeData.path} not implemented`);
-		customFunction(req, res, routeData);
+		await customFunction(req, res, routeData);
 	}
 
 	@boundMethod
