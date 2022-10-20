@@ -281,7 +281,8 @@ const defaultSchema: Restura.Schema = {
 	],
 	globalParams: ['companyId', 'userId'],
 	roles: ['admin', 'user', 'anonymous'],
-	customTypes: ''
+	customTypes: '',
+	version: '0.0.0'
 };
 
 export default defaultSchema;
