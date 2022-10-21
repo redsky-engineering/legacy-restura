@@ -11,6 +11,8 @@ function isEndpointData(data: TreeData): data is Restura.EndpointData {
 	return (data as Restura.EndpointData).routes !== undefined;
 }
 
+var tables: ReadonlyArray<Restura.TableData>;
+
 class NamespaceTree {
 	readonly namespace: string | null;
 	private data: TreeData[] = [];
@@ -71,6 +73,7 @@ class NamespaceTree {
 export default function apiGenerator(schema: Restura.Schema): string {
 	let apiString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/`;
 	const rootNamespace = NamespaceTree.createRootNode();
+	tables = schema.database;
 	for (let endpoint of schema.endpoints) {
 		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
 		rootNamespace.addData(endpointNamespaces, endpoint);
@@ -138,16 +141,42 @@ function generateRequestParameters(route: Restura.RouteData): string {
 }
 
 function generateResponseParameters(route: Restura.RouteData): string {
-	let modelString: string = ``;
-	if (!('response' in route)) return modelString;
+	if (!('response' in route)) return '';
 
-	modelString += `
-		 	export interface Res{
-		 					${route.response.map((p) => `${p.name}:any`).join(';\n')}
-		 `;
-
-	modelString += `}`;
+	let modelString = `export interface Res ${getFields(route.response)}`;
 	return modelString;
+}
+
+function getFields(fields: ReadonlyArray<Restura.ResponseData>): string {
+	let nested: string = `{
+		${fields.map(getNameAndType).join(';')}
+	}`;
+	return nested;
+}
+
+function getNameAndType(p: Restura.ResponseData): string {
+	let responseType = 'any',
+		optional = false;
+	if (p.selector) {
+		({ responseType, optional } = getTypeFromTable(p.selector));
+	} else if (p.objectArray) responseType = getFields(p.objectArray.properties);
+	return `${p.name}${optional ? '?' : ''}:${responseType}`;
+}
+
+function getTypeFromTable(selector: string): { responseType: string; optional: boolean } {
+	const path = selector.split('.');
+	if (path.length != 2) return { responseType: 'any', optional: false };
+
+	const tableName = path[0],
+		columnName = path[1];
+	const table = tables.find((t) => t.name == tableName);
+	const column = table?.columns.find((c) => c.name == columnName);
+	if (!table || !column) return { responseType: 'any', optional: false };
+
+	return {
+		responseType: StringUtils.convertDatabaseTypeToTypescript(column.type),
+		optional: column.roles.length > 0
+	};
 }
 
 function pathToNamespaces(path: string): string[] {
