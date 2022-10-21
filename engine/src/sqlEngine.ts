@@ -131,6 +131,9 @@ class SqlEngine {
 		schema: Restura.Schema,
 		sqlParams: any[]
 	): Promise<any> {
+		const DEFAULT_PAGED_PAGE_NUMBER = 0;
+		const DEFAULT_PAGED_PER_PAGE_NUMBER = 25;
+
 		let userRole = req.requesterDetails.role;
 		let sqlStatement = '';
 
@@ -156,7 +159,7 @@ class SqlEngine {
 		sqlStatement += this.generateOrderBy(routeData);
 		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
 		else if (routeData.type ==='PAGED') {
-			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [req.data.perPage, (req.data.page-1)*req.data.perPage]);
+			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER, (req.data.page-1)*req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER]);
 			let total = 0;
 			if (ObjectUtils.isArrayWithData(pageResults)) {
 				total = pageResults[1][0].total;
@@ -303,7 +306,7 @@ class SqlEngine {
 				item.columnName
 			}\` ${operator} ${replacedValue}\n`;
 		});
-		if(routeData.type === 'PAGED') {
+		if(routeData.type === 'PAGED' && !!req.data.filter) {
 			let statement = req.data.filter.replace(/\$[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
 				let requestParam = routeData.request!.find((item) => {
 					return item.name === value.replace('$', '');
