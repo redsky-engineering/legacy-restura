@@ -200,8 +200,14 @@ class ResturaEngine {
 			await this.reloadEndpoints();
 			// Since we are in the dist folder in execution we have to go up one extra
 			await this.generateApiFromSchema(path.join(__dirname, '../../../../../src/@types/api.d.ts'), this.schema);
-			await this.generateModelFromSchema(path.join(__dirname, '../../../../../src/@types/models.d.ts'), this.schema);
-			await this.generateSchemaVersion(path.join(__dirname, '../../../../../src/@types/schemaVersion.ts'), this.schema);
+			await this.generateModelFromSchema(
+				path.join(__dirname, '../../../../../src/@types/models.d.ts'),
+				this.schema
+			);
+			await this.generateSchemaVersion(
+				path.join(__dirname, '../../../../../src/@types/schemaVersion.ts'),
+				this.schema
+			);
 			res.send({ data: 'success' });
 		} catch (err: any) {
 			res.status(400).send(err.message);

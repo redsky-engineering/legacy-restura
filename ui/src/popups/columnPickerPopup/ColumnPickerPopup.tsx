@@ -62,7 +62,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 			setTimeout(() => {
 				console.log(columnData.name);
 				props.onColumnSelect(selectedTable, columnData);
-			}, 10*index);
+			}, 10 * index);
 		});
 		popupController.close(ColumnPickerPopup);
 	}
