@@ -3,7 +3,7 @@ import { Box, Label, Select } from '@redskytech/framework/ui';
 import { useMemo } from 'react';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
-import { ObjectUtils, StringUtils } from '../../utils/utils.js';
+import { ObjectUtils } from '../../utils/utils.js';
 
 interface RouteTypeInputProps {
 	routeData: Restura.RouteData | undefined;
