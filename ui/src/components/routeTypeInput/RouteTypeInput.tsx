@@ -3,7 +3,7 @@ import { Box, Label, Select } from '@redskytech/framework/ui';
 import { useMemo } from 'react';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
-import { ObjectUtils } from '../../utils/utils.js';
+import { ObjectUtils, StringUtils } from '../../utils/utils.js';
 
 interface RouteTypeInputProps {
 	routeData: Restura.RouteData | undefined;
@@ -60,9 +60,8 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 						} else if (newValue.value === 'PAGED') {
 							let pagedParams: Restura.RequestData[] = [];
 							if (
-								updatedRouteData.request?.findIndex((route) =>
-									route.name.toLowerCase().includes('page')
-								) === -1
+								updatedRouteData.request?.findIndex((route) => route.name.toLowerCase() === 'page') ===
+								-1
 							) {
 								pagedParams = [
 									{

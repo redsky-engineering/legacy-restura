@@ -159,12 +159,7 @@ class SqlEngine {
 		sqlStatement += this.generateOrderBy(routeData);
 		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
 		else if (routeData.type ==='PAGED') {
-			let pageResults;
-			if(!!req.data.perPage){
-				pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [req.data.perPage, (req.data.page-1)*req.data.perPage]);
-			} else {
-				pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [DEFAULT_PAGED_PER_PAGE_NUMBER, DEFAULT_PAGED_PAGE_NUMBER]);
-			}
+			const pageResults = await connection.runQuery(`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`, [req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER, (req.data.page-1)*req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER]);
 			let total = 0;
 			if (ObjectUtils.isArrayWithData(pageResults)) {
 				total = pageResults[1][0].total;
