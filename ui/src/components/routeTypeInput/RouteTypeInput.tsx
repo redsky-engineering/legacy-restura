@@ -59,10 +59,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 							}
 						} else if (newValue.value === 'PAGED') {
 							let pagedParams: Restura.RequestData[] = [];
-							if (
-								updatedRouteData.request?.findIndex((route) => route.name.toLowerCase() === 'page') ===
-								-1
-							) {
+							if (!updatedRouteData.request?.find((route) => route.name === 'page')) {
 								pagedParams = [
 									{
 										name: 'page',
