@@ -21,12 +21,14 @@
 		padding: 8px;
 		border-bottom: 1px solid theme-var($neutralBeige800);
 
-		.rsIcon, .rsLabel {
+		.rsIcon,
+		.rsLabel {
 			color: theme-var($neutralBeige400);
 		}
 		&:hover {
 			background-color: theme-var($neutralBeige800);
-			.rsIcon, .rsLabel {
+			.rsIcon,
+			.rsLabel {
 				color: theme-var($secondaryOrange500);
 			}
 		}

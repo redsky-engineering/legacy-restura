@@ -185,14 +185,14 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 			<>
 				<Box className={'sectionBox'} padding={24}>
 					<Box display={'flex'} gap={8} alignItems={'flex-end'} justifyContent={'space-between'} mb={8}>
-						<Label variant={'h6'} weight={'medium'} >
+						<Label variant={'h6'} weight={'medium'}>
 							SQL Statements
 						</Label>
 						<Button
 							look={'outlinedPrimary'}
 							onClick={() => {
 								StringUtils.copyToClipboard(schemaDiffs?.commands || '');
-								rsToastify.success('SQL statements copied to clipboard','Copied SQL');
+								rsToastify.success('SQL statements copied to clipboard', 'Copied SQL');
 							}}
 							small
 						>

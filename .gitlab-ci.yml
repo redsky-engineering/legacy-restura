@@ -23,7 +23,8 @@ Clean Node Modules:
         - ui/package.json
         - engine/package.json
     paths:
-      - node_modules/
+      - engine/node_modules
+      - ui/node_modules
     policy: push
 
 
@@ -39,5 +40,6 @@ Prettier Check:
         - ui/package.json
         - engine/package.json
     paths:
-      - node_modules/
+      - engine/node_modules
+      - ui/node_modules
     policy: pull
