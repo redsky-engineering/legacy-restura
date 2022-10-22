@@ -111,6 +111,7 @@ class SqlEngine {
 					reject(new RsError('DATABASE_ERROR', `Could not get the connection`));
 					return;
 				}
+				// use we tried using "use" to change our database, but it didn't work.  This way works though.
 				connection.changeUser({ database: `${config.database[0].database}_scratch` }, (err) => {
 					if (err) {
 						logger.warn('Error changing user', err);
