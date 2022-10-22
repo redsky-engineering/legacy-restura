@@ -172,9 +172,12 @@ class ResturaEngine {
 		fs.writeFileSync(outputFile, schemaFileTextPretty);
 	}
 
-	async getSchemaVersion(): Promise<string> {
+	async getSeverSchemaVersion(): Promise<string> {
 		const schema = await this.getLatestDatabaseSchema();
 		return schema.version;
+	}
+	 getLocalSchemaVersion(): string {
+		return SCHEMA_VERSION
 	}
 
 	@boundMethod
