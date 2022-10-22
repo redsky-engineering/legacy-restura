@@ -266,7 +266,7 @@ const defaultSchema: Restura.Schema = {
 						{
 							name: 'username',
 							required: true,
-							validator:[
+							validator: [
 								{
 									type: 'TYPE_CHECK',
 									value: 'string'
@@ -276,15 +276,14 @@ const defaultSchema: Restura.Schema = {
 						{
 							name: 'password',
 							required: true,
-							validator:[
+							validator: [
 								{
 									type: 'TYPE_CHECK',
 									value: 'string'
 								}
 							]
 						}
-					]
-					,
+					],
 					responseType: 'CustomTypes.LoginResponse'
 				},
 				{

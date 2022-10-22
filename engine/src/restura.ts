@@ -25,12 +25,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let SCHEMA_VERSION = '0.0.0';
-try{
+try {
 	// @ts-ignore
-	const schemaVersion = await import('../../../../src/@types/schemaVersion.js')
+	const schemaVersion = await import('../../../../src/@types/schemaVersion.js');
 	SCHEMA_VERSION = schemaVersion.SCHEMA_VERSION;
-}
-catch(e){
+} catch (e) {
 	console.error('Schema version not found. Starting the engine will fail.');
 }
 
@@ -89,7 +88,9 @@ class ResturaEngine {
 				this.reloadEndpoints()
 					.then(() => {
 						if (this.schema.version !== SCHEMA_VERSION)
-							throw new Error(`'Schema version mismatch, please update the API and Model schema versions. Local: ${this.schema.version}, Remote: ${SCHEMA_VERSION}'`);
+							throw new Error(
+								`'Schema version mismatch, please update the API and Model schema versions. Local: ${this.schema.version}, Remote: ${SCHEMA_VERSION}'`
+							);
 
 						resolve();
 					})
@@ -177,8 +178,8 @@ class ResturaEngine {
 		const schema = await this.getLatestDatabaseSchema();
 		return schema.version;
 	}
-	 getLocalSchemaVersion(): string {
-		return SCHEMA_VERSION
+	getLocalSchemaVersion(): string {
+		return SCHEMA_VERSION;
 	}
 
 	@boundMethod
