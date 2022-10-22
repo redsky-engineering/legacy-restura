@@ -15,7 +15,7 @@ import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
-import { SCHEMA_VERSION } from '../../../../src/@types/schemaVersion.js';
+
 import modelGenerator from './modelGenerator.js';
 import prettier, { Options } from 'prettier';
 import path, { dirname } from 'path';
@@ -23,6 +23,15 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+let SCHEMA_VERSION = '0.0.0';
+try{
+	const schemaVersion = await import('../../../../src/@types/schemaVersion.js')
+	SCHEMA_VERSION = schemaVersion.SCHEMA_VERSION;
+}
+catch(e){
+	console.error('Schema version not found. Starting the engine will fail.');
+}
 
 const prettierConfig: Options = {
 	trailingComma: 'none',
@@ -79,7 +88,7 @@ class ResturaEngine {
 				this.reloadEndpoints()
 					.then(() => {
 						if (this.schema.version !== SCHEMA_VERSION)
-							throw new Error('Schema version mismatch, please update the API and Model schema versions');
+							throw new Error(`'Schema version mismatch, please update the API and Model schema versions. Local: ${this.schema.version}, Remote: ${SCHEMA_VERSION}'`);
 
 						resolve();
 					})
@@ -131,6 +140,12 @@ class ResturaEngine {
 	}
 
 	async seedDatabase(schema: Restura.Schema) {
+		await this.metaDbConnection.query(`
+			CREATE TABLE IF NOT EXISTS meta(
+				id bigint auto_increment primary key,
+				createdOn  datetime default current_timestamp() not null,
+				\`schema\` mediumtext                           not null
+			);`);
 		await this.storeDatabaseSchema(schema);
 		await sqlEngine.createDatabaseFromSchema(schema);
 	}
