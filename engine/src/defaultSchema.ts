@@ -257,6 +257,37 @@ const defaultSchema: Restura.Schema = {
 				},
 				{
 					type: 'CUSTOM_ONE',
+					method: 'POST',
+					name: 'Login',
+					description: 'User login endpoint',
+					path: '/user/login',
+					roles: [],
+					request: [
+						{
+							name: 'username',
+							required: true,
+							validator: [
+								{
+									type: 'TYPE_CHECK',
+									value: 'string'
+								}
+							]
+						},
+						{
+							name: 'password',
+							required: true,
+							validator: [
+								{
+									type: 'TYPE_CHECK',
+									value: 'string'
+								}
+							]
+						}
+					],
+					responseType: 'CustomTypes.LoginResponse'
+				},
+				{
+					type: 'CUSTOM_ONE',
 					method: 'GET',
 					name: 'order slim details',
 					description: 'Get order slim details',
@@ -281,7 +312,14 @@ const defaultSchema: Restura.Schema = {
 	],
 	globalParams: ['companyId', 'userId'],
 	roles: ['admin', 'user', 'anonymous'],
-	customTypes: '',
+	customTypes: `
+		interface LoginResponse {
+		token: string;
+		expiresOn: string;
+		refreshToken: string;
+		user: IUserService.FilteredUser;
+	}
+	`,
 	version: '0.0.0'
 };
 
