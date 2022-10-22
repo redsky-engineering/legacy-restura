@@ -15,6 +15,7 @@ import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
+import mainConnection from '../../../../src/database/connection.js';
 
 import modelGenerator from './modelGenerator.js';
 import prettier, { Options } from 'prettier';
@@ -60,6 +61,7 @@ class ResturaEngine {
 			host: config.database[0].host,
 			user: config.database[0].user,
 			password: config.database[0].password,
+			port: config.database[0].port,
 			database: `${config.database[0].database}_meta`
 		});
 	}
@@ -149,7 +151,7 @@ class ResturaEngine {
 				\`schema\` mediumtext                           not null
 			);`);
 		await this.storeDatabaseSchema(schema);
-		await sqlEngine.createDatabaseFromSchema(schema);
+		await sqlEngine.createDatabaseFromSchema(schema, mainConnection);
 	}
 
 	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
@@ -180,6 +182,21 @@ class ResturaEngine {
 	}
 	getLocalSchemaVersion(): string {
 		return SCHEMA_VERSION;
+	}
+
+	@boundMethod
+	async getLatestDatabaseSchema(): Promise<Restura.Schema> {
+		return new Promise((resolve, reject) => {
+			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
+				if (err) reject(err);
+				try {
+					let schema: Restura.Schema = JSON.parse(results[0].schema);
+					resolve(schema);
+				} catch (e) {
+					reject('Invalid schema, JSON malformed');
+				}
+			});
+		});
 	}
 
 	@boundMethod
@@ -241,7 +258,7 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	private async getSchema(req: express.Request, res: express.Response) {
+	async getSchema(req: express.Request, res: express.Response) {
 		try {
 			let schema = await this.getLatestDatabaseSchema();
 			res.send({ data: schema });
@@ -302,21 +319,6 @@ class ResturaEngine {
 		let customFunction = customApi[functionName];
 		if (!customFunction) throw new RsError('NOT_FOUND', `API path ${routeData.path} not implemented`);
 		await customFunction(req, res, routeData);
-	}
-
-	@boundMethod
-	private async getLatestDatabaseSchema(): Promise<Restura.Schema> {
-		return new Promise((resolve, reject) => {
-			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
-				if (err) reject(err);
-				try {
-					let schema: Restura.Schema = JSON.parse(results[0].schema);
-					resolve(schema);
-				} catch (e) {
-					reject('Invalid schema, JSON malformed');
-				}
-			});
-		});
 	}
 
 	@boundMethod
