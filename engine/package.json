@@ -18,5 +18,8 @@
 		"*.{ts,tsx,js,jsx,html,scss,css,md,json}": [
 			"prettier --write"
 		]
+	},
+	"dependencies": {
+		"typescript-json-schema": "^0.54.0"
 	}
 }
