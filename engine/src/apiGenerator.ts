@@ -134,17 +134,17 @@ class ApiTree {
 		let responseType = 'any',
 			optional = false;
 		if (p.selector) {
-			({ responseType, optional } = this.getTypeFromTable(p.selector));
+			({ responseType, optional } = this.getTypeFromTable(p.selector, p.name));
 		} else if (p.objectArray) responseType = this.getFields(p.objectArray.properties);
 		return `${p.name}${optional ? '?' : ''}:${responseType}`;
 	}
 
-	getTypeFromTable(selector: string): { responseType: string; optional: boolean } {
+	getTypeFromTable(selector: string, name: string): { responseType: string; optional: boolean } {
 		const path = selector.split('.');
-		if (path.length != 2) return { responseType: 'any', optional: false };
+		if (path.length === 0 || path.length > 2 || path[0] === '') return { responseType: 'any', optional: false };
 
-		const tableName = path[0],
-			columnName = path[1];
+		const tableName = path.length == 2 ? path[0] : name,
+			columnName = path.length == 2 ? path[1] : path[0];
 		const table = this.database.find((t) => t.name == tableName);
 		const column = table?.columns.find((c) => c.name == columnName);
 		if (!table || !column) return { responseType: 'any', optional: false };
