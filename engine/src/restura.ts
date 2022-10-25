@@ -21,8 +21,7 @@ import prettier, { Options } from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { resolve } from "path";
-import * as TJS from "typescript-json-schema";
+import validationGenerator from "./validationGenerator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -157,6 +156,8 @@ class ResturaEngine {
 
 	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
+		const updatedCustomParameterObject = validationGenerator(schema);
+		// Next step
 		const apiText = apiGenerator(schema);
 		const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
 		fs.writeFileSync(outputFile, apiTextPretty);
@@ -183,57 +184,6 @@ class ResturaEngine {
 	}
 	getLocalSchemaVersion(): string {
 		return SCHEMA_VERSION;
-	}
-
-	async generateCustomInterfaceSchema() {
-		const newSchemaStore = [];
-		const apiTypesFile = fs.readFileSync('src/@types/api.d.ts',  {encoding:'utf8', flag:'r'});
-		const customTypesSplit = apiTypesFile.split('declare namespace CustomTypes {')[1];
-		const cleanCustomTypesSection = customTypesSplit.split('');
-		cleanCustomTypesSection[cleanCustomTypesSection.length-2] = '';
-		const customTypesInterfaces = cleanCustomTypesSection.join('');
-
-		const customInterfacesNameListCompile = customTypesSplit.split('interface ');
-
-		fs.writeFileSync('dist/tmp/CustomTypesSection.ts', customTypesInterfaces);
-
-		const customList: any[] = [];
-		customInterfacesNameListCompile.forEach((item)=>{
-			if(item.split(' {')[0] !== '\n\t') customList.push(item.split(' {')[0]);
-		});
-
-		const program = TJS.getProgramFromFiles(
-			[resolve('dist/tmp/CustomTypesSection.ts')],
-			{
-				skipLibCheck: true
-			}
-		);
-
-		customList.forEach((item, index)=> {
-			const ddlSchema = TJS.generateSchema(program, item,
-				{
-					required: false,
-				}
-			);
-			fs.writeFileSync(`dist/tmp/new${index}.json`, JSON.stringify(ddlSchema, null, 4));
-			newSchemaStore.push(ddlSchema);
-		});
-
-		let stringCompile = '{\n'
-
-		customList.forEach((item,index)=> {
-			stringCompile += `"${item}": ` +
-				fs.readFileSync(`dist/tmp/new${index}.json`, {encoding:'utf8', flag:'r'}) + (customList.length - 1 !== index ? ',' : '') +  '\n';
-		});
-		stringCompile += '\n}'
-
-		fs.writeFileSync(`dist/tmp/customTypesSchema.json`, stringCompile);
-
-		fs.unlinkSync('dist/tmp/CustomTypesSection.ts')
-		customList.forEach((item, index)=> {
-			fs.unlinkSync(`dist/tmp/new${index}.json`);
-		});
-
 	}
 
 	@boundMethod
