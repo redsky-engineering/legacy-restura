@@ -3,24 +3,26 @@ import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 
 type TreeData = Restura.RouteData | Restura.EndpointData;
 
-function isRouteData(data: TreeData): data is Restura.RouteData {
-	return (data as Restura.RouteData).method !== undefined;
-}
-
-function isEndpointData(data: TreeData): data is Restura.EndpointData {
-	return (data as Restura.EndpointData).routes !== undefined;
-}
-
-class NamespaceTree {
+class ApiTree {
 	readonly namespace: string | null;
 	private data: TreeData[] = [];
-	private children: Map<string, NamespaceTree>;
-	static createRootNode() {
-		return new NamespaceTree(null);
-	}
-	private constructor(namespace: string | null) {
+	private children: Map<string, ApiTree>;
+
+	private constructor(namespace: string | null, private readonly database: Array<Restura.TableData>) {
 		this.namespace = namespace;
 		this.children = new Map();
+	}
+
+	static createRootNode(database: Array<Restura.TableData>) {
+		return new ApiTree(null, database);
+	}
+
+	static isRouteData(data: TreeData): data is Restura.RouteData {
+		return (data as Restura.RouteData).method !== undefined;
+	}
+
+	static isEndpointData(data: TreeData): data is Restura.EndpointData {
+		return (data as Restura.EndpointData).routes !== undefined;
 	}
 
 	addData(namespaces: string[], route: Restura.RouteData | Restura.EndpointData) {
@@ -29,23 +31,23 @@ class NamespaceTree {
 			return;
 		}
 		const childName: string = namespaces[0];
-		this.children.set(childName, this.children.get(childName) || new NamespaceTree(childName));
+		this.children.set(childName, this.children.get(childName) || new ApiTree(childName, this.database));
 		this.children.get(childName)!.addData(namespaces.slice(1), route);
 	}
 
-	createApi(): string {
+	createApiModels(): string {
 		let result = '';
 		for (const child of this.children.values()) {
-			result += child.createApiImpl(true);
+			result += child.createApiModelImpl(true);
 		}
 		return result;
 	}
 
-	private createApiImpl(isBase: boolean): string {
+	private createApiModelImpl(isBase: boolean): string {
 		let result = ``;
 		for (const data of this.data) {
-			if (isEndpointData(data)) {
-				result += generateEndpointComments(data);
+			if (ApiTree.isEndpointData(data)) {
+				result += ApiTree.generateEndpointComments(data);
 			}
 		}
 		result += isBase
@@ -55,65 +57,42 @@ class NamespaceTree {
 			export namespace ${this.namespace} {`;
 
 		for (const data of this.data) {
-			if (isRouteData(data)) {
-				result += generateRouteModels(data);
+			if (ApiTree.isRouteData(data)) {
+				result += this.generateRouteModels(data);
 			}
 		}
 
 		for (const child of this.children.values()) {
-			result += child.createApiImpl(false);
+			result += child.createApiModelImpl(false);
 		}
 		result += '}';
 		return result;
 	}
-}
 
-export default function apiGenerator(schema: Restura.Schema): string {
-	let apiString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/`;
-	const rootNamespace = NamespaceTree.createRootNode();
-	for (let endpoint of schema.endpoints) {
-		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
-		rootNamespace.addData(endpointNamespaces, endpoint);
-		for (let route of endpoint.routes) {
-			const fullNamespace: string[] = [...endpointNamespaces, ...pathToNamespaces(route.path)];
-			rootNamespace.addData(fullNamespace, route);
-		}
-	}
-	apiString += rootNamespace.createApi();
-	if (schema.customTypes.length > 0) {
-		apiString += `\n
-		declare namespace CustomTypes {
-			${schema.customTypes}
-		}`;
-	}
-	return apiString;
-}
-
-function generateEndpointComments(endpoint: Restura.EndpointData): string {
-	return `
+	static generateEndpointComments(endpoint: Restura.EndpointData): string {
+		return `
 		// ${endpoint.name}
 		// ${endpoint.description}`;
-}
+	}
 
-function generateRouteModels(route: Restura.RouteData): string {
-	let modelString: string = ``;
-	const routeNamespaces = route.path.split('/').filter((e) => e);
-	modelString += `
+	generateRouteModels(route: Restura.RouteData): string {
+		let modelString: string = ``;
+		const routeNamespaces = route.path.split('/').filter((e) => e);
+		modelString += `
 				// ${route.name}
 				// ${route.description}
 				export namespace ${StringUtils.capitalizeFirst(route.method.toLowerCase())} {
-				  ${generateRequestParameters(route)}
-				  ${generateResponseParameters(route)}
-				}
-				`;
-	return modelString;
-}
+				  ${this.generateRequestParameters(route)}
+				  ${this.generateResponseParameters(route)}
+				}`;
+		return modelString;
+	}
 
-function generateRequestParameters(route: Restura.RouteData): string {
-	let modelString: string = ``;
-	if (!route.request) return modelString;
+	generateRequestParameters(route: Restura.RouteData): string {
+		let modelString: string = ``;
+		if (!route.request) return modelString;
 
-	modelString += `
+		modelString += `
 		 	export interface Req{
 		 					${route.request
 								.map((p) => {
@@ -133,21 +112,48 @@ function generateRequestParameters(route: Restura.RouteData): string {
 								.join(';\n')}
 		 `;
 
-	modelString += `}`;
-	return modelString;
-}
+		modelString += `}`;
+		return modelString;
+	}
 
-function generateResponseParameters(route: Restura.RouteData): string {
-	let modelString: string = ``;
-	if (!('response' in route)) return modelString;
+	generateResponseParameters(route: Restura.RouteData): string {
+		if (!('response' in route)) return '';
 
-	modelString += `
-		 	export interface Res{
-		 					${route.response.map((p) => `${p.name}:any`).join(';\n')}
-		 `;
+		let modelString = `export interface Res ${this.getFields(route.response)}`;
+		return modelString;
+	}
 
-	modelString += `}`;
-	return modelString;
+	getFields(fields: ReadonlyArray<Restura.ResponseData>): string {
+		let nested: string = `{
+		${fields.map((f) => this.getNameAndType(f)).join(';')}
+	}`;
+		return nested;
+	}
+
+	getNameAndType(p: Restura.ResponseData): string {
+		let responseType = 'any',
+			optional = false;
+		if (p.selector) {
+			({ responseType, optional } = this.getTypeFromTable(p.selector, p.name));
+		} else if (p.objectArray) responseType = this.getFields(p.objectArray.properties);
+		return `${p.name}${optional ? '?' : ''}:${responseType}`;
+	}
+
+	getTypeFromTable(selector: string, name: string): { responseType: string; optional: boolean } {
+		const path = selector.split('.');
+		if (path.length === 0 || path.length > 2 || path[0] === '') return { responseType: 'any', optional: false };
+
+		const tableName = path.length == 2 ? path[0] : name,
+			columnName = path.length == 2 ? path[1] : path[0];
+		const table = this.database.find((t) => t.name == tableName);
+		const column = table?.columns.find((c) => c.name == columnName);
+		if (!table || !column) return { responseType: 'any', optional: false };
+
+		return {
+			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type),
+			optional: column.roles.length > 0
+		};
+	}
 }
 
 function pathToNamespaces(path: string): string[] {
@@ -155,4 +161,25 @@ function pathToNamespaces(path: string): string[] {
 		.split('/')
 		.map((e) => StringUtils.toPascalCasing(e))
 		.filter((e) => e);
+}
+
+export default function apiGenerator(schema: Restura.Schema): string {
+	let apiString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/`;
+	const rootNamespace = ApiTree.createRootNode(schema.database);
+	for (let endpoint of schema.endpoints) {
+		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
+		rootNamespace.addData(endpointNamespaces, endpoint);
+		for (let route of endpoint.routes) {
+			const fullNamespace: string[] = [...endpointNamespaces, ...pathToNamespaces(route.path)];
+			rootNamespace.addData(fullNamespace, route);
+		}
+	}
+	apiString += rootNamespace.createApiModels();
+	if (schema.customTypes.length > 0) {
+		apiString += `\n
+		declare namespace CustomTypes {
+			${schema.customTypes}
+		}`;
+	}
+	return apiString;
 }
