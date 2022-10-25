@@ -7,11 +7,11 @@ import {Definition} from "typescript-json-schema";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-interface Dictionary {
+interface ValidationDictionary {
     [Key: string]: Definition;
 }
 
-export default function validationGenerator(currentSchema: Restura.Schema): Dictionary {
+export default function validationGenerator(currentSchema: Restura.Schema): ValidationDictionary {
     const customInterfacesNameListCompile = currentSchema.customTypes.split('interface ');
     const customInterfaceNames: string[] = [];
     customInterfacesNameListCompile.forEach((item) => {
@@ -27,7 +27,7 @@ export default function validationGenerator(currentSchema: Restura.Schema): Dict
         }
     );
 
-    let schemaObject: Dictionary = {};
+    let schemaObject: ValidationDictionary = {};
     customInterfaceNames.forEach((item) => {
         const ddlSchema = TJS.generateSchema(program, item,
             {
