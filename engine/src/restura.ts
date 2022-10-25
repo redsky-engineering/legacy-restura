@@ -72,6 +72,7 @@ class ResturaEngine {
 		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);
 		app.post('/restura/v1/schema/reload', (this.reloadSchema as unknown) as express.RequestHandler);
 		app.get('/restura/v1/schema', this.getSchema);
+		app.get('/restura/v1/schema/generated', this.getSchemaGenerated);
 		this.expressApp = app;
 
 		this.metaDbConnection.on('error', (err) => {
@@ -161,9 +162,9 @@ class ResturaEngine {
 
 	async generateModelFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const modelText = modelGenerator(schema);
-		const modelTextPretty = prettier.format(modelText, { parser: 'typescript', ...prettierConfig });
-		fs.writeFileSync(outputFile, modelTextPretty);
+		const modelsText = modelGenerator(schema);
+		const modelsTextPretty = prettier.format(modelsText, { parser: 'typescript', ...prettierConfig });
+		fs.writeFileSync(outputFile, modelsTextPretty);
 	}
 
 	async generateSchemaVersion(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
@@ -178,6 +179,7 @@ class ResturaEngine {
 		const schema = await this.getLatestDatabaseSchema();
 		return schema.version;
 	}
+
 	getLocalSchemaVersion(): string {
 		return SCHEMA_VERSION;
 	}
@@ -245,6 +247,20 @@ class ResturaEngine {
 		try {
 			let schema = await this.getLatestDatabaseSchema();
 			res.send({ data: schema });
+		} catch (err) {
+			res.status(400).send({ error: err });
+		}
+	}
+
+	@boundMethod
+	private async getSchemaGenerated(req: express.Request, res: express.Response) {
+		try {
+			let schema = await this.getLatestDatabaseSchema();
+			const apiText = apiGenerator(schema);
+			const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
+			const modelsText = modelGenerator(schema);
+			const modelsTextPretty = prettier.format(modelsText, { parser: 'typescript', ...prettierConfig });
+			res.send({ schema, api: apiTextPretty, models: modelsTextPretty });
 		} catch (err) {
 			res.status(400).send({ error: err });
 		}
