@@ -7,11 +7,11 @@ import {Definition} from "typescript-json-schema";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-interface Dictionary<T> {
-    [Key: string]: T;
+interface Dictionary {
+    [Key: string]: Definition;
 }
 
-export default function validationGenerator(currentSchema: Restura.Schema): Dictionary<any> {
+export default function validationGenerator(currentSchema: Restura.Schema): Dictionary {
     const customInterfacesNameListCompile = currentSchema.customTypes.split('interface ');
     const customInterfaceNames: string[] = [];
     customInterfacesNameListCompile.forEach((item) => {
@@ -27,14 +27,14 @@ export default function validationGenerator(currentSchema: Restura.Schema): Dict
         }
     );
 
-    let schemaObject: Dictionary<Definition | null> = {};
+    let schemaObject: Dictionary = {};
     customInterfaceNames.forEach((item) => {
         const ddlSchema = TJS.generateSchema(program, item,
             {
                 required: false
             }
         );
-        schemaObject[item] = ddlSchema;
+        schemaObject[item] = ddlSchema || {};
     });
 
     fs.unlinkSync(path.join(__dirname, '../../../../dist/tmp/tempInterfaceFile.ts'));
