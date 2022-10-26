@@ -21,7 +21,7 @@ import modelGenerator from './modelGenerator.js';
 import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import ResponseValidator from './validateResponseParams.js';
+import ResponseValidator from './responseValidator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
