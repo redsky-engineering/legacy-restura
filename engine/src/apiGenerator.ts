@@ -120,9 +120,7 @@ class ApiTree {
 	generateResponseParameters(route: Restura.RouteData): string {
 		if (!('response' in route)) return '';
 
-		let modelString = 'export interface Res ';
-		if (route.type === 'ARRAY') modelString += `extends Array<${this.getFields(route.response)}>{}`;
-		else modelString += this.getFields(route.response);
+		let modelString = `export interface Res ${this.getFields(route.response)}`;
 		return modelString;
 	}
 
