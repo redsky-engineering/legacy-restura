@@ -18,5 +18,8 @@
 		"*.{ts,tsx,js,jsx,html,scss,css,md,json}": [
 			"prettier --write"
 		]
+	},
+	"dependencies": {
+		"dbdiff": "https://github.com/snppla/dbdiff.git"
 	}
 }
