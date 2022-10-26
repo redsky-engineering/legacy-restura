@@ -21,6 +21,7 @@ import modelGenerator from './modelGenerator.js';
 import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import ResponseValidator from './validateResponseParams.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -47,6 +48,7 @@ class ResturaEngine {
 	};
 	private expressApp!: express.Application;
 	private schema!: Restura.Schema;
+	private responseValidator!: ResponseValidator;
 
 	constructor() {
 		this.metaDbConnection = mysql.createConnection({
@@ -116,7 +118,6 @@ class ResturaEngine {
 				// When you do an express use the baseUrl is stripped from the url, so we need to add to the router each baseUrl usage.
 				this.resturaRouter(req, res, next);
 			});
-
 			for (let route of endpoint.routes) {
 				route.path = route.path.startsWith('/') ? route.path : `/${route.path}`;
 				route.path = route.path.endsWith('/') ? route.path.slice(0, -1) : route.path;
@@ -125,13 +126,14 @@ class ResturaEngine {
 				if (route.roles.includes('anonymous') || route.roles.length === 0)
 					this.publicEndpoints[route.method].push(fullUrl);
 
-				this.resturaRouter[route.method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete'](
+				this.resturaRouter[route.method.toLowerCase() as Lowercase<typeof route.method>](
 					route.path, // <-- Notice we only use path here since the baseUrl is already added to the router.
 					(this.executeRouteLogic as unknown) as express.RequestHandler
 				);
 				routeCount++;
 			}
 		}
+		this.responseValidator = new ResponseValidator(this.schema);
 
 		logger.info(`Restura loaded (${routeCount}) endpoint${routeCount > 1 ? 's' : ''}`);
 	}
@@ -299,6 +301,9 @@ class ResturaEngine {
 
 			// Run SQL query
 			let data = await sqlEngine.runQueryForRoute(req, routeData, this.schema);
+
+			// Validate the response
+			this.responseValidator.validateResponseParams(data, req.baseUrl, routeData.name);
 
 			// Send response
 			res.sendData(data);

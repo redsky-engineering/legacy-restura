@@ -185,11 +185,13 @@ declare namespace Restura {
 		};
 	}
 
+	interface ResponseType {
+		isOptional?: boolean;
+		isArray?: boolean;
+		validator: string | ResponseTypeMap;
+	}
+
 	export interface ResponseTypeMap {
-		[property: string]: {
-			isOptional?: boolean;
-			isArray?: boolean;
-			validator: string | ResponseTypeMap;
-		};
+		[property: string]: ResponseType;
 	}
 }
