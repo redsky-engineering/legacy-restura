@@ -28,6 +28,7 @@ const __dirname = dirname(__filename);
 let SCHEMA_VERSION = '0.0.0';
 
 try {
+	// @ts-ignore - This is a generated file
 	const schemaVersion = await import('../../../../src/@types/schemaVersion.js');
 	SCHEMA_VERSION = schemaVersion.SCHEMA_VERSION;
 } catch (e) {
