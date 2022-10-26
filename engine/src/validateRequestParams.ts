@@ -1,10 +1,14 @@
-import jsonschema, {Schema} from 'jsonschema';
+import jsonschema, { Schema } from 'jsonschema';
 import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
 import { RsError } from '../../../../src/utils/errors.js';
-import {ValidationDictionary} from "./validationGenerator.js";
+import { ValidationDictionary } from './validationGenerator.js';
 
-export default function validateRequestParams(req: RsRequest<any>, routeData: Restura.RouteData, validationSchema: ValidationDictionary) {
+export default function validateRequestParams(
+	req: RsRequest<any>,
+	routeData: Restura.RouteData,
+	validationSchema: ValidationDictionary
+) {
 	let requestData = getRequestData(req);
 	req.data = requestData;
 
@@ -12,16 +16,19 @@ export default function validateRequestParams(req: RsRequest<any>, routeData: Re
 		if (routeData.type !== 'CUSTOM_ONE' && routeData.type !== 'CUSTOM_ARRAY')
 			throw new RsError('BAD_REQUEST', `No request parameters provided for standard request.`);
 
-		if (routeData.responseType === undefined)
-			throw new RsError('BAD_REQUEST', `No response type defined for custom request.`);
+		if (!routeData.responseType) throw new RsError('BAD_REQUEST', `No response type defined for custom request.`);
 
-			if(!routeData.requestType) return;
-			const currentInterface = validationSchema[routeData.requestType];
-			const validator = new jsonschema.Validator()
-			const executeValidation = validator.validate(req.data, currentInterface as Schema)
-			if(!executeValidation.valid) {
-				throw new RsError('BAD_REQUEST', `Request custom setup has failed the following check: (${executeValidation.errors})`);
-			}
+		if (!routeData.requestType) throw new RsError('BAD_REQUEST', `No request type defined for custom request.`);
+
+		const currentInterface = validationSchema[routeData.requestType];
+		const validator = new jsonschema.Validator();
+		const executeValidation = validator.validate(req.data, currentInterface as Schema);
+		if (!executeValidation.valid) {
+			throw new RsError(
+				'BAD_REQUEST',
+				`Request custom setup has failed the following check: (${executeValidation.errors})`
+			);
+		}
 		return;
 	}
 
