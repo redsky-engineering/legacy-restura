@@ -21,7 +21,7 @@ import prettier, { Options } from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import validationGenerator from "./validationGenerator.js";
+import validationGenerator, {ValidationDictionary} from "./validationGenerator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,6 +56,7 @@ class ResturaEngine {
 	};
 	private expressApp!: express.Application;
 	private schema!: Restura.Schema;
+	private customTypeValidation!: ValidationDictionary;
 
 	constructor() {
 		this.metaDbConnection = mysql.createConnection({
@@ -113,6 +114,7 @@ class ResturaEngine {
 	@boundMethod
 	async reloadEndpoints() {
 		this.schema = await this.getLatestDatabaseSchema();
+		this.customTypeValidation = validationGenerator(this.schema);
 		this.resturaRouter = express.Router();
 		this.resetPublicEndpoints();
 
@@ -156,8 +158,6 @@ class ResturaEngine {
 
 	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const updatedCustomParameterObject = validationGenerator(schema);
-		// Next step
 		const apiText = apiGenerator(schema);
 		const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
 		fs.writeFileSync(outputFile, apiTextPretty);
@@ -264,7 +264,7 @@ class ResturaEngine {
 			this.validateAuthorization(req, routeData);
 
 			// Validate the request
-			validateRequestParams(req, routeData);
+			validateRequestParams(req, routeData, this.customTypeValidation);
 
 			// Check for custom logic
 			if (this.isCustomRoute(routeData)) {

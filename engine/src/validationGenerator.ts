@@ -1,33 +1,28 @@
 import fs from "fs";
 import * as TJS from "typescript-json-schema";
-import path, {dirname, resolve} from "path";
-import {fileURLToPath} from "url";
+import { resolve } from "path";
 import {Definition} from "typescript-json-schema";
+// @ts-ignore
+import tmp from 'tmp';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-interface ValidationDictionary {
+export interface ValidationDictionary {
     [Key: string]: Definition;
 }
 
 export default function validationGenerator(currentSchema: Restura.Schema): ValidationDictionary {
-    const customInterfacesNameListCompile = currentSchema.customTypes.split('interface ');
-    const customInterfaceNames: string[] = [];
-    customInterfacesNameListCompile.forEach((item) => {
-        if (item !== '') customInterfaceNames.push(item.split(' {')[0]);
-    });
+    let schemaObject: ValidationDictionary = {};
+    let customInterfaceNames = currentSchema.customTypes.match(/(?<=\binterface\s)(\w+)/g);
+    if(!customInterfaceNames) return {};
 
-    fs.writeFileSync(path.join(__dirname, '../../../../dist/tmp/tempInterfaceFile.ts'), currentSchema.customTypes);
+    const temporaryFile = tmp.fileSync({ mode: 0o644, prefix: 'prefix-', postfix: '.ts' });
+    fs.writeFileSync(temporaryFile.name, currentSchema.customTypes);
 
     const program = TJS.getProgramFromFiles(
-        [resolve(path.join(__dirname, '../../../../dist/tmp/tempInterfaceFile.ts'))],
+        [resolve(temporaryFile.name)],
         {
             skipLibCheck: true
         }
     );
-
-    let schemaObject: ValidationDictionary = {};
     customInterfaceNames.forEach((item) => {
         const ddlSchema = TJS.generateSchema(program, item,
             {
@@ -37,7 +32,7 @@ export default function validationGenerator(currentSchema: Restura.Schema): Vali
         schemaObject[item] = ddlSchema || {};
     });
 
-    fs.unlinkSync(path.join(__dirname, '../../../../dist/tmp/tempInterfaceFile.ts'));
+    temporaryFile.removeCallback();
 
     return schemaObject;
 }
