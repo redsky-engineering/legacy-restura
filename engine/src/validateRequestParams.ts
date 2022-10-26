@@ -15,8 +15,6 @@ export default function validateRequestParams(req: RsRequest<any>, routeData: Re
 		if (routeData.responseType === undefined)
 			throw new RsError('BAD_REQUEST', `No response type defined for custom request.`);
 
-		if(routeData.type === 'CUSTOM_ONE' || routeData.type === 'CUSTOM_ARRAY'){
-			if(req.method === 'GET' || req.method === 'DELETE') return;
 			if(!routeData.requestType) return;
 			const currentInterface = validationSchema[routeData.requestType];
 			const validator = new jsonschema.Validator()
@@ -24,7 +22,6 @@ export default function validateRequestParams(req: RsRequest<any>, routeData: Re
 			if(!executeValidation.valid) {
 				throw new RsError('BAD_REQUEST', `Request custom setup has failed the following check: (${executeValidation.errors})`);
 			}
-		}
 		return;
 	}
 
