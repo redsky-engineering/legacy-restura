@@ -143,7 +143,7 @@ class ApiTree {
 			responseType = this.getFields(p.objectArray.properties);
 			array = true;
 		}
-		return `${p.name}${optional ? '?' : ''}:${array ? 'Array<' : ''}${responseType}${array ? '>' : ''}`;
+		return `${p.name}${optional ? '?' : ''}:${responseType}${array ? '[]' : ''}`;
 	}
 
 	getTypeFromTable(selector: string, name: string): { responseType: string; optional: boolean } {
