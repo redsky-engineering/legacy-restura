@@ -20,6 +20,6 @@
 		]
 	},
 	"dependencies": {
-		"dbdiff": "ssh://git@gitlab.com:plvr/redsky-engineering/dbdiff.git#esm"
+		"dbdiff": "https://github.com/snppla/dbdiff.git"
 	}
 }
