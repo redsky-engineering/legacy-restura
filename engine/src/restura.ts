@@ -26,8 +26,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let SCHEMA_VERSION = '0.0.0';
+
 try {
-	// @ts-ignore
 	const schemaVersion = await import('../../../../src/@types/schemaVersion.js');
 	SCHEMA_VERSION = schemaVersion.SCHEMA_VERSION;
 } catch (e) {
