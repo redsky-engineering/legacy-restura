@@ -18,7 +18,7 @@ export default class ResponseValidator {
 				endpointMap[route.name] = this.getRouteResponseType(route);
 			}
 			const baseUrl = endpoint.baseUrl.endsWith('/') ? endpoint.baseUrl.slice(0, -1) : endpoint.baseUrl;
-			this.rootMap[baseUrl].validator = endpointMap;
+			this.rootMap[baseUrl] = { validator: endpointMap };
 		}
 	}
 
