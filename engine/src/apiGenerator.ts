@@ -1,5 +1,6 @@
 import { StringUtils } from '../../../../src/utils/utils.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
+import prettier from 'prettier';
 
 type TreeData = Restura.RouteData | Restura.EndpointData;
 
@@ -181,5 +182,16 @@ export default function apiGenerator(schema: Restura.Schema): string {
 			${schema.customTypes}
 		}`;
 	}
-	return apiString;
+
+	return prettier.format(apiString, {
+		parser: 'typescript',
+		...{
+			trailingComma: 'none',
+			tabWidth: 4,
+			useTabs: true,
+			endOfLine: 'lf',
+			printWidth: 120,
+			singleQuote: true
+		}
+	});
 }

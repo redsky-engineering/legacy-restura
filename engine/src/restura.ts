@@ -17,7 +17,7 @@ import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
 
 import modelGenerator from './modelGenerator.js';
-import prettier, { Options } from 'prettier';
+import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -32,15 +32,6 @@ try {
 } catch (e) {
 	console.error('Schema version not found. Starting the engine will fail.');
 }
-
-const prettierConfig: Options = {
-	trailingComma: 'none',
-	tabWidth: 4,
-	useTabs: true,
-	endOfLine: 'lf',
-	printWidth: 120,
-	singleQuote: true
-};
 
 class ResturaEngine {
 	private metaDbConnection: Connection;
@@ -72,6 +63,7 @@ class ResturaEngine {
 		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);
 		app.post('/restura/v1/schema/reload', (this.reloadSchema as unknown) as express.RequestHandler);
 		app.get('/restura/v1/schema', this.getSchema);
+		app.get('/restura/v1/schema/generated', this.getSchemaGenerated);
 		this.expressApp = app;
 
 		this.metaDbConnection.on('error', (err) => {
@@ -154,23 +146,29 @@ class ResturaEngine {
 
 	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const apiText = apiGenerator(schema);
-		const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
-		fs.writeFileSync(outputFile, apiTextPretty);
+		fs.writeFileSync(outputFile, apiGenerator(schema));
 	}
 
 	async generateModelFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const modelText = modelGenerator(schema);
-		const modelTextPretty = prettier.format(modelText, { parser: 'typescript', ...prettierConfig });
-		fs.writeFileSync(outputFile, modelTextPretty);
+		fs.writeFileSync(outputFile, modelGenerator(schema));
 	}
 
 	async generateSchemaVersion(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
 		let schemaFileText = `/** Automatically generated file, do not edit manually **/\n`;
 		schemaFileText += `export const SCHEMA_VERSION = "${schema.version}";\n`;
-		const schemaFileTextPretty = prettier.format(schemaFileText, { parser: 'typescript', ...prettierConfig });
+		const schemaFileTextPretty = prettier.format(schemaFileText, {
+			parser: 'typescript',
+			...{
+				trailingComma: 'none',
+				tabWidth: 4,
+				useTabs: true,
+				endOfLine: 'lf',
+				printWidth: 120,
+				singleQuote: true
+			}
+		});
 		fs.writeFileSync(outputFile, schemaFileTextPretty);
 	}
 
@@ -178,6 +176,7 @@ class ResturaEngine {
 		const schema = await this.getLatestDatabaseSchema();
 		return schema.version;
 	}
+
 	getLocalSchemaVersion(): string {
 		return SCHEMA_VERSION;
 	}
@@ -245,6 +244,18 @@ class ResturaEngine {
 		try {
 			let schema = await this.getLatestDatabaseSchema();
 			res.send({ data: schema });
+		} catch (err) {
+			res.status(400).send({ error: err });
+		}
+	}
+
+	@boundMethod
+	private async getSchemaGenerated(req: express.Request, res: express.Response) {
+		try {
+			let schema = await this.getLatestDatabaseSchema();
+			const apiText = apiGenerator(schema);
+			const modelsText = modelGenerator(schema);
+			res.send({ schema, api: apiText, models: modelsText });
 		} catch (err) {
 			res.status(400).send({ error: err });
 		}
