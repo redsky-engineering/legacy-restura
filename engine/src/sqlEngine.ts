@@ -92,7 +92,7 @@ class SqlEngine {
 	async diffDatabaseToSchema(schema: Restura.Schema): Promise<string> {
 		let dbConfig: IMysqlDatabase = config.database[0];
 
-		const scratchConnection: CustomPool = createCustomPool([
+		let scratchConnection: CustomPool = createCustomPool([
 			{
 				host: dbConfig.host,
 				user: dbConfig.user,
@@ -101,26 +101,20 @@ class SqlEngine {
 			}
 		]);
 		scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
-										 CREATE DATABASE ${config.database[0].database}_scratch;`);
+										 CREATE DATABASE ${config.database[0].database}_scratch;
+										 USE ${config.database[0].database}_scratch;`);
 
-		await new Promise<void>((resolve, reject) => {
-			scratchConnection.getConnection((err, connection) => {
-				if (err) {
-					logger.warn('Error getting connection from pool', err);
-					reject(new RsError('DATABASE_ERROR', `Could not get the connection`));
-					return;
-				}
-				// use we tried using "use" to change our database, but it didn't work.  This way works though.
-				connection.changeUser({ database: `${config.database[0].database}_scratch` }, (err) => {
-					if (err) {
-						logger.warn('Error changing user', err);
-						reject(new RsError('DATABASE_ERROR', `Could not change user`));
-						return;
-					}
-					resolve();
-				});
-			});
-		});
+		scratchConnection.end();
+		scratchConnection = createCustomPool([
+			{
+				host: dbConfig.host,
+				user: dbConfig.user,
+				password: dbConfig.password,
+				port: dbConfig.port,
+				database: `${config.database[0].database}_scratch`
+			}
+		]);
+
 		await this.createDatabaseFromSchema(schema, scratchConnection);
 		const diff = new DbDiff.DbDiff();
 		const conn1 = `mysql://${dbConfig.user}:${encodeURIComponent(dbConfig.password)}@${dbConfig.host}:${
