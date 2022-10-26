@@ -20,6 +20,7 @@
 		]
 	},
 	"dependencies": {
+		"dbdiff": "https://github.com/snppla/dbdiff.git",
 		"jsonschema": "^1.4.1",
 		"tmp": "^0.2.1",
 		"typescript-json-schema": "^0.54.0"

@@ -15,9 +15,10 @@ import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '../../../../src/utils/utils.js';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
+import mainConnection from '../../../../src/database/connection.js';
 
 import modelGenerator from './modelGenerator.js';
-import prettier, { Options } from 'prettier';
+import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -27,22 +28,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let SCHEMA_VERSION = '0.0.0';
+
 try {
-	// @ts-ignore
+	// @ts-ignore - This is a generated file
 	const schemaVersion = await import('../../../../src/@types/schemaVersion.js');
 	SCHEMA_VERSION = schemaVersion.SCHEMA_VERSION;
 } catch (e) {
 	console.error('Schema version not found. Starting the engine will fail.');
 }
-
-const prettierConfig: Options = {
-	trailingComma: 'none',
-	tabWidth: 4,
-	useTabs: true,
-	endOfLine: 'lf',
-	printWidth: 120,
-	singleQuote: true
-};
 
 class ResturaEngine {
 	private metaDbConnection: Connection;
@@ -63,6 +56,7 @@ class ResturaEngine {
 			host: config.database[0].host,
 			user: config.database[0].user,
 			password: config.database[0].password,
+			port: config.database[0].port,
 			database: `${config.database[0].database}_meta`
 		});
 	}
@@ -75,6 +69,7 @@ class ResturaEngine {
 		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);
 		app.post('/restura/v1/schema/reload', (this.reloadSchema as unknown) as express.RequestHandler);
 		app.get('/restura/v1/schema', this.getSchema);
+		app.get('/restura/v1/schema/generated', this.getSchemaGenerated);
 		this.expressApp = app;
 
 		this.metaDbConnection.on('error', (err) => {
@@ -153,28 +148,34 @@ class ResturaEngine {
 				\`schema\` mediumtext                           not null
 			);`);
 		await this.storeDatabaseSchema(schema);
-		await sqlEngine.createDatabaseFromSchema(schema);
+		await sqlEngine.createDatabaseFromSchema(schema, mainConnection);
 	}
 
 	async generateApiFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const apiText = apiGenerator(schema);
-		const apiTextPretty = prettier.format(apiText, { parser: 'typescript', ...prettierConfig });
-		fs.writeFileSync(outputFile, apiTextPretty);
+		fs.writeFileSync(outputFile, apiGenerator(schema));
 	}
 
 	async generateModelFromSchema(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
-		const modelText = modelGenerator(schema);
-		const modelTextPretty = prettier.format(modelText, { parser: 'typescript', ...prettierConfig });
-		fs.writeFileSync(outputFile, modelTextPretty);
+		fs.writeFileSync(outputFile, modelGenerator(schema));
 	}
 
 	async generateSchemaVersion(outputFile: string, providedSchema?: Restura.Schema): Promise<void> {
 		const schema = providedSchema || (await this.getLatestDatabaseSchema());
 		let schemaFileText = `/** Automatically generated file, do not edit manually **/\n`;
 		schemaFileText += `export const SCHEMA_VERSION = "${schema.version}";\n`;
-		const schemaFileTextPretty = prettier.format(schemaFileText, { parser: 'typescript', ...prettierConfig });
+		const schemaFileTextPretty = prettier.format(schemaFileText, {
+			parser: 'typescript',
+			...{
+				trailingComma: 'none',
+				tabWidth: 4,
+				useTabs: true,
+				endOfLine: 'lf',
+				printWidth: 120,
+				singleQuote: true
+			}
+		});
 		fs.writeFileSync(outputFile, schemaFileTextPretty);
 	}
 
@@ -182,8 +183,24 @@ class ResturaEngine {
 		const schema = await this.getLatestDatabaseSchema();
 		return schema.version;
 	}
+
 	getLocalSchemaVersion(): string {
 		return SCHEMA_VERSION;
+	}
+
+	@boundMethod
+	async getLatestDatabaseSchema(): Promise<Restura.Schema> {
+		return new Promise((resolve, reject) => {
+			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
+				if (err) reject(err);
+				try {
+					let schema: Restura.Schema = JSON.parse(results[0].schema);
+					resolve(schema);
+				} catch (e) {
+					reject('Invalid schema, JSON malformed');
+				}
+			});
+		});
 	}
 
 	@boundMethod
@@ -255,6 +272,18 @@ class ResturaEngine {
 	}
 
 	@boundMethod
+	private async getSchemaGenerated(req: express.Request, res: express.Response) {
+		try {
+			let schema = await this.getLatestDatabaseSchema();
+			const apiText = apiGenerator(schema);
+			const modelsText = modelGenerator(schema);
+			res.send({ schema, api: apiText, models: modelsText });
+		} catch (err) {
+			res.status(400).send({ error: err });
+		}
+	}
+
+	@boundMethod
 	private async executeRouteLogic(req: RsRequest<any>, res: RsResponse<any>, next: express.NextFunction) {
 		try {
 			// Locate the route in the schema
@@ -306,21 +335,6 @@ class ResturaEngine {
 		let customFunction = customApi[functionName];
 		if (!customFunction) throw new RsError('NOT_FOUND', `API path ${routeData.path} not implemented`);
 		await customFunction(req, res, routeData);
-	}
-
-	@boundMethod
-	private async getLatestDatabaseSchema(): Promise<Restura.Schema> {
-		return new Promise((resolve, reject) => {
-			this.metaDbConnection.query('select * from meta order by id desc limit 1;', (err, results) => {
-				if (err) reject(err);
-				try {
-					let schema: Restura.Schema = JSON.parse(results[0].schema);
-					resolve(schema);
-				} catch (e) {
-					reject('Invalid schema, JSON malformed');
-				}
-			});
-		});
 	}
 
 	@boundMethod

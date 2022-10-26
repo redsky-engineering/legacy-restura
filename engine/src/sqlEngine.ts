@@ -1,11 +1,16 @@
-import connection from '../../../../src/database/connection.js';
+import mainConnection, { createCustomPool } from '../../../../src/database/connection.js';
 import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
 import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
+import mysql from 'mysql';
+import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
+import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
+import logger from '../../../../src/utils/logger.js';
+import DbDiff from 'dbdiff';
 
 class SqlEngine {
-	async createDatabaseFromSchema(schema: Restura.Schema): Promise<string> {
+	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
 		let sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
 		await connection.runQuery(sqlFullStatement);
 		return sqlFullStatement;
@@ -84,6 +89,44 @@ class SqlEngine {
 		return sqlFullStatement;
 	}
 
+	async diffDatabaseToSchema(schema: Restura.Schema): Promise<string> {
+		let dbConfig: IMysqlDatabase = config.database[0];
+
+		let scratchConnection: CustomPool = createCustomPool([
+			{
+				host: dbConfig.host,
+				user: dbConfig.user,
+				password: dbConfig.password,
+				port: dbConfig.port
+			}
+		]);
+		scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
+										 CREATE DATABASE ${config.database[0].database}_scratch;
+										 USE ${config.database[0].database}_scratch;`);
+
+		scratchConnection.end();
+		scratchConnection = createCustomPool([
+			{
+				host: dbConfig.host,
+				user: dbConfig.user,
+				password: dbConfig.password,
+				port: dbConfig.port,
+				database: `${config.database[0].database}_scratch`
+			}
+		]);
+
+		await this.createDatabaseFromSchema(schema, scratchConnection);
+		const diff = new DbDiff.DbDiff();
+		const conn1 = `mysql://${dbConfig.user}:${encodeURIComponent(dbConfig.password)}@${dbConfig.host}:${
+			dbConfig.port
+		}/${dbConfig.database}`;
+		const conn2 = `mysql://${dbConfig.user}:${encodeURIComponent(dbConfig.password)}@${dbConfig.host}:${
+			dbConfig.port
+		}/${dbConfig.database}_scratch`;
+		await diff.compare(conn1, conn2);
+		return diff.commands('');
+	}
+
 	private createNestedSelect(req: RsRequest<any>, schema: Restura.Schema, item: Restura.ResponseData): string {
 		if (!item.objectArray) return '';
 		if (
@@ -134,7 +177,7 @@ class SqlEngine {
 		sqlParams: any[]
 	): Promise<any> {
 		let sqlStatement = `INSERT INTO \`${routeData.table}\` SET ?;`;
-		const createdItem = await connection.runQuery(sqlStatement, req.body);
+		const createdItem = await mainConnection.runQuery(sqlStatement, req.body);
 		const insertId = createdItem.insertId;
 		const whereData: Restura.WhereData = {
 			tableName: routeData.table,
@@ -179,9 +222,10 @@ class SqlEngine {
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += this.generateGroupBy(routeData);
 		sqlStatement += this.generateOrderBy(routeData);
-		if (routeData.type === 'ONE') return await connection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
+		if (routeData.type === 'ONE')
+			return await mainConnection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
 		else if (routeData.type === 'PAGED') {
-			const pageResults = await connection.runQuery(
+			const pageResults = await mainConnection.runQuery(
 				`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`,
 				[
 					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
@@ -193,7 +237,7 @@ class SqlEngine {
 				total = pageResults[1][0].total;
 			}
 			return { data: pageResults[0], total };
-		} else return await connection.runQuery(`${selectStatement}${sqlStatement};`, sqlParams);
+		} else return await mainConnection.runQuery(`${selectStatement}${sqlStatement};`, sqlParams);
 	}
 
 	private async executeUpdateRequest(
@@ -205,7 +249,7 @@ class SqlEngine {
 		let sqlStatement = `UPDATE \`${routeData.table}\` SET ? `;
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += ';';
-		await connection.runQuery(sqlStatement, [req.body, ...sqlParams]);
+		await mainConnection.runQuery(sqlStatement, [req.body, ...sqlParams]);
 		return this.executeGetRequest(req, routeData, schema, sqlParams);
 	}
 
@@ -218,7 +262,7 @@ class SqlEngine {
 		let deleteStatement = `DELETE \n \tFROM ${routeData.table} `;
 		deleteStatement += this.generateWhereClause(req, routeData, sqlParams);
 		deleteStatement += ';';
-		await connection.runQuery(deleteStatement, sqlParams);
+		await mainConnection.runQuery(deleteStatement, sqlParams);
 		return { data: true };
 	}
 
