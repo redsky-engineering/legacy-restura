@@ -101,8 +101,7 @@ class SqlEngine {
 			}
 		]);
 		scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
-										 CREATE DATABASE ${config.database[0].database}_scratch;
-										 USE ${config.database[0].database}_scratch;`);
+										 CREATE DATABASE ${config.database[0].database}_scratch;`);
 
 		await new Promise<void>((resolve, reject) => {
 			scratchConnection.getConnection((err, connection) => {
