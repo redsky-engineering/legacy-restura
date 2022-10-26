@@ -120,7 +120,9 @@ class ApiTree {
 	generateResponseParameters(route: Restura.RouteData): string {
 		if (!('response' in route)) return '';
 
-		let modelString = `export interface Res ${this.getFields(route.response)}`;
+		let modelString = 'export interface Res ';
+		if (route.type === 'ARRAY') modelString += `extends Array<${this.getFields(route.response)}>{}`;
+		else modelString += this.getFields(route.response);
 		return modelString;
 	}
 
@@ -133,11 +135,15 @@ class ApiTree {
 
 	getNameAndType(p: Restura.ResponseData): string {
 		let responseType = 'any',
-			optional = false;
+			optional = false,
+			array = false;
 		if (p.selector) {
 			({ responseType, optional } = this.getTypeFromTable(p.selector, p.name));
-		} else if (p.objectArray) responseType = this.getFields(p.objectArray.properties);
-		return `${p.name}${optional ? '?' : ''}:${responseType}`;
+		} else if (p.objectArray) {
+			responseType = this.getFields(p.objectArray.properties);
+			array = true;
+		}
+		return `${p.name}${optional ? '?' : ''}:${array ? 'Array<' : ''}${responseType}${array ? '>' : ''}`;
 	}
 
 	getTypeFromTable(selector: string, name: string): { responseType: string; optional: boolean } {
