@@ -259,7 +259,7 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	async getSchema(req: express.Request, res: express.Response) {
+	private async getSchema(req: express.Request, res: express.Response) {
 		try {
 			let schema = await this.getLatestDatabaseSchema();
 			res.send({ data: schema });
