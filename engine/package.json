@@ -18,5 +18,8 @@
 		"*.{ts,tsx,js,jsx,html,scss,css,md,json}": [
 			"prettier --write"
 		]
+	},
+	"dependencies": {
+		"dbdiff": "ssh://git@gitlab.com:plvr/redsky-engineering/dbdiff.git#esm"
 	}
 }
