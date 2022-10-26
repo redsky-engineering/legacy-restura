@@ -1,4 +1,5 @@
 import { StringUtils } from '../../../../src/utils/utils.js';
+import prettier from 'prettier';
 
 export default function modelGenerator(schema: Restura.Schema): string {
 	let modelString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/\n`;
@@ -7,7 +8,17 @@ export default function modelGenerator(schema: Restura.Schema): string {
 		modelString += convertTable(table);
 	}
 	modelString += `}`;
-	return modelString;
+	return prettier.format(modelString, {
+		parser: 'typescript',
+		...{
+			trailingComma: 'none',
+			tabWidth: 4,
+			useTabs: true,
+			endOfLine: 'lf',
+			printWidth: 120,
+			singleQuote: true
+		}
+	});
 }
 
 function convertTable(table: Restura.TableData): string {
