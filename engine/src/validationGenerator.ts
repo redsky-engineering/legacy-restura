@@ -2,7 +2,6 @@ import fs from "fs";
 import * as TJS from "typescript-json-schema";
 import { resolve } from "path";
 import {Definition} from "typescript-json-schema";
-// @ts-ignore
 import tmp from 'tmp';
 
 export interface ValidationDictionary {
