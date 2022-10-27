@@ -69,10 +69,20 @@ export default class ResponseValidator {
 		const column = table?.columns.find((c) => c.name == columnName);
 		if (!table || !column) return { validator: 'any', isOptional: false };
 
+		let validator: Restura.Validator | string | string[] = StringUtils.convertDatabaseTypeToTypescript(column.type);
+		if (!ResponseValidator.validatorIsValidString(validator)) validator = this.parseValidationEnum(validator);
+
 		return {
-			validator: StringUtils.convertDatabaseTypeToTypescript(column.type),
+			validator,
 			isOptional: column.roles.length > 0
 		};
+	}
+
+	private parseValidationEnum(validator: string): string[] {
+		let terms = validator.split('|');
+		const firstAndLastApos = /^'|'$/;
+		terms = terms.map((v) => v.trim().replace(firstAndLastApos, ''));
+		return terms;
 	}
 
 	private validateMap(name: string, value: any, { isOptional, isArray, validator }: Restura.ResponseTypeMap[string]) {
@@ -89,24 +99,33 @@ export default class ResponseValidator {
 				);
 			}
 			value.forEach((v, i) => this.validateMap(`${name}[${i}]`, v, { validator }));
-		} else if (typeof validator === 'string') {
+			return;
+		}
+		if (typeof validator === 'string') {
 			if (valueType === validator) return;
-			else throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
-		} else {
-			if (valueType !== 'object') {
-				throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
-			}
-			for (const prop in value) {
-				if (!validator[prop])
-					throw new RsError('DATABASE_ERROR', `Response param (${name}.${prop}) is not allowed`);
-			}
-			for (let prop in validator) {
-				this.validateMap(`${name}.${prop}`, value[prop], validator[prop]);
-			}
+			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
+		}
+		if (Array.isArray(validator)) {
+			if (validator.includes(value)) return;
+			throw new RsError('DATABASE_ERROR', `Response param (${name}) is not one of the enum options (${value})`);
+		}
+		if (valueType !== 'object') {
+			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
+		}
+		for (const prop in value) {
+			if (!validator[prop])
+				throw new RsError('DATABASE_ERROR', `Response param (${name}.${prop}) is not allowed`);
+		}
+		for (let prop in validator) {
+			this.validateMap(`${name}.${prop}`, value[prop], validator[prop]);
 		}
 	}
 
 	private static isCustomRoute(route: Restura.RouteData): route is Restura.CustomRouteData {
 		return route.type === 'CUSTOM_ONE' || route.type === 'CUSTOM_ARRAY';
+	}
+
+	private static validatorIsValidString(validator: string): validator is Restura.Validator {
+		return !validator.includes('|');
 	}
 }
