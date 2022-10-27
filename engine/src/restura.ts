@@ -22,6 +22,8 @@ import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import validationGenerator, {ValidationDictionary} from "./validationGenerator.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -47,6 +49,7 @@ class ResturaEngine {
 	};
 	private expressApp!: express.Application;
 	private schema!: Restura.Schema;
+	private customTypeValidation!: ValidationDictionary;
 
 	constructor() {
 		this.metaDbConnection = mysql.createConnection({
@@ -106,6 +109,7 @@ class ResturaEngine {
 	@boundMethod
 	async reloadEndpoints() {
 		this.schema = await this.getLatestDatabaseSchema();
+		this.customTypeValidation = validationGenerator(this.schema);
 		this.resturaRouter = express.Router();
 		this.resetPublicEndpoints();
 
@@ -289,7 +293,7 @@ class ResturaEngine {
 			this.validateAuthorization(req, routeData);
 
 			// Validate the request
-			validateRequestParams(req, routeData);
+			validateRequestParams(req, routeData, this.customTypeValidation);
 
 			// Check for custom logic
 			if (this.isCustomRoute(routeData)) {
