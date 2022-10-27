@@ -17,17 +17,18 @@ export default class ResponseValidator {
 				}
 				endpointMap[route.name] = this.getRouteResponseType(route);
 			}
-			const baseUrl = endpoint.baseUrl.endsWith('/') ? endpoint.baseUrl.slice(0, -1) : endpoint.baseUrl;
-			this.rootMap[baseUrl] = { validator: endpointMap };
+			const endpointUrl = endpoint.baseUrl.endsWith('/') ? endpoint.baseUrl.slice(0, -1) : endpoint.baseUrl;
+			this.rootMap[endpointUrl] = { validator: endpointMap };
 		}
 	}
 
-	public validateResponseParams(data: any, baseUrl: string, routeName: string) {
+	public validateResponseParams(data: any, endpointUrl: string, routeName: string) {
 		if (!this.rootMap) {
 			throw new RsError('BAD_REQUEST', 'Cannot validate response without type maps');
 		}
-		const baseMap = (this.rootMap[baseUrl].validator as Restura.ResponseTypeMap)[routeName];
-		this.validateMap('_base', data, baseMap);
+
+		const routeMap = (this.rootMap[endpointUrl].validator as Restura.ResponseTypeMap)[routeName];
+		this.validateMap('_base', data, routeMap);
 	}
 
 	private getRouteResponseType(route: Restura.StandardRouteData): Restura.ResponseType {

@@ -185,10 +185,13 @@ declare namespace Restura {
 		};
 	}
 
+	// The `string` type is to handle for enums
+	type Validator = 'boolean' | 'string' | 'number' | 'any' | string;
+
 	interface ResponseType {
 		isOptional?: boolean;
 		isArray?: boolean;
-		validator: string | ResponseTypeMap;
+		validator: Validator | ResponseTypeMap;
 	}
 
 	export interface ResponseTypeMap {
