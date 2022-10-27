@@ -69,26 +69,29 @@ export default class ResponseValidator {
 		const column = table?.columns.find((c) => c.name == columnName);
 		if (!table || !column) return { validator: 'any', isOptional: false };
 
-		let validator: Restura.Validator | string | string[] = StringUtils.convertDatabaseTypeToTypescript(column.type);
+		let validator: Restura.ValidatorString | string | string[] = StringUtils.convertDatabaseTypeToTypescript(
+			column.type,
+			column.value
+		);
 		if (!ResponseValidator.validatorIsValidString(validator)) validator = this.parseValidationEnum(validator);
 
 		return {
 			validator,
-			isOptional: column.roles.length > 0
+			isOptional: column.roles.length > 0 || column.isNullable
 		};
 	}
 
 	private parseValidationEnum(validator: string): string[] {
 		let terms = validator.split('|');
-		const firstAndLastApos = /^'|'$/;
-		terms = terms.map((v) => v.trim().replace(firstAndLastApos, ''));
+		terms = terms.map((v) => v.replace(/'/g, '').trim());
 		return terms;
 	}
 
 	private validateMap(name: string, value: any, { isOptional, isArray, validator }: Restura.ResponseTypeMap[string]) {
 		if (validator === 'any') return;
 		const valueType = typeof value;
-		if (!isOptional && value == null) {
+		if (value == null) {
+			if (isOptional) return;
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is required`);
 		}
 		if (isArray) {
@@ -125,7 +128,7 @@ export default class ResponseValidator {
 		return route.type === 'CUSTOM_ONE' || route.type === 'CUSTOM_ARRAY';
 	}
 
-	private static validatorIsValidString(validator: string): validator is Restura.Validator {
+	private static validatorIsValidString(validator: string): validator is Restura.ValidatorString {
 		return !validator.includes('|');
 	}
 }

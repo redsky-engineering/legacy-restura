@@ -54,6 +54,7 @@ declare namespace Restura {
 		roles: string[];
 		comment?: string;
 		default?: string;
+		value?: string;
 		isPrimary?: boolean;
 		isUnique?: boolean;
 		hasAutoIncrement?: boolean;
@@ -186,12 +187,12 @@ declare namespace Restura {
 	}
 
 	// The `string` type is to handle for enums
-	type Validator = 'boolean' | 'string' | 'number' | 'any';
+	type ValidatorString = 'boolean' | 'string' | 'number' | 'any';
 
 	interface ResponseType {
 		isOptional?: boolean;
 		isArray?: boolean;
-		validator: Validator | ResponseTypeMap | string[];
+		validator: ValidatorString | ResponseTypeMap | string[];
 	}
 
 	export interface ResponseTypeMap {

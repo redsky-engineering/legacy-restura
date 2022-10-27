@@ -155,8 +155,8 @@ class ApiTree {
 		if (!table || !column) return { responseType: 'any', optional: false };
 
 		return {
-			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type),
-			optional: column.roles.length > 0
+			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type, column.value),
+			optional: column.roles.length > 0 || column.isNullable
 		};
 	}
 }
