@@ -133,11 +133,15 @@ class ApiTree {
 
 	getNameAndType(p: Restura.ResponseData): string {
 		let responseType = 'any',
-			optional = false;
+			optional = false,
+			array = false;
 		if (p.selector) {
 			({ responseType, optional } = this.getTypeFromTable(p.selector, p.name));
-		} else if (p.objectArray) responseType = this.getFields(p.objectArray.properties);
-		return `${p.name}${optional ? '?' : ''}:${responseType}`;
+		} else if (p.objectArray) {
+			responseType = this.getFields(p.objectArray.properties);
+			array = true;
+		}
+		return `${p.name}${optional ? '?' : ''}:${responseType}${array ? '[]' : ''}`;
 	}
 
 	getTypeFromTable(selector: string, name: string): { responseType: string; optional: boolean } {
@@ -151,8 +155,8 @@ class ApiTree {
 		if (!table || !column) return { responseType: 'any', optional: false };
 
 		return {
-			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type),
-			optional: column.roles.length > 0
+			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type, column.value),
+			optional: column.roles.length > 0 || column.isNullable
 		};
 	}
 }
