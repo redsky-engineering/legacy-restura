@@ -54,6 +54,7 @@ declare namespace Restura {
 		roles: string[];
 		comment?: string;
 		default?: string;
+		value?: string;
 		isPrimary?: boolean;
 		isUnique?: boolean;
 		hasAutoIncrement?: boolean;
