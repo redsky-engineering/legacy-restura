@@ -28,7 +28,8 @@ export default class ResponseValidator {
 		}
 
 		const routeMap = (this.rootMap[endpointUrl].validator as Restura.ResponseTypeMap)[routeName];
-		this.validateMap('_base', data, routeMap);
+		data = this.validateAndCoerceMap('_base', data, routeMap);
+		console.log(data);
 	}
 
 	private getRouteResponseType(route: Restura.StandardRouteData): Restura.ResponseType {
@@ -87,11 +88,15 @@ export default class ResponseValidator {
 		return terms;
 	}
 
-	private validateMap(name: string, value: any, { isOptional, isArray, validator }: Restura.ResponseTypeMap[string]) {
-		if (validator === 'any') return;
+	private validateAndCoerceMap(
+		name: string,
+		value: any,
+		{ isOptional, isArray, validator }: Restura.ResponseTypeMap[string]
+	): any {
+		if (validator === 'any') return value;
 		const valueType = typeof value;
 		if (value == null) {
-			if (isOptional) return;
+			if (isOptional) return value;
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is required`);
 		}
 		if (isArray) {
@@ -101,15 +106,36 @@ export default class ResponseValidator {
 					`Response param (${name}) is a/an ${valueType} instead of an array`
 				);
 			}
-			value.forEach((v, i) => this.validateMap(`${name}[${i}]`, v, { validator }));
-			return;
+			value.forEach((v, i) => this.validateAndCoerceMap(`${name}[${i}]`, v, { validator }));
+			return value;
 		}
 		if (typeof validator === 'string') {
-			if (valueType === validator) return;
+			// Nested objects do not coerce boolean values or dates properly. Fix that here if needed.
+			// Database returns number but schema expects boolean
+			if (validator === 'boolean' && valueType === 'number') {
+				if (value !== 0 && value !== 1)
+					throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
+				return value === 1;
+			} else if (validator === 'string' && valueType === 'string') {
+				// Check if the string is a SQL datetime, date, time, timestamp format
+				if (
+					value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$/) ||
+					value.match(/^\d{4}-\d{2}-\d{2}$/) ||
+					value.match(/^\d{2}:\d{2}:\d{2}.?\d*$/)
+				) {
+					const date = new Date(value);
+					if (date.toISOString() === '1970-01-01T00:00:00.000Z') return null;
+					const timezoneOffset = date.getTimezoneOffset() * 60000;
+					return new Date(date.getTime() - timezoneOffset * 2).toISOString();
+				}
+				return value;
+			} else if (valueType === validator) {
+				return value;
+			}
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
 		}
 		if (Array.isArray(validator)) {
-			if (validator.includes(value)) return;
+			if (validator.includes(value)) return value;
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is not one of the enum options (${value})`);
 		}
 		if (valueType !== 'object') {
@@ -120,8 +146,9 @@ export default class ResponseValidator {
 				throw new RsError('DATABASE_ERROR', `Response param (${name}.${prop}) is not allowed`);
 		}
 		for (let prop in validator) {
-			this.validateMap(`${name}.${prop}`, value[prop], validator[prop]);
+			value[prop] = this.validateAndCoerceMap(`${name}.${prop}`, value[prop], validator[prop]);
 		}
+		return value;
 	}
 
 	private static isCustomRoute(route: Restura.RouteData): route is Restura.CustomRouteData {
