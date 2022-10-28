@@ -50,7 +50,11 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	const [schema, setSchema] = useRecoilState(globalState.schema);
 
 	function getAllowLengthEdit(
-		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes | Restura.MariaDbEnumType
+		type:
+			| Restura.MariaDbColumnNumericTypes
+			| Restura.MariaDbColumnStringTypes
+			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 	): boolean {
 		let lengthTypes: (
 			| Restura.MariaDbColumnNumericTypes
@@ -62,7 +66,11 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	}
 
 	function getAllowAutoIncrement(
-		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes | Restura.MariaDbEnumType
+		type:
+			| Restura.MariaDbColumnNumericTypes
+			| Restura.MariaDbColumnStringTypes
+			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 	): boolean {
 		let autoTypes: (
 			| Restura.MariaDbColumnNumericTypes
@@ -278,15 +286,26 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					/>
 					<DbTableCell
 						disableEdit={column.type !== 'ENUM'}
-						cellType={'text'}
-						value={column.value ? column.value.toUpperCase() : ''}
-						onChange={(value)=> {
+						cellType={'multiSelect'}
+						selectOptions={
+							column.value ? (column.value.toUpperCase().replaceAll(' ', '_').split(',') as string[]) : []
+						}
+						value={column.value ? column.value.toUpperCase().replaceAll(' ', '_').split(',') : []}
+						onMultiSelectChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
-							if (!getAllowLengthEdit(value as MariaDbColumnNumericTypes)) delete columnData.length;
-							columnData.value = value.toUpperCase() as Restura.MariaDbColumnStringTypes;
+							columnData.value = '';
+							value.forEach((item, index) => {
+								if (index === 0)
+									columnData.value +=
+										"'" + item.toUpperCase().replaceAll("'", '').replaceAll(' ', '_') + "'";
+								else
+									columnData.value +=
+										",'" + item.toUpperCase().replaceAll("'", '').replaceAll(' ', '_') + "'";
+							});
 							setSchema(updatedSchema);
 						}}
+						isMultiSelectCreatable
 					/>
 					<DbTableCell
 						disableEdit={!getAllowLengthEdit(column.type)}
@@ -344,33 +363,44 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 							setSchema(updatedSchema);
 						}}
 					/>
-					{column.type !== 'ENUM' ?
+					{column.type !== 'ENUM' ? (
 						<DbTableCell
 							cellType={'text'}
 							value={column.default || ''}
 							onChange={(value) => {
 								let updatedSchema = cloneDeep(schema);
-								let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
+								let columnData = SchemaService.getColumnData(
+									updatedSchema,
+									props.tableName,
+									column.name
+								);
 								if (value) columnData.default = value;
 								else delete columnData.default;
 								setSchema(updatedSchema);
 							}}
 						/>
-						:
+					) : (
 						<DbTableCell
 							cellType={'select'}
-							selectOptions={!!column.value && column.value.split(',') || []}
+							selectOptions={
+								(!!column.value && column.value.replaceAll("'", '').replaceAll(' ', '_').split(',')) ||
+								[]
+							}
 							value={column.default || ''}
 							onChange={(value) => {
 								let updatedSchema = cloneDeep(schema);
-								let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
+								let columnData = SchemaService.getColumnData(
+									updatedSchema,
+									props.tableName,
+									column.name
+								);
 								if (!getAllowLengthEdit(value as MariaDbColumnNumericTypes)) delete columnData.length;
 								else columnData.length = columnData.length || 10;
 								columnData.default = value as Restura.MariaDbColumnDateTypes;
 								setSchema(updatedSchema);
 							}}
 						/>
-					}
+					)}
 					<DbTableCell
 						cellType={'text'}
 						value={column.comment || ''}

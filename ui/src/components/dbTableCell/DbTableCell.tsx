@@ -15,6 +15,7 @@ interface DbTableCellProps {
 	selectOptions?: string[];
 	disableEdit?: boolean;
 	isPrimaryKey?: boolean;
+	isMultiSelectCreatable?: boolean;
 	emptyValue?: string;
 	addId?: boolean;
 }
@@ -106,6 +107,7 @@ const DbTableCell: React.FC<DbTableCellProps> = (props) => {
 						onChange={onMultiSelectChanged}
 						onMenuClose={onMultiSelectMenuClosed}
 						autoFocus
+						isCreatable={props.isMultiSelectCreatable}
 						options={[...props.selectOptions!]
 							.sort((a, b) => a.localeCompare(b))
 							.map((item) => {
