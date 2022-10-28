@@ -99,7 +99,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					Type
 				</Label>
 				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
-					Enum Value
+					Column Value
 				</Label>
 				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Length
@@ -209,6 +209,10 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 		} else if (newColumnName === 'address1') {
 			columnData.type = 'VARCHAR';
 			columnData.length = 30;
+		} else if (newColumnName === 'role') {
+			columnData.type = 'ENUM';
+			columnData.value = "'ADMIN','USER'";
+			delete columnData.length;
 		} else {
 			columnData.name = newColumnName;
 		}
@@ -272,7 +276,6 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
-						disableEdit={column.name === 'role'}
 						cellType={'select'}
 						selectOptions={columnTypeList}
 						value={column.name === 'role' ? 'ENUM' : column.type}
@@ -286,10 +289,10 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
-						disableEdit={column.type !== 'ENUM' || column.name === 'role'}
+						disableEdit={column.type !== 'ENUM'}
 						cellType={'multiSelect'}
-						selectOptions={column.value ? (column.value.split(',') as string[]) : []}
-						value={column.name === 'role' ? "'ADMIN','USER'" : column.value ? column.value.split(',') : []}
+						selectOptions={column.value ? (column.value.replaceAll("'", '').split(',') as string[]) : []}
+						value={column.value ? column.value.replaceAll("'", '').split(',') : []}
 						onMultiSelectChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
@@ -378,7 +381,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						<DbTableCell
 							cellType={'select'}
 							selectOptions={(!!column.value && column.value.replaceAll("'", '').split(',')) || []}
-							value={column.default || ''}
+							value={(column.default && column.default.replaceAll("'", '')) || ''}
 							onChange={(value) => {
 								let updatedSchema = cloneDeep(schema);
 								let columnData = SchemaService.getColumnData(
@@ -388,7 +391,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 								);
 								if (!getAllowLengthEdit(value as MariaDbColumnNumericTypes)) delete columnData.length;
 								else columnData.length = columnData.length || 10;
-								columnData.default = value as Restura.MariaDbColumnDateTypes;
+								columnData.default = ('`' + value + '`') as Restura.MariaDbColumnDateTypes;
 								setSchema(updatedSchema);
 							}}
 						/>
