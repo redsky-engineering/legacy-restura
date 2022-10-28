@@ -29,7 +29,6 @@ export default class ResponseValidator {
 
 		const routeMap = (this.rootMap[endpointUrl].validator as Restura.ResponseTypeMap)[routeName];
 		data = this.validateAndCoerceMap('_base', data, routeMap);
-		console.log(data);
 	}
 
 	private getRouteResponseType(route: Restura.StandardRouteData): Restura.ResponseType {
@@ -119,9 +118,7 @@ export default class ResponseValidator {
 			} else if (validator === 'string' && valueType === 'string') {
 				// Check if the string is a SQL datetime, date, time, timestamp format
 				if (
-					value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$/) ||
-					value.match(/^\d{4}-\d{2}-\d{2}$/) ||
-					value.match(/^\d{2}:\d{2}:\d{2}.?\d*$/)
+					value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$|\d{2}:\d{2}:\d{2}.?\d*$|^\d{4}-\d{2}-\d{2}$/)
 				) {
 					const date = new Date(value);
 					if (date.toISOString() === '1970-01-01T00:00:00.000Z') return null;
