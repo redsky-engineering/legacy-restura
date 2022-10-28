@@ -22,7 +22,7 @@ import prettier from 'prettier';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import validationGenerator, {ValidationDictionary} from "./validationGenerator.js";
+import validationGenerator, { ValidationDictionary } from './validationGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
