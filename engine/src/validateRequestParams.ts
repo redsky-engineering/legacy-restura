@@ -22,7 +22,10 @@ export default function validateRequestParams(
 
 		const currentInterface = validationSchema[routeData.requestType];
 		const validator = new jsonschema.Validator();
-		const executeValidation = validator.validate(req.data, currentInterface as Schema);
+		const executeValidation = validator.validate(req.data, currentInterface as Schema, {
+			// Uncomment out when this feature is fixed in a future release with jsonschema.
+			// allowUnknownAttributes: false,
+		});
 		if (!executeValidation.valid) {
 			throw new RsError(
 				'BAD_REQUEST',
