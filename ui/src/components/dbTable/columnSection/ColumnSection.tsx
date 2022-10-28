@@ -287,21 +287,15 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					<DbTableCell
 						disableEdit={column.type !== 'ENUM'}
 						cellType={'multiSelect'}
-						selectOptions={
-							column.value ? (column.value.toUpperCase().replaceAll(' ', '_').split(',') as string[]) : []
-						}
-						value={column.value ? column.value.toUpperCase().replaceAll(' ', '_').split(',') : []}
+						selectOptions={column.value ? (column.value.split(',') as string[]) : []}
+						value={column.value ? column.value.split(',') : []}
 						onMultiSelectChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
 							columnData.value = '';
 							value.forEach((item, index) => {
-								if (index === 0)
-									columnData.value +=
-										"'" + item.toUpperCase().replaceAll("'", '').replaceAll(' ', '_') + "'";
-								else
-									columnData.value +=
-										",'" + item.toUpperCase().replaceAll("'", '').replaceAll(' ', '_') + "'";
+								if (index === 0) columnData.value += "'" + item.replaceAll("'", '') + "'";
+								else columnData.value += ",'" + item.replaceAll("'", '') + "'";
 							});
 							setSchema(updatedSchema);
 						}}
@@ -382,10 +376,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					) : (
 						<DbTableCell
 							cellType={'select'}
-							selectOptions={
-								(!!column.value && column.value.replaceAll("'", '').replaceAll(' ', '_').split(',')) ||
-								[]
-							}
+							selectOptions={(!!column.value && column.value.replaceAll("'", '').split(',')) || []}
 							value={column.default || ''}
 							onChange={(value) => {
 								let updatedSchema = cloneDeep(schema);
