@@ -285,7 +285,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
-						disableEdit={column.type !== 'ENUM'}
+						disableEdit={column.type !== 'ENUM' || column.name === 'role'}
 						cellType={'multiSelect'}
 						selectOptions={column.value ? (column.value.split(',') as string[]) : []}
 						value={column.value ? column.value.split(',') : []}
