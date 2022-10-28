@@ -45,7 +45,8 @@ class SqlEngine {
 			let sql = `CREATE TABLE \`${table.name}\` (\n`;
 			for (let column of table.columns) {
 				sql += `\t\`${column.name}\` ${column.type}`;
-				if (column.length) sql += `(${column.length})`;
+				if (column.value) sql += `(${column.value})`;
+				else if (column.length) sql += `(${column.length})`;
 				if (column.isPrimary) sql += ' PRIMARY KEY';
 				if (column.isUnique) sql += ' UNIQUE';
 				if (column.isNullable) sql += ' NULL';
@@ -100,7 +101,7 @@ class SqlEngine {
 				port: dbConfig.port
 			}
 		]);
-		scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
+		await scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
 										 CREATE DATABASE ${config.database[0].database}_scratch;
 										 USE ${config.database[0].database}_scratch;`);
 
