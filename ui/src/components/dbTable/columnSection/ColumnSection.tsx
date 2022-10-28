@@ -278,7 +278,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 					<DbTableCell
 						cellType={'select'}
 						selectOptions={columnTypeList}
-						value={column.name === 'role' ? 'ENUM' : column.type}
+						value={column.type}
 						onChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
