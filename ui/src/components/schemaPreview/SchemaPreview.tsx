@@ -21,6 +21,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 	const [schemaDiffs, setSchemaDiffs] = useState<Restura.SchemaPreview | undefined>();
 	const [expand, setExpand] = useState<boolean>(false);
+	const [isDownloadingPreview, setIsDownloadingPreview] = useState<boolean>(false);
 
 	const previewRef = useOnClickOutsideRef(() => {
 		if (props.open) {
@@ -30,17 +31,20 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 	});
 
 	useEffect(() => {
-		if (!expand) return;
+		if (!expand || isDownloadingPreview) return;
 		Prism.highlightAll();
-	}, [schemaDiffs?.commands, expand]);
+	}, [schemaDiffs?.commands, expand, isDownloadingPreview]);
 
 	useEffect(() => {
 		if (!schema || !props.open) return;
 		(async function getSchemaPreview() {
 			try {
+				setIsDownloadingPreview(true);
 				const res = await schemaService.getSchemaPreview(schema);
 				setSchemaDiffs(res);
+				setIsDownloadingPreview(false);
 			} catch (e) {
+				setIsDownloadingPreview(false);
 				rsToastify.error(WebUtils.getRsErrorMessage(e, 'Failed to submit schema.'), 'Submit Error');
 			}
 		})();
@@ -309,7 +313,13 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					/>
 				}
 			/>
-			<Box className={'content'}>{expand ? renderExpanded() : renderShrunk()}</Box>
+			{isDownloadingPreview ? (
+				<Label variant={'h5'} weight={'bold'} mt={24} ml={24}>
+					Loading Preview...
+				</Label>
+			) : (
+				<Box className={'content'}>{expand ? renderExpanded() : renderShrunk()}</Box>
+			)}
 		</Box>
 	);
 };
