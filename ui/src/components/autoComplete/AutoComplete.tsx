@@ -115,8 +115,11 @@ const AutoComplete: React.FC<AutoCompleteProps> = (props) => {
 					setValue(newValue);
 				}}
 				onBlur={() => {
-					setShowSuggestions(false);
-					props.onChange(value);
+					// Without this delay, clicking on suggestions will fail
+					setTimeout(() => {
+						setShowSuggestions(false);
+						props.onChange(value);
+					}, 100);
 				}}
 				onKeyDown={(event) => {
 					if (!showSuggestions) return;
