@@ -14,6 +14,7 @@ export const columnTypeList: (
 	| Restura.MariaDbColumnDateTypes
 	| Restura.MariaDbColumnStringTypes
 	| Restura.MariaDbColumnNumericTypes
+	| Restura.MariaDbEnumType
 )[] = [
 	'BOOLEAN',
 	'TINYINT',
@@ -37,7 +38,8 @@ export const columnTypeList: (
 	'DATE',
 	'DATETIME',
 	'TIME',
-	'TIMESTAMP'
+	'TIMESTAMP',
+	'ENUM'
 ];
 
 interface ColumnSectionProps {
@@ -48,23 +50,33 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	const [schema, setSchema] = useRecoilState(globalState.schema);
 
 	function getAllowLengthEdit(
-		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
+		type:
+			| Restura.MariaDbColumnNumericTypes
+			| Restura.MariaDbColumnStringTypes
+			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 	): boolean {
 		let lengthTypes: (
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 		)[] = ['CHAR', 'VARCHAR'];
 		return lengthTypes.includes(type);
 	}
 
 	function getAllowAutoIncrement(
-		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
+		type:
+			| Restura.MariaDbColumnNumericTypes
+			| Restura.MariaDbColumnStringTypes
+			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 	): boolean {
 		let autoTypes: (
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
+			| Restura.MariaDbEnumType
 		)[] = ['BIGINT', 'INTEGER', 'MEDIUMINT', 'SMALLINT', 'TINYINT'];
 		return autoTypes.includes(type);
 	}
@@ -85,6 +97,9 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 				</Label>
 				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
 					Type
+				</Label>
+				<Label mb={8} variant={'caption1'} weight={'semiBold'} minWidth={150} color={themes.neutralBeige500}>
+					Column Value
 				</Label>
 				<Label mb={8} variant={'caption1'} weight={'semiBold'} color={themes.neutralBeige500}>
 					Length
@@ -194,6 +209,10 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 		} else if (newColumnName === 'address1') {
 			columnData.type = 'VARCHAR';
 			columnData.length = 30;
+		} else if (newColumnName === 'role') {
+			columnData.type = 'ENUM';
+			columnData.value = "'ADMIN','USER'";
+			delete columnData.length;
 		} else {
 			columnData.name = newColumnName;
 		}
@@ -270,6 +289,23 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
+						disableEdit={column.type !== 'ENUM'}
+						cellType={'multiSelect'}
+						selectOptions={column.value ? (column.value.replaceAll("'", '').split(',') as string[]) : []}
+						value={column.value ? column.value.replaceAll("'", '').split(',') : []}
+						onMultiSelectChange={(value) => {
+							let updatedSchema = cloneDeep(schema);
+							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
+							columnData.value = '';
+							value.forEach((item, index) => {
+								if (index === 0) columnData.value += "'" + item.replaceAll("'", '') + "'";
+								else columnData.value += ",'" + item.replaceAll("'", '') + "'";
+							});
+							setSchema(updatedSchema);
+						}}
+						isMultiSelectCreatable
+					/>
+					<DbTableCell
 						disableEdit={!getAllowLengthEdit(column.type)}
 						cellType={'text'}
 						value={column.length ? column.length.toString() : ''}
@@ -325,17 +361,41 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 							setSchema(updatedSchema);
 						}}
 					/>
-					<DbTableCell
-						cellType={'text'}
-						value={column.default || ''}
-						onChange={(value) => {
-							let updatedSchema = cloneDeep(schema);
-							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
-							if (value) columnData.default = value;
-							else delete columnData.default;
-							setSchema(updatedSchema);
-						}}
-					/>
+					{column.type !== 'ENUM' ? (
+						<DbTableCell
+							cellType={'text'}
+							value={column.default || ''}
+							onChange={(value) => {
+								let updatedSchema = cloneDeep(schema);
+								let columnData = SchemaService.getColumnData(
+									updatedSchema,
+									props.tableName,
+									column.name
+								);
+								if (value) columnData.default = value;
+								else delete columnData.default;
+								setSchema(updatedSchema);
+							}}
+						/>
+					) : (
+						<DbTableCell
+							cellType={'select'}
+							selectOptions={(!!column.value && column.value.replaceAll("'", '').split(',')) || []}
+							value={(column.default && column.default.replaceAll("'", '')) || ''}
+							onChange={(value) => {
+								let updatedSchema = cloneDeep(schema);
+								let columnData = SchemaService.getColumnData(
+									updatedSchema,
+									props.tableName,
+									column.name
+								);
+								if (!getAllowLengthEdit(value as MariaDbColumnNumericTypes)) delete columnData.length;
+								else columnData.length = columnData.length || 10;
+								columnData.default = ('`' + value + '`') as Restura.MariaDbColumnDateTypes;
+								setSchema(updatedSchema);
+							}}
+						/>
+					)}
 					<DbTableCell
 						cellType={'text'}
 						value={column.comment || ''}
