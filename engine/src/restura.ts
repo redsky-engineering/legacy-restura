@@ -87,7 +87,7 @@ class ResturaEngine {
 					.then(() => {
 						if (this.schema.version !== SCHEMA_VERSION)
 							throw new Error(
-								`'Schema version mismatch, please update the API and Model schema versions. Local: ${this.schema.version}, Remote: ${SCHEMA_VERSION}'`
+								`'Schema version mismatch, please update the API and Model schema versions. Remote: ${this.schema.version}, Local: ${SCHEMA_VERSION}'`
 							);
 
 						resolve();
