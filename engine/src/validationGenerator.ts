@@ -21,7 +21,7 @@ export default function validationGenerator(currentSchema: Restura.Schema): Vali
 	});
 	customInterfaceNames.forEach((item) => {
 		const ddlSchema = TJS.generateSchema(program, item, {
-			required: false
+			required: true
 		});
 		schemaObject[item] = ddlSchema || {};
 	});
