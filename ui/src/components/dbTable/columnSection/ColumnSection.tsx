@@ -272,9 +272,10 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
+						disableEdit={column.name === 'role'}
 						cellType={'select'}
 						selectOptions={columnTypeList}
-						value={column.type}
+						value={column.name === 'role' ? 'ENUM' : column.type}
 						onChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
@@ -288,7 +289,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						disableEdit={column.type !== 'ENUM' || column.name === 'role'}
 						cellType={'multiSelect'}
 						selectOptions={column.value ? (column.value.split(',') as string[]) : []}
-						value={column.value ? column.value.split(',') : []}
+						value={column.name === 'role' ? "'ADMIN','USER'" : column.value ? column.value.split(',') : []}
 						onMultiSelectChange={(value) => {
 							let updatedSchema = cloneDeep(schema);
 							let columnData = SchemaService.getColumnData(updatedSchema, props.tableName, column.name);
