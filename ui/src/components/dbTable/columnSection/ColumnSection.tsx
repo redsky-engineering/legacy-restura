@@ -461,7 +461,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 			name: newColumnName,
 			type: 'VARCHAR',
 			length: 255,
-			isNullable: true
+			isNullable: false
 		});
 		setSchema(updatedSchema);
 		setTimeout(() => {
