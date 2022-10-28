@@ -8,7 +8,7 @@ class CompareSchema {
 		let endPoints = this.diffEndPoints(newSchema.endpoints[0].routes, latestSchema.endpoints[0].routes);
 		let globalParams = this.diffStringArray(newSchema.globalParams, latestSchema.globalParams);
 		let roles = this.diffStringArray(newSchema.roles, latestSchema.roles);
-		let commands = sqlEngine.generateDatabaseSchemaFromSchema(newSchema);
+		let commands = await sqlEngine.diffDatabaseToSchema(newSchema);
 		let customTypes = newSchema.customTypes !== latestSchema.customTypes;
 		return { endPoints, globalParams, roles, commands, customTypes };
 	}
