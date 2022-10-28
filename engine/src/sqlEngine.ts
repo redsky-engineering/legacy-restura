@@ -45,7 +45,8 @@ class SqlEngine {
 			let sql = `CREATE TABLE \`${table.name}\` (\n`;
 			for (let column of table.columns) {
 				sql += `\t\`${column.name}\` ${column.type}`;
-				if (column.value) sql += `(${column.value})`;
+				if (column.value && column.name === 'role') sql += `("ADMIN", "USER")`;
+				else if (column.value && column.name !== 'role') sql += `(${column.value})`;
 				else if (column.length) sql += `(${column.length})`;
 				if (column.isPrimary) sql += ' PRIMARY KEY';
 				if (column.isUnique) sql += ' UNIQUE';
