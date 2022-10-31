@@ -108,7 +108,7 @@ class ApiTree {
 												break;
 										}
 									}
-									return `${p.name}:${requestType}`;
+									return `${p.name}${p.required ? '' : '?'}:${requestType}`;
 								})
 								.join(';\n')}
 		 `;

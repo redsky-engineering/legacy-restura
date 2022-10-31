@@ -307,10 +307,11 @@ class ResturaEngine {
 			let data = await sqlEngine.runQueryForRoute(req, routeData, this.schema);
 
 			// Validate the response
-			this.responseValidator.validateResponseParams(data, req.baseUrl, routeData.name);
+			this.responseValidator.validateResponseParams(data, req.baseUrl, routeData);
 
 			// Send response
-			res.sendData(data);
+			if (routeData.type === 'PAGED') res.sendNoWrap(data);
+			else res.sendData(data);
 		} catch (e: any) {
 			next(e);
 		}

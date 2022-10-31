@@ -25,7 +25,7 @@ const AppBar: React.FC = () => {
 			if (!isMismatch) return;
 			setIsSchemaMismatch(true);
 			clearInterval(intervalId);
-		}, 5000);
+		}, 15000);
 		return () => clearInterval(intervalId);
 	}, []);
 
