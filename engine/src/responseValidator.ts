@@ -12,22 +12,24 @@ export default class ResponseValidator {
 			const endpointMap: Restura.ResponseTypeMap = {};
 			for (let route of endpoint.routes) {
 				if (ResponseValidator.isCustomRoute(route)) {
-					endpointMap[route.name] = { validator: 'any' };
+					endpointMap[`${route.method}:${route.path}`] = { validator: 'any' };
 					continue;
 				}
-				endpointMap[route.name] = this.getRouteResponseType(route);
+				endpointMap[`${route.method}:${route.path}`] = this.getRouteResponseType(route);
 			}
 			const endpointUrl = endpoint.baseUrl.endsWith('/') ? endpoint.baseUrl.slice(0, -1) : endpoint.baseUrl;
 			this.rootMap[endpointUrl] = { validator: endpointMap };
 		}
 	}
 
-	public validateResponseParams(data: any, endpointUrl: string, routeName: string) {
+	public validateResponseParams(data: any, endpointUrl: string, routeData: Restura.RouteData): void {
 		if (!this.rootMap) {
 			throw new RsError('BAD_REQUEST', 'Cannot validate response without type maps');
 		}
 
-		const routeMap = (this.rootMap[endpointUrl].validator as Restura.ResponseTypeMap)[routeName];
+		const routeMap = (this.rootMap[endpointUrl].validator as Restura.ResponseTypeMap)[
+			`${routeData.method}:${routeData.path}`
+		];
 		data = this.validateAndCoerceMap('_base', data, routeMap);
 	}
 
@@ -35,6 +37,15 @@ export default class ResponseValidator {
 		const map: Restura.ResponseTypeMap = {};
 		for (const field of route.response) {
 			map[field.name] = this.getFieldResponseType(field, route.table);
+		}
+
+		if (route.type === 'PAGED') {
+			return {
+				validator: {
+					data: { validator: map, isArray: true },
+					total: { validator: 'number' }
+				}
+			};
 		}
 		return { validator: map, isArray: route.type === 'ARRAY' };
 	}
@@ -118,7 +129,9 @@ export default class ResponseValidator {
 			} else if (validator === 'string' && valueType === 'string') {
 				// Check if the string is a SQL datetime, date, time, timestamp format
 				if (
-					value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$|\d{2}:\d{2}:\d{2}.?\d*$|^\d{4}-\d{2}-\d{2}$/)
+					value.match(
+						/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$|\d{2}:\d{2}:\d{2}.?\d*$|^\d{4}-\d{2}-\d{2}$/
+					)
 				) {
 					const date = new Date(value);
 					if (date.toISOString() === '1970-01-01T00:00:00.000Z') return null;

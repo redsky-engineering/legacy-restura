@@ -229,8 +229,10 @@ class SqlEngine {
 			const pageResults = await mainConnection.runQuery(
 				`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`,
 				[
+					...sqlParams,
 					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
-					(req.data.page - 1) * req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER
+					(req.data.page - 1) * req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER,
+					...sqlParams
 				]
 			);
 			let total = 0;
