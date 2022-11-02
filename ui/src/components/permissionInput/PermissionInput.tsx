@@ -23,10 +23,11 @@ const PermissionInput: React.FC<PermissionInputProps> = (props) => {
 	return (
 		<Box className={'rsPermissionInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
-				Permissions (empty for all)
+				Permissions (empty for all - including unauthenticated)
 			</Label>
 			<Select
 				isMulti={true}
+				closeMenuOnSelect={false}
 				value={props.routeData.roles.map((item) => {
 					return { label: item, value: item };
 				})}
