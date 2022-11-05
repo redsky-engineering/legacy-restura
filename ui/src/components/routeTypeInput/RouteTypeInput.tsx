@@ -38,7 +38,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 						let updatedRouteData = { ...props.routeData! };
 						if (newValue.value !== 'PAGED') {
 							updatedRouteData.request = updatedRouteData.request?.filter(
-								(request) => !['page', 'perPage', 'filter'].includes(request.name)
+								(request) => !['page', 'perPage', 'filter', 'sortBy', 'sortOrder'].includes(request.name)
 							);
 						}
 
@@ -75,6 +75,16 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 										name: 'filter',
 										required: false,
 										validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+									},
+									{
+										name: 'sortBy',
+										required: false,
+										validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+									},
+									{
+										name: 'sortOrder',
+										required: false,
+										validator: [{ type: 'ONE_OF', value: 'ASC,DESC,NONE,RAND' }]
 									}
 								];
 							}

@@ -98,8 +98,16 @@ class ApiTree {
 		 					${route.request
 								.map((p) => {
 									let requestType = 'any';
+									let oneOfValidator = p.validator.find((v) => v.type === 'ONE_OF');
 									let typeCheckValidator = p.validator.find((v) => v.type === 'TYPE_CHECK');
-									if (typeCheckValidator) {
+									if (
+										oneOfValidator &&
+										ObjectUtils.isArrayWithData(oneOfValidator.value as string[])
+									) {
+										requestType = (oneOfValidator.value as string[])
+											.map((v) => `'${v}'`)
+											.join(' | ');
+									} else if (typeCheckValidator) {
 										switch (typeCheckValidator.value) {
 											case 'string':
 											case 'number':
