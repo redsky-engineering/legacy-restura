@@ -249,10 +249,19 @@ class SqlEngine {
 		schema: Restura.Schema,
 		sqlParams: any[]
 	): Promise<any> {
-		let sqlStatement = `UPDATE \`${routeData.table}\` SET ? `;
+		const { id, ...bodyNoId } = req.body;
+		// In order remove ambiguity, we need to add the table name to the column names when the table is joined
+		for (let i in bodyNoId) {
+			if (i.includes('.')) continue;
+			bodyNoId[`${routeData.table}.${i}`] = bodyNoId[i];
+			delete bodyNoId[i];
+		}
+
+		let joinStatement = this.generateJoinStatements(req, routeData, schema, req.requesterDetails.role, sqlParams);
+		let sqlStatement = `UPDATE \`${routeData.table}\` ${joinStatement} SET ? `;
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += ';';
-		await mainConnection.runQuery(sqlStatement, [req.body, ...sqlParams]);
+		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams]);
 		return this.executeGetRequest(req, routeData, schema, sqlParams);
 	}
 
