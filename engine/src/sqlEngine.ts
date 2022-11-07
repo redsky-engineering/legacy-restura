@@ -222,7 +222,7 @@ class SqlEngine {
 		sqlStatement += this.generateJoinStatements(req, routeData, schema, userRole, sqlParams);
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += this.generateGroupBy(routeData);
-		sqlStatement += this.generateOrderBy(routeData);
+		sqlStatement += this.generateOrderBy(req, routeData);
 		if (routeData.type === 'ONE')
 			return await mainConnection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
 		else if (routeData.type === 'PAGED') {
@@ -331,9 +331,12 @@ class SqlEngine {
 		return groupBy;
 	}
 
-	private generateOrderBy(routeData: Restura.StandardRouteData): string {
+	private generateOrderBy(req: RsRequest<any>, routeData: Restura.StandardRouteData): string {
 		let orderBy = '';
-		if (routeData.orderBy) {
+		if (routeData.type === 'PAGED' && 'sortBy' in req.data) {
+			let sortOrder = 'sortOrder' in req.data ? req.data.sortOrder : 'ASC';
+			orderBy = `ORDER BY ${req.data.sortBy} ${sortOrder}\n`;
+		} else if (routeData.orderBy) {
 			orderBy = `ORDER BY \`${routeData.orderBy.tableName}\`.\`${routeData.orderBy.columnName}\` ${routeData.orderBy.order}\n`;
 		}
 		return orderBy;
