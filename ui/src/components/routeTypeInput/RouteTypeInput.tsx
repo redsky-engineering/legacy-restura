@@ -38,7 +38,8 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 						let updatedRouteData = { ...props.routeData! };
 						if (newValue.value !== 'PAGED') {
 							updatedRouteData.request = updatedRouteData.request?.filter(
-								(request) => !['page', 'perPage', 'filter', 'sortBy', 'sortOrder'].includes(request.name)
+								(request) =>
+									!['page', 'perPage', 'filter', 'sortBy', 'sortOrder'].includes(request.name)
 							);
 						}
 

@@ -114,7 +114,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 				{props.routeData.request.map((requestParam, paramIndex) => {
 					const isPageParam = pageParams.includes(requestParam.name);
 					return (
-						<Box key={`${requestParam.name}_${paramIndex}`} className={'requestParam'}>
+						<Box
+							key={`${props.routeData!.path}_${requestParam.name}_${paramIndex}`}
+							className={'requestParam'}
+						>
 							<Box className={'paramNameRequired'}>
 								{!isPageParam && (
 									<Icon

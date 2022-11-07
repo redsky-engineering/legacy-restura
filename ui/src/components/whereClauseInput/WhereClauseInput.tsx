@@ -54,7 +54,8 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 		return props.routeData.where.map((whereData: Restura.WhereData, whereIndex) => {
 			if (!schema) return <></>;
 			return (
-				<React.Fragment key={whereIndex}>
+				// Use a random key since we don't have a unique identifier for each where statement
+				<React.Fragment key={props.routeData!.path + '_' + Math.random() * 1000}>
 					{!!whereData.conjunction && (
 						<Select
 							value={{ label: whereData.conjunction, value: whereData.conjunction }}

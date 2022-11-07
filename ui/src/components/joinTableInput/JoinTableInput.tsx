@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './JoinTableInput.scss';
-import { Box, Button, Icon, InputText, Label, popupController, Select } from '@redskytech/framework/ui';
+import { Box, Button, Icon, Label, popupController, Select } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSelectorPopup/JoinSelectorPopup';
@@ -49,7 +49,8 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 			);
 		return props.routeData.joins.map((joinData: Restura.JoinData, joinIndex) => {
 			return (
-				<Box key={joinIndex} className={'joinItem'}>
+				// Use a random key since we don't have a unique identifier for each join statement
+				<Box key={props.routeData!.path + '_' + Math.random() * 1000} className={'joinItem'}>
 					<Icon
 						iconImg={'icon-delete'}
 						fontSize={16}
