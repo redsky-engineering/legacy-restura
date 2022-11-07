@@ -221,13 +221,25 @@ class SqlEngine {
 		sqlStatement += `FROM \`${routeData.table}\`\n`;
 		sqlStatement += this.generateJoinStatements(req, routeData, schema, userRole, sqlParams);
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
-		sqlStatement += this.generateGroupBy(routeData);
-		sqlStatement += this.generateOrderBy(req, routeData);
-		if (routeData.type === 'ONE')
-			return await mainConnection.queryOne(`${selectStatement}${sqlStatement};`, sqlParams);
-		else if (routeData.type === 'PAGED') {
+		let groupByOrderByStatement = this.generateGroupBy(routeData);
+		groupByOrderByStatement += this.generateOrderBy(req, routeData);
+		if (routeData.type === 'ONE') {
+			return await mainConnection.queryOne(
+				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
+				sqlParams
+			);
+		} else if (routeData.type === 'ARRAY') {
+			// Array
+			return await mainConnection.runQuery(
+				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
+				sqlParams
+			);
+		} else if (routeData.type === 'PAGED') {
+			// The COUNT() does not work with group by and order by, so we need to catch that case and act accordingly
 			const pageResults = await mainConnection.runQuery(
-				`${selectStatement}${sqlStatement} LIMIT ? OFFSET ?;SELECT COUNT(*) AS total\n${sqlStatement};`,
+				`${selectStatement}${sqlStatement}${groupByOrderByStatement} LIMIT ? OFFSET ?;SELECT COUNT(${
+					routeData.groupBy ? `DISTINCT ${routeData.groupBy.tableName}.${routeData.groupBy.columnName}` : '*'
+				}) AS total\n${sqlStatement};`,
 				[
 					...sqlParams,
 					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
@@ -240,7 +252,9 @@ class SqlEngine {
 				total = pageResults[1][0].total;
 			}
 			return { data: pageResults[0], total };
-		} else return await mainConnection.runQuery(`${selectStatement}${sqlStatement};`, sqlParams);
+		} else {
+			throw new RsError('UNKNOWN_ERROR', 'Unknown route type.');
+		}
 	}
 
 	private async executeUpdateRequest(
