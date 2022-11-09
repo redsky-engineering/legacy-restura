@@ -79,13 +79,22 @@ function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, r
 				`Request param (${requestParamName}) with value (${requestValue}) is not of type (${validator.value})`
 			);
 		}
-	} else if (validator.value === 'array') {
+	} else if (validator.value === 'string[]' || validator.value === 'number[]' || validator.value === 'any[]') {
 		if (!Array.isArray(requestValue)) {
 			throw new RsError(
 				'BAD_REQUEST',
 				`Request param (${requestParamName}) with value (${requestValue}) is not of type (${validator.value})`
 			);
 		}
+		if (validator.value === 'any[]') return;
+		requestValue.forEach((value: any) => {
+			if (typeof value !== (validator.value as string).replace('[]', '')) {
+				throw new RsError(
+					'BAD_REQUEST',
+					`Request param (${requestParamName}) with value (${requestValue}) is not of type (${validator.value})`
+				);
+			}
+		});
 	} else if (validator.value === 'object') {
 		if (typeof requestValue !== 'object') {
 			throw new RsError(

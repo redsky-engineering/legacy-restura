@@ -24,6 +24,10 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	const [newParameterName, setNewParameterName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
+	const typeCheckTypes = useMemo<string[]>(() => {
+		return ['string', 'number', 'boolean', 'object', 'string[]', 'number[]', 'any[]'];
+	}, []);
+
 	const paramValidatorOptions = useMemo(() => {
 		return [
 			{ label: 'Type Check', value: 'TYPE_CHECK' },
@@ -80,7 +84,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	function isValidValueFromType(validatorType: Restura.ValidatorData['type'], value: string): boolean {
 		switch (validatorType) {
 			case 'TYPE_CHECK':
-				return ['string', 'number', 'boolean', 'object', 'array'].includes(value);
+				return typeCheckTypes.includes(value);
 			case 'MIN':
 			case 'MAX':
 				return !isNaN(parseInt(value));
@@ -95,7 +99,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 	): string | number | string[] | number[] {
 		switch (validatorType) {
 			case 'TYPE_CHECK':
-				return ['string', 'number', 'boolean', 'object', 'array'].includes(value) ? value : 'string';
+				return typeCheckTypes.includes(value) ? value : 'string';
 			case 'MIN':
 			case 'MAX':
 				return parseInt(value) || 0;

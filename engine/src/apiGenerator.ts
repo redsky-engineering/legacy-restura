@@ -112,6 +112,9 @@ class ApiTree {
 											case 'string':
 											case 'number':
 											case 'boolean':
+											case 'string[]':
+											case 'number[]':
+											case 'any[]':
 												requestType = typeCheckValidator.value;
 												break;
 										}
