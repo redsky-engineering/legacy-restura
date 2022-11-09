@@ -19,7 +19,7 @@ interface RequestParamInputProps {
 }
 
 const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
-	const pageParams = ['page', 'perPage', 'filter'];
+	const pageParams = ['page', 'perPage', 'filter', 'sortBy', 'sortOrder'];
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [newParameterName, setNewParameterName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
