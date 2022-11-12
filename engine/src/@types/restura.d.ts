@@ -128,10 +128,16 @@ declare namespace Restura {
 		roles: string[];
 	}
 
+	export interface AssignData {
+		name: string;
+		value: string;
+	}
+
 	export interface StandardRouteData extends RouteDataBase {
 		type: 'ONE' | 'ARRAY' | 'PAGED';
 		table: string;
 		joins: JoinData[];
+		assignments: AssignData[];
 		where: WhereData[];
 		request: RequestData[];
 		response: ResponseData[];

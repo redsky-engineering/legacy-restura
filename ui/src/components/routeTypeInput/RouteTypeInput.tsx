@@ -97,6 +97,7 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 									? [...pagedParams, ...updatedRouteData.request]
 									: pagedParams,
 								response: (updatedRouteData as Restura.StandardRouteData).response,
+								assignments: (updatedRouteData as Restura.StandardRouteData).assignments,
 								where: (updatedRouteData as Restura.StandardRouteData).where,
 								joins: (updatedRouteData as Restura.StandardRouteData).joins,
 								orderBy: {

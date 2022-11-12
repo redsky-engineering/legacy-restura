@@ -6,7 +6,11 @@ import {
 	DateUtils as BaseDateUtils
 } from '@redskytech/framework/utils';
 
-class StringUtils extends BaseStringUtils {}
+class StringUtils extends BaseStringUtils {
+	static sanitizeParameter(param: string): string {
+		return param.replace(/[$#]/g, '');
+	}
+}
 
 class ObjectUtils extends BaseObjectUtils {}
 
