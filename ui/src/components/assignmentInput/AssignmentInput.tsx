@@ -86,7 +86,7 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 								<InputText
 									inputMode={'text'}
 									placeholder={'name'}
-									defaultValue={assignData.value}
+									defaultValue={assignData.name}
 									onBlur={(newValue) => {
 										if (newValue.target.value === assignData.value) return;
 										const sanitizedName = StringUtils.sanitizeParameter(newValue.target.value);
