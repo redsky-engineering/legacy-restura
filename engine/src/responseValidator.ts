@@ -47,6 +47,15 @@ export default class ResponseValidator {
 				}
 			};
 		}
+
+		if (route.method === 'DELETE') {
+			return {
+				validator: {
+					data: { validator: 'boolean' }
+				}
+			};
+		}
+
 		return { validator: map, isArray: route.type === 'ARRAY' };
 	}
 
