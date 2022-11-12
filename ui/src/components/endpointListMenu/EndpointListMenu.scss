@@ -7,6 +7,8 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	min-height: calc(100vh - 80px);
+	height: calc(100vh - 80px);
+	padding-bottom: 64px;
 
 	background: theme-var($neutralBeige900);
 
@@ -28,6 +30,7 @@
 	.endpoint {
 		padding: 0 0 0 24px;
 		height: 60px;
+		min-height: 60px;
 
 		&:hover:not(.isSelected) {
 			cursor: pointer;

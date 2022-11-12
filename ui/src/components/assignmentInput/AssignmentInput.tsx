@@ -139,7 +139,7 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 			<Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
 				<Label variant={'body1'} weight={'regular'} mb={4}>
 					{SchemaService.isStandardRouteData(props.routeData)
-						? `Assignments (${props.routeData.assignments.length})`
+						? `Assignments (${(props.routeData.assignments || []).length})`
 						: 'Custom Assignments'}
 				</Label>
 			</Box>
