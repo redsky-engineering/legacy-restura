@@ -69,6 +69,28 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	updateAssignmentParam(index: number, assignData: Restura.AssignData) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		const route = updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex];
+		if (SchemaService.isCustomRouteData(route)) return;
+		route.assignments[index] = assignData;
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	addDefaultAssignments() {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		const route = updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex];
+		if (SchemaService.isCustomRouteData(route) || route.assignments !== undefined) return;
+		route.assignments = [];
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
 	updateJoinData(joinIndex: number, joinData: Restura.JoinData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -287,6 +309,18 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
 		updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request!.splice(requestParamIndex, 1);
+		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	removeAssignment(index: number) {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (!('request' in updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex])) return;
+		const route = updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex];
+		if (SchemaService.isCustomRouteData(route)) return;
+		route.assignments.splice(index, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 

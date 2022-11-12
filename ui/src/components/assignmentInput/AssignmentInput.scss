@@ -1,0 +1,23 @@
+@import 'src/themes/themes';
+
+.rsRequestParamInput {
+	.parameterInput {
+		display: flex;
+		gap: 8px;
+
+		.rsInputText {
+			flex-grow: 1;
+		}
+	}
+
+	.deleteIcon {
+		color: theme-var($neutralBeige500);
+		cursor: pointer;
+		position: absolute;
+		left: -24px;
+		top: 11px;
+		&:hover {
+			color: theme-var($secondaryOrange500);
+		}
+	}
+}

@@ -13,12 +13,13 @@ import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
+import { StringUtils } from '../../utils/utils.js';
 
 interface RequestParamInputProps {
 	routeData: Restura.RouteData | undefined;
 }
 
-const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
+const RequestParamInput: React.FC<RequestParamInputProps> = (props: RequestParamInputProps) => {
 	const pageParams = ['page', 'perPage', 'filter', 'sortBy', 'sortOrder'];
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [newParameterName, setNewParameterName] = useState<string>('');
@@ -45,14 +46,11 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 		return matches.map((item) => ({ label: item, value: item }));
 	}, [schema]);
 
-	function sanitizeCheckForDuplicateName(newName: string): string {
-		if (!props.routeData) return '';
-		let sanitizedName = newName.replace(/[$#]/g, '');
-		if (props.routeData.request && props.routeData.request.find((item) => item.name === sanitizedName)) {
+	function checkForDuplicateName(newName: string): void {
+		if (!props.routeData) return;
+		if (props.routeData.request && props.routeData.request.find((item) => item.name === newName)) {
 			rsToastify.error('Parameter name already exists', 'Duplicate Parameter Name');
-			return '';
 		}
-		return sanitizedName;
 	}
 
 	function handleAddNewParameter() {
@@ -62,7 +60,8 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 			return;
 		}
 
-		let sanitizedName = sanitizeCheckForDuplicateName(newParameterName);
+		const sanitizedName = StringUtils.sanitizeParameter(newParameterName);
+		checkForDuplicateName(sanitizedName);
 		if (!sanitizedName) return;
 		let newParameter: Restura.RequestData = {
 			name: sanitizedName,
@@ -140,7 +139,8 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props) => {
 									defaultValue={requestParam.name}
 									onBlur={(newValue) => {
 										if (newValue.target.value === requestParam.name) return;
-										let sanitizedName = sanitizeCheckForDuplicateName(newValue.target.value);
+										const sanitizedName = StringUtils.sanitizeParameter(newValue.target.value);
+										checkForDuplicateName(sanitizedName);
 										if (!sanitizedName) return;
 										schemaService.updateRequestParam(paramIndex, {
 											...requestParam,

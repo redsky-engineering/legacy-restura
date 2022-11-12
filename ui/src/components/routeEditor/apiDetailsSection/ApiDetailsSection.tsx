@@ -16,6 +16,7 @@ import GroupByInput from '../../groupByInput/GroupByInput';
 import OrderByInput from '../../orderByInput/OrderByInput';
 import useRouteData from '../../../customHooks/useRouteData';
 import { SelectedRoute } from '../../../services/schema/SchemaService';
+import AssignmentInput from '../../assignmentInput/AssignmentInput.js';
 
 interface ApiDetailsSectionProps {}
 
@@ -33,6 +34,7 @@ const ApiDetailsSection: React.FC<ApiDetailsSectionProps> = (props) => {
 			<PermissionInput routeData={routeData} />
 			<BaseTableInput routeData={routeData} />
 			<MethodPathInput routeData={routeData} />
+			<AssignmentInput routeData={routeData} />
 			<RequestParamInput routeData={routeData} />
 			<JoinTableInput routeData={routeData} />
 			<WhereClauseInput routeData={routeData} />

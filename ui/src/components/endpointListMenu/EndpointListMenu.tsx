@@ -56,7 +56,8 @@ const EndpointListMenu: React.FC<EndpointListMenuProps> = (props) => {
 			type: 'ONE',
 			table: '',
 			joins: [],
-			where: []
+			where: [],
+			assignments: []
 		});
 		setSchema(updatedSchema);
 		setSelectedRoute({

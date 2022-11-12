@@ -3,10 +3,8 @@ import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
 import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
-import mysql from 'mysql';
 import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
 import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
-import logger from '../../../../src/utils/logger.js';
 import DbDiff from 'dbdiff';
 
 class SqlEngine {
@@ -24,17 +22,16 @@ class SqlEngine {
 		if (!this.doesRoleHavePermissionToTable(req.requesterDetails.role, schema, routeData.table))
 			throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
 
-		let sqlParams: any[] = [];
 		switch (routeData.method) {
 			case 'POST':
-				return this.executeCreateRequest(req, routeData, schema, sqlParams);
+				return this.executeCreateRequest(req, routeData, schema);
 			case 'GET':
-				return this.executeGetRequest(req, routeData, schema, sqlParams);
+				return this.executeGetRequest(req, routeData, schema);
 			case 'PUT':
 			case 'PATCH':
-				return this.executeUpdateRequest(req, routeData, schema, sqlParams);
+				return this.executeUpdateRequest(req, routeData, schema);
 			case 'DELETE':
-				return this.executeDeleteRequest(req, routeData, schema, sqlParams);
+				return this.executeDeleteRequest(req, routeData, schema);
 		}
 	}
 
@@ -86,8 +83,7 @@ class SqlEngine {
 			}
 			sqlStatements.push(sql + constraints.join(',\n') + ';');
 		}
-		let sqlFullStatement = sqlStatements.join('\n\n');
-		return sqlFullStatement;
+		return sqlStatements.join('\n\n');
 	}
 
 	async diffDatabaseToSchema(schema: Restura.Schema): Promise<string> {
@@ -174,31 +170,41 @@ class SqlEngine {
 	private async executeCreateRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
-		schema: Restura.Schema,
-		sqlParams: any[]
+		schema: Restura.Schema
 	): Promise<any> {
-		let sqlStatement = `INSERT INTO \`${routeData.table}\` SET ?;`;
-		const createdItem = await mainConnection.runQuery(sqlStatement, req.body);
+		const sqlParams: string[] = [];
+		let parameterString = '';
+		parameterString = (routeData.assignments || [])
+			.map((assignment) => {
+				return `${assignment.name} = ${this.replaceParamKeywords(assignment.value, routeData, req, sqlParams)}`;
+			})
+			.join(', ');
+		const createdItem = await mainConnection.runQuery(
+			`INSERT INTO \`${routeData.table}\` SET ?, ${parameterString};`,
+			[{ ...req.data }, ...sqlParams]
+		);
 		const insertId = createdItem.insertId;
-		const whereData: Restura.WhereData = {
-			tableName: routeData.table,
-			value: `${insertId}`,
-			columnName: 'id',
-			operator: '='
-		};
-		routeData.where = [whereData];
+		const whereData: Restura.WhereData[] = [
+			...routeData.where,
+			{
+				tableName: routeData.table,
+				value: `${insertId}`,
+				columnName: 'id',
+				operator: '='
+			}
+		];
 		req.data = { id: insertId };
-		return this.executeGetRequest(req, routeData, schema, sqlParams);
+		return this.executeGetRequest(req, { ...routeData, where: whereData }, schema);
 	}
 
 	private async executeGetRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
-		schema: Restura.Schema,
-		sqlParams: any[]
+		schema: Restura.Schema
 	): Promise<any> {
 		const DEFAULT_PAGED_PAGE_NUMBER = 0;
 		const DEFAULT_PAGED_PER_PAGE_NUMBER = 25;
+		const sqlParams: string[] = [];
 
 		let userRole = req.requesterDetails.role;
 		let sqlStatement = '';
@@ -260,9 +266,9 @@ class SqlEngine {
 	private async executeUpdateRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
-		schema: Restura.Schema,
-		sqlParams: any[]
+		schema: Restura.Schema
 	): Promise<any> {
+		const sqlParams: string[] = [];
 		const { id, ...bodyNoId } = req.body;
 		// In order remove ambiguity, we need to add the table name to the column names when the table is joined
 		for (let i in bodyNoId) {
@@ -276,15 +282,15 @@ class SqlEngine {
 		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
 		sqlStatement += ';';
 		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams]);
-		return this.executeGetRequest(req, routeData, schema, sqlParams);
+		return this.executeGetRequest(req, routeData, schema);
 	}
 
 	private async executeDeleteRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
-		schema: Restura.Schema,
-		sqlParams: any[]
+		schema: Restura.Schema
 	): Promise<any> {
+		const sqlParams: string[] = [];
 		let deleteStatement = `DELETE \n \tFROM ${routeData.table} `;
 		deleteStatement += this.generateWhereClause(req, routeData, sqlParams);
 		deleteStatement += ';';
@@ -323,15 +329,14 @@ class SqlEngine {
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema,
 		userRole: string,
-		sqlParams: any[]
+		sqlParams: string[]
 	): string {
 		let joinStatements = '';
 		routeData.joins.forEach((item) => {
 			if (!this.doesRoleHavePermissionToTable(userRole, schema, item.table))
 				throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
 			if (item.custom) {
-				let customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
-				customReplaced = this.replaceGlobalParamKeywords(customReplaced, routeData, req, sqlParams);
+				const customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${customReplaced}\n`;
 			} else {
 				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${routeData.table}\`.\`${item.localColumnName}\` = \`${item.table}\`.\`${item.foreignColumnName}\`\n`;
@@ -365,15 +370,17 @@ class SqlEngine {
 		return orderBy;
 	}
 
-	private generateWhereClause(req: RsRequest<any>, routeData: Restura.StandardRouteData, sqlParams: any[]): string {
+	private generateWhereClause(
+		req: RsRequest<any>,
+		routeData: Restura.StandardRouteData,
+		sqlParams: string[]
+	): string {
 		let whereClause = '';
 		routeData.where.forEach((item, index) => {
 			if (index === 0) whereClause = 'WHERE ';
 
 			if (item.custom) {
-				let customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
-				customReplaced = this.replaceGlobalParamKeywords(customReplaced, routeData, req, sqlParams);
-				whereClause += customReplaced;
+				whereClause += this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				return;
 			}
 
@@ -388,8 +395,6 @@ class SqlEngine {
 					`Invalid where clause in route ${routeData.name}, missing required fields if not custom`
 				);
 
-			let replacedValue = this.replaceParamKeywords(item.value, routeData, req, sqlParams);
-			replacedValue = this.replaceGlobalParamKeywords(replacedValue, routeData, req, sqlParams);
 			let operator = item.operator;
 			if (operator === 'LIKE') {
 				sqlParams[sqlParams.length - 1] = `%${sqlParams[sqlParams.length - 1]}%`;
@@ -401,6 +406,7 @@ class SqlEngine {
 				sqlParams[sqlParams.length - 1] = `%${sqlParams[sqlParams.length - 1]}`;
 			}
 
+			const replacedValue = this.replaceParamKeywords(item.value, routeData, req, sqlParams);
 			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${
 				item.columnName
 			}\` ${operator} ${replacedValue}\n`;
@@ -439,7 +445,19 @@ class SqlEngine {
 		value: string,
 		routeData: Restura.RouteData,
 		req: RsRequest<any>,
-		sqlParams: any[]
+		sqlParams: string[]
+	): string {
+		let returnValue = value;
+		returnValue = this.replaceLocalParamKeywords(returnValue, routeData, req, sqlParams);
+		returnValue = this.replaceGlobalParamKeywords(returnValue, routeData, req, sqlParams);
+		return returnValue;
+	}
+
+	private replaceLocalParamKeywords(
+		value: string,
+		routeData: Restura.RouteData,
+		req: RsRequest<any>,
+		sqlParams: string[]
 	): string {
 		if (!routeData.request) return value;
 
@@ -458,9 +476,9 @@ class SqlEngine {
 		value: string,
 		routeData: Restura.RouteData,
 		req: RsRequest<any>,
-		sqlParams: any[]
+		sqlParams: string[]
 	): string {
-		// Match any value that starts with a $
+		// Match any value that starts with a #
 		value.match(/#[a-zA-Z][a-zA-Z0-9_]+/g)?.forEach((param) => {
 			param = param.replace('#', '');
 			let globalParamValue = (req.requesterDetails as any)[param];
