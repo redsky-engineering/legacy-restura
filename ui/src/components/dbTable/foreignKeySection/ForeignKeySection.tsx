@@ -160,7 +160,7 @@ const ForeignKeySection: React.FC<ForeignKeySectionProps> = (props) => {
 							let updatedIndexData = updatedTableData.foreignKeys.find(
 								(item) => item.name === keyData.name
 							);
-							if (updatedIndexData) updatedIndexData.onDelete = value as ForeignKeyActions;
+							if (updatedIndexData) updatedIndexData.onUpdate = value as ForeignKeyActions;
 
 							setSchema(updatedSchema);
 						}}
