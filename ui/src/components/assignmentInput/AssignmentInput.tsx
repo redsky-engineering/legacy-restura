@@ -19,7 +19,7 @@ interface RequestParamInputProps {
 
 const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamInputProps) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const [newParameterName, setNewParameterName] = useState<string>('');
+	const [assignmentName, setAssignmentName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	if (SchemaService.isStandardRouteData(props.routeData) && !props.routeData.assignments) {
@@ -30,32 +30,32 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 		if (!props.routeData) return;
 		if (SchemaService.isCustomRouteData(props.routeData)) return;
 		if (props.routeData.assignments.find((item) => item.value === name)) {
-			rsToastify.error(`Parameter ${name} name already exists`, 'Duplicate Parameter Name');
+			rsToastify.error(`Assignment name ${name} already exists`, 'Duplicate Assignment Name');
 			return;
 		}
 	}
 
-	function handleAddNewParameter() {
+	function handleAddNewAssignment() {
 		if (SchemaService.isCustomRouteData(props.routeData)) return;
 		if (!schema || !props.routeData || !props.routeData.request) return;
-		if (!newParameterName) {
-			rsToastify.error('Please enter a name for the new parameter', 'Missing Parameter Name');
+		if (!assignmentName) {
+			rsToastify.error('Please enter a name for the new assignment', 'Missing Assignment Name');
 			return;
 		}
 
-		const sanitizedName = StringUtils.sanitizeParameter(newParameterName);
+		const sanitizedName = StringUtils.sanitizeParameter(assignmentName);
 		checkForDuplicateName(sanitizedName);
 		if (!sanitizedName) return;
-		const newParameter: Restura.AssignData = {
+		const newAssignment: Restura.AssignData = {
 			name: sanitizedName,
 			value: ''
 		};
 
 		schemaService.updateRouteData({
 			...props.routeData,
-			assignments: [...props.routeData.assignments, newParameter]
+			assignments: [...props.routeData.assignments, newAssignment]
 		});
-		setNewParameterName('');
+		setAssignmentName('');
 	}
 
 	if (!props.routeData) return null;
@@ -114,19 +114,19 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 						</Box>
 					);
 				})}
-				<Box className={'parameterInput'}>
+				<Box className={'assignmentInput'}>
 					<InputText
-						value={newParameterName}
-						onChange={(value) => setNewParameterName(value)}
+						value={assignmentName}
+						onChange={(value) => setAssignmentName(value)}
 						inputMode={'text'}
 						placeholder={'name'}
 						onKeyDown={(event) => {
 							if (event.key === 'Enter') {
-								handleAddNewParameter();
+								handleAddNewAssignment();
 							}
 						}}
 					/>
-					<Button look={'outlinedPrimary'} onClick={handleAddNewParameter}>
+					<Button look={'outlinedPrimary'} onClick={handleAddNewAssignment}>
 						Add
 					</Button>
 				</Box>
@@ -138,9 +138,9 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 		<Box className={'rsRequestParamInput'}>
 			<Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
 				<Label variant={'body1'} weight={'regular'} mb={4}>
-					{!!props.routeData.request
-						? `Forced Assignments (${props.routeData.request.length})`
-						: 'Parameter Type'}
+					{SchemaService.isStandardRouteData(props.routeData)
+						? `Assignments (${props.routeData.assignments.length})`
+						: 'Custom Assignments'}
 				</Label>
 			</Box>
 			{renderForcedAssignments()}
