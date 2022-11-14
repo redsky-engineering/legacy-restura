@@ -180,7 +180,7 @@ class SqlEngine {
 			})
 			.join(', ');
 		const createdItem = await mainConnection.runQuery(
-			`INSERT INTO \`${routeData.table}\` SET ?, ${parameterString};`,
+			`INSERT INTO \`${routeData.table}\` SET ? ${parameterString ? `, ${parameterString}` : ''};`,
 			[{ ...req.data }, ...sqlParams]
 		);
 		const insertId = createdItem.insertId;
