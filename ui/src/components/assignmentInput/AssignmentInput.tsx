@@ -74,7 +74,7 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 						<Box
 							key={`${props.routeData!.path}_${assignData.name}_${index}`}
 							className={classNames('assignmentParam', {
-								last: index === (props.routeData as Restura.StandardRouteData)!.assignments.length -1
+								last: index === (props.routeData as Restura.StandardRouteData)!.assignments.length - 1
 							})}
 						>
 							<Box className={'paramNameRequired'}>
