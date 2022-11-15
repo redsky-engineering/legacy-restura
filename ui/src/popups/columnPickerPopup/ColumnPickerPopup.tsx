@@ -60,11 +60,12 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		filteredColumns.forEach((columnData, index) => {
 			// We have to delay because the recoil value will not be updated if we fired the event too quickly
 			setTimeout(() => {
-				console.log(columnData.name);
 				props.onColumnSelect(selectedTable, columnData);
-			}, 10 * index);
+			}, 100 * index);
 		});
-		popupController.close(ColumnPickerPopup);
+		setTimeout(() => {
+			popupController.close(ColumnPickerPopup);
+		}, 100 * filteredColumns.length);
 	}
 
 	function renderFilter() {
