@@ -1,17 +1,14 @@
 import * as React from 'react';
 import './AssignmentInput.scss';
-import { Box, Button, Checkbox, Icon, InputText, Label, rsToastify, Select } from '@redskytech/framework/ui';
+import { Box, Button, Icon, InputText, Label, rsToastify } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
-import { useMemo, useState } from 'react';
-
-import 'ace-builds/src-noconflict/mode-typescript';
-import 'ace-builds/src-noconflict/theme-terminal';
-import 'ace-builds/src-noconflict/ext-language_tools';
-import 'ace-builds/src-min-noconflict/ext-searchbox';
+import { useState } from 'react';
 import { StringUtils } from '../../utils/utils.js';
+import classNames from 'classnames';
+import AutoComplete from '../autoComplete/AutoComplete.js';
 
 interface RequestParamInputProps {
 	routeData: Restura.RouteData | undefined;
@@ -58,22 +55,28 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 		setAssignmentName('');
 	}
 
-	if (!props.routeData) return null;
+	if (
+		!props.routeData ||
+		SchemaService.isCustomRouteData(props.routeData) ||
+		!props.routeData.assignments ||
+		props.routeData.method !== 'POST'
+	)
+		return null;
 
 	function renderForcedAssignments() {
-		if (
-			!props.routeData ||
-			SchemaService.isCustomRouteData(props.routeData) ||
-			!props.routeData.assignments ||
-			props.routeData.method != 'POST'
-		)
+		if (!props.routeData || SchemaService.isCustomRouteData(props.routeData) || !props.routeData.assignments)
 			return null;
 
 		return (
 			<>
 				{props.routeData.assignments.map((assignData, index) => {
 					return (
-						<Box key={`${props.routeData!.path}_${assignData.name}_${index}`} className={'requestParam'}>
+						<Box
+							key={`${props.routeData!.path}_${assignData.name}_${index}`}
+							className={classNames('assignmentParam', {
+								last: index === (props.routeData as Restura.StandardRouteData)!.assignments.length -1
+							})}
+						>
 							<Box className={'paramNameRequired'}>
 								<Icon
 									iconImg={'icon-delete'}
@@ -98,18 +101,36 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 										});
 									}}
 								/>
-								<InputText
-									inputMode={'text'}
-									placeholder={'value'}
-									defaultValue={assignData.value}
-									onBlur={(newValue) => {
-										if (newValue.target.value === assignData.value) return;
+								<AutoComplete
+									options={
+										[
+											...schema!.globalParams.map((param) => `#${param}`),
+											...props.routeData!.request!.map((request) => `$${request.name}`)
+										] || []
+									}
+									startSymbols={['$', '#']}
+									value={assignData.value || ''}
+									maxDisplay={5}
+									onChange={(newValue) => {
+										if (newValue === assignData.value) return;
 										schemaService.updateAssignmentParam(index, {
 											...assignData,
-											value: newValue.target.value
+											value: newValue
 										});
 									}}
 								/>
+								{/*<InputText*/}
+								{/*	inputMode={'text'}*/}
+								{/*	placeholder={'value'}*/}
+								{/*	defaultValue={assignData.value}*/}
+								{/*	onBlur={(newValue) => {*/}
+								{/*		if (newValue.target.value === assignData.value) return;*/}
+								{/*		schemaService.updateAssignmentParam(index, {*/}
+								{/*			...assignData,*/}
+								{/*			value: newValue.target.value*/}
+								{/*		});*/}
+								{/*	}}*/}
+								{/*/>*/}
 							</Box>
 						</Box>
 					);
@@ -135,7 +156,7 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 	}
 
 	return (
-		<Box className={'rsRequestParamInput'}>
+		<Box className={'rsAssignmentInput'}>
 			<Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
 				<Label variant={'body1'} weight={'regular'} mb={4}>
 					{SchemaService.isStandardRouteData(props.routeData)
