@@ -85,10 +85,11 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 									{
 										name: 'sortOrder',
 										required: false,
-										validator: [{ type: 'ONE_OF', value: 'ASC,DESC,NONE,RAND' }]
+										validator: [{ type: 'ONE_OF', value: ['ASC', 'DESC', 'NONE', 'RAND'] }]
 									}
 								];
 							}
+							delete (updatedRouteData as Restura.StandardRouteData).orderBy;
 							updatedRouteData = {
 								...updatedRouteData,
 								table: (updatedRouteData as Restura.StandardRouteData).table,
@@ -100,11 +101,6 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 								assignments: (updatedRouteData as Restura.StandardRouteData).assignments,
 								where: (updatedRouteData as Restura.StandardRouteData).where,
 								joins: (updatedRouteData as Restura.StandardRouteData).joins,
-								orderBy: {
-									tableName: (updatedRouteData as Restura.StandardRouteData).table,
-									columnName: 'id',
-									order: 'ASC'
-								},
 								roles: updatedRouteData.roles
 							};
 						}
