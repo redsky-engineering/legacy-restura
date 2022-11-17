@@ -30,7 +30,7 @@ export default defineConfig({
 		port: 3000,
 		proxy: {
 			// '/api': 'https://somewebsite.com/'
-			'/restura': 'http://localhost:3001'
+			'/restura': 'http://localhost:3100'
 		}
 	}
 });
