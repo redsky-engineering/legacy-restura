@@ -131,7 +131,7 @@ class ApiTree {
 
 	generateResponseParameters(route: Restura.RouteData): string {
 		if (ResponseValidator.isCustomRoute(route)) {
-			return route.responseType;
+			return `export interface Res extends ${route.responseType} {}`;
 		}
 		return `export interface Res ${this.getFields(route.response)}`;
 	}
