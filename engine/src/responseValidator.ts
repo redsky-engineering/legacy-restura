@@ -174,7 +174,7 @@ export default class ResponseValidator {
 		return route.type === 'CUSTOM_ONE' || route.type === 'CUSTOM_ARRAY';
 	}
 
-	 static validatorIsValidString(validator: string): validator is Restura.ValidatorString {
+	 private static validatorIsValidString(validator: string): validator is Restura.ValidatorString {
 		return !validator.includes('|');
 	}
 }
