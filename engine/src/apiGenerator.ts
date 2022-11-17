@@ -1,6 +1,7 @@
 import { StringUtils } from '../../../../src/utils/utils.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
+import ResponseValidator from './responseValidator.js';
 
 type TreeData = Restura.RouteData | Restura.EndpointData;
 
@@ -129,10 +130,10 @@ class ApiTree {
 	}
 
 	generateResponseParameters(route: Restura.RouteData): string {
-		if (!('response' in route)) return '';
-
-		let modelString = `export interface Res ${this.getFields(route.response)}`;
-		return modelString;
+		if (ResponseValidator.isCustomRoute(route)) {
+			return route.responseType;
+		}
+		return `export interface Res ${this.getFields(route.response)}`;
 	}
 
 	getFields(fields: ReadonlyArray<Restura.ResponseData>): string {

@@ -170,11 +170,11 @@ export default class ResponseValidator {
 		return value;
 	}
 
-	private static isCustomRoute(route: Restura.RouteData): route is Restura.CustomRouteData {
+	 static isCustomRoute(route: Restura.RouteData): route is Restura.CustomRouteData {
 		return route.type === 'CUSTOM_ONE' || route.type === 'CUSTOM_ARRAY';
 	}
 
-	private static validatorIsValidString(validator: string): validator is Restura.ValidatorString {
+	 static validatorIsValidString(validator: string): validator is Restura.ValidatorString {
 		return !validator.includes('|');
 	}
 }
