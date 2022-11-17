@@ -1,17 +1,13 @@
-import { defineConfig , loadEnv} from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import ViteCSSExportPlugin from 'vite-plugin-css-export';
 import { imagetools } from 'vite-imagetools';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 // https://vitejs.dev/config/
-export default defineConfig(({command, mode, ssrBuild})=>{
-
-	dotenv.config(({ path: __dirname+'/.env' }))
-	console.log(JSON.stringify(process.env))
-
-
+export default defineConfig(({ command, mode, ssrBuild }) => {
+	dotenv.config({ path: __dirname + '/.env' });
 
 	return {
 		plugins: [
@@ -41,5 +37,5 @@ export default defineConfig(({command, mode, ssrBuild})=>{
 				'/restura': process.env.RESTURA_HOST || 'http://localhost:3001'
 			}
 		}
-	}
+	};
 });

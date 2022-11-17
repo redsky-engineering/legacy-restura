@@ -60,8 +60,8 @@
 	"scripts": {
 		"start": "vite --host",
 		"build": "tsc && vite build",
-		"prettier:check": "prettier --check ./src/**/*.{ts,tsx,js,jsx,html,scss,css,md,json}",
-		"prettier:fix-all": "prettier --write ./src/**/*.{ts,tsx,js,jsx,html,scss,css,md,json}"
+		"prettier:check": "prettier --check ./src/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} ./*.{ts,tsx,js,jsx,html,scss,css,md,json}",
+		"prettier:fix-all": "prettier --write ./src/**/*.{ts,tsx,js,jsx,html,scss,css,md,json} ./*.{ts,tsx,js,jsx,html,scss,css,md,json}"
 	},
 	"eslintConfig": {
 		"extends": "react-app"
