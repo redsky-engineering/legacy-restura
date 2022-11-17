@@ -6,7 +6,7 @@ import { imagetools } from 'vite-imagetools';
 import dotenv from 'dotenv';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode, ssrBuild }) => {
+export default defineConfig(() => {
 	dotenv.config({ path: __dirname + '/.env' });
 
 	return {
