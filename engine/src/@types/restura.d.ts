@@ -98,6 +98,12 @@ declare namespace Restura {
 			join: string;
 			properties: ResponseData[];
 		};
+		subQuery?: {
+			table: string;
+			joins: JoinData[];
+			where: WhereData[];
+			properties: ResponseData[];
+		};
 	}
 
 	export interface WhereData {
