@@ -1,6 +1,16 @@
 import * as React from 'react';
 import './ColumnPickerPopup.scss';
-import { Box, Button, Icon, InputText, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
+import {
+	Box,
+	Button,
+	Icon,
+	InputText,
+	Label,
+	Popup,
+	popupController,
+	PopupProps,
+	rsToastify
+} from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useEffect, useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
@@ -32,6 +42,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 
 	useEffect(() => {
 		if (tableList.length === 0) return;
+		if (selectedTable) return;
 		setSelectedTable(tableList[0]);
 	}, [tableList]);
 
@@ -46,7 +57,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 
 	function handleColumnClick(columnData: Restura.ColumnData) {
 		props.onColumnSelect(selectedTable, columnData);
-		popupController.close(ColumnPickerPopup);
+		rsToastify.success(`${selectedTable}.${columnData.name} - added`, 'Added Column');
 	}
 
 	function handleAddAll() {
@@ -64,7 +75,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 			}, 100 * index);
 		});
 		setTimeout(() => {
-			popupController.close(ColumnPickerPopup);
+			rsToastify.success(`Multiple columns added`, 'Added All Columns');
 		}, 100 * filteredColumns.length);
 	}
 

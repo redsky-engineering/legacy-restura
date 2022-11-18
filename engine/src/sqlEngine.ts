@@ -124,6 +124,62 @@ class SqlEngine {
 		return diff.commands('');
 	}
 
+	private createNestedSelect2(
+		req: RsRequest<any>,
+		schema: Restura.Schema,
+		item: Restura.ResponseData,
+		routeData: Restura.StandardRouteData,
+		userRole: string,
+		sqlParams: string[]
+	): string {
+		if (!item.subQuery) return '';
+		if (
+			!ObjectUtils.isArrayWithData(
+				item.subQuery.properties.filter((nestedItem) => {
+					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem);
+				})
+			)
+		) {
+			return "'[]'";
+		}
+
+		return `IFNULL((
+						SELECT JSON_ARRAYAGG(
+							JSON_OBJECT(
+								${item.subQuery.properties
+									.map((nestedItem) => {
+										if (
+											!this.doesRoleHavePermissionToColumn(
+												req.requesterDetails.role,
+												schema,
+												nestedItem
+											)
+										) {
+											return;
+										}
+										if (nestedItem.subQuery) {
+											return `"${nestedItem.name}", ${this.createNestedSelect2(
+												req,
+												schema,
+												nestedItem,
+												routeData,
+												userRole,
+												sqlParams
+											)}`;
+										}
+										return `"${nestedItem.name}", ${nestedItem.selector}`;
+									})
+									.filter(Boolean)
+									.join(',')}
+							)
+						) 
+						FROM
+							${item.subQuery.table}
+							${this.generateJoinStatements(req, item.subQuery.joins, item.subQuery.table, routeData, schema, userRole, sqlParams)}
+							${this.generateWhereClause(req, item.subQuery.where, routeData, sqlParams)}
+					), '[]')`;
+	}
+
 	private createNestedSelect(req: RsRequest<any>, schema: Restura.Schema, item: Restura.ResponseData): string {
 		if (!item.objectArray) return '';
 		if (
@@ -211,7 +267,7 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray)
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray || item.subQuery)
 				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
@@ -220,13 +276,15 @@ class SqlEngine {
 			.map((item) => {
 				if (item.objectArray) {
 					return `${this.createNestedSelect(req, schema, item)} AS ${item.name}`;
+				} else if (item.subQuery) {
+					return `${this.createNestedSelect2(req, schema, item, routeData, userRole, sqlParams)} AS ${item.name}`;
 				}
 				return `${item.selector} AS ${item.name}`;
 			})
 			.join(',\n\t')}\n`;
 		sqlStatement += `FROM \`${routeData.table}\`\n`;
-		sqlStatement += this.generateJoinStatements(req, routeData, schema, userRole, sqlParams);
-		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
+		sqlStatement += this.generateJoinStatements(req, routeData.joins, routeData.table, routeData, schema, userRole, sqlParams);
+		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		let groupByOrderByStatement = this.generateGroupBy(routeData);
 		groupByOrderByStatement += this.generateOrderBy(req, routeData);
 		if (routeData.type === 'ONE') {
@@ -277,9 +335,17 @@ class SqlEngine {
 			delete bodyNoId[i];
 		}
 
-		let joinStatement = this.generateJoinStatements(req, routeData, schema, req.requesterDetails.role, sqlParams);
+		let joinStatement = this.generateJoinStatements(
+			req,
+			routeData.joins,
+			routeData.table,
+			routeData,
+			schema,
+			req.requesterDetails.role,
+			sqlParams
+		);
 		let sqlStatement = `UPDATE \`${routeData.table}\` ${joinStatement} SET ? `;
-		sqlStatement += this.generateWhereClause(req, routeData, sqlParams);
+		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		sqlStatement += ';';
 		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams]);
 		return this.executeGetRequest(req, routeData, schema);
@@ -292,7 +358,7 @@ class SqlEngine {
 	): Promise<any> {
 		const sqlParams: string[] = [];
 		let deleteStatement = `DELETE \n \tFROM ${routeData.table} `;
-		deleteStatement += this.generateWhereClause(req, routeData, sqlParams);
+		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		deleteStatement += ';';
 		await mainConnection.runQuery(deleteStatement, sqlParams);
 		return { data: true };
@@ -326,20 +392,22 @@ class SqlEngine {
 
 	private generateJoinStatements(
 		req: RsRequest<any>,
+		joins: Restura.JoinData[],
+		baseTable: string,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema,
 		userRole: string,
 		sqlParams: string[]
 	): string {
 		let joinStatements = '';
-		routeData.joins.forEach((item) => {
+		joins.forEach((item) => {
 			if (!this.doesRoleHavePermissionToTable(userRole, schema, item.table))
 				throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
 			if (item.custom) {
 				const customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${customReplaced}\n`;
 			} else {
-				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${routeData.table}\`.\`${item.localColumnName}\` = \`${item.table}\`.\`${item.foreignColumnName}\`\n`;
+				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${baseTable}\`.\`${item.localColumnName}\` = \`${item.table}\`.\`${item.foreignColumnName}\`\n`;
 			}
 		});
 		return joinStatements;
@@ -372,11 +440,12 @@ class SqlEngine {
 
 	private generateWhereClause(
 		req: RsRequest<any>,
+		where: Restura.WhereData[],
 		routeData: Restura.StandardRouteData,
 		sqlParams: string[]
 	): string {
 		let whereClause = '';
-		routeData.where.forEach((item, index) => {
+		where.forEach((item, index) => {
 			if (index === 0) whereClause = 'WHERE ';
 
 			if (item.custom) {

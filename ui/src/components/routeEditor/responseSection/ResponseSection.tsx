@@ -1,13 +1,13 @@
 import * as React from 'react';
 import './ResponseSection.scss';
-import { Box, Button, Label, popupController, Select } from '@redskytech/framework/ui';
+import { Box, Button, Label, popupController, rsToastify, Select } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
 import { useMemo } from 'react';
 import serviceFactory from '../../../services/serviceFactory';
 import SchemaService from '../../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../../popups/columnPickerPopup/ColumnPickerPopup';
-import { StringUtils } from '../../../utils/utils';
+import { StringUtils, WebUtils } from '../../../utils/utils';
 import useRouteData from '../../../customHooks/useRouteData';
 
 import AceEditor from 'react-ace';
@@ -68,11 +68,40 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
 			baseTable: routeData.table,
 			headerText: 'Select Column',
-			onColumnSelect: (tableName, columnData) => {
-				let name =
-					tableName === routeData.table
-						? columnData.name
-						: `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+			onColumnSelect: async (tableName, columnData) => {
+				let name = '';
+				if (tableName === routeData.table) {
+					name = columnData.name;
+				} else {
+					name = `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+					// Since we are in a closure, we need to make sure we are using the latest value of routeData
+					let latestRouteData = schemaService.getSelectedRouteData() as Restura.StandardRouteData;
+					if (!latestRouteData) return;
+					let existingJoin = latestRouteData.joins.find((join) => join.table === tableName);
+					if (!existingJoin) {
+						// Find the foreign key for this table
+						let foreignKey = schemaService.getForeignKey(latestRouteData.table, tableName);
+						if (!foreignKey) {
+							rsToastify.error(
+								`Could not find foreign key for table ${latestRouteData.table} to table ${tableName}`
+							);
+							return;
+						}
+
+						schemaService.addJoin({
+							table: tableName,
+							localColumnName: foreignKey.column,
+							foreignColumnName: foreignKey.refColumn,
+							type: 'INNER'
+						});
+
+						console.log('added join that was missing');
+
+						// We need to sleep so that recoil can update with the table join
+						await WebUtils.sleep(50);
+					}
+				}
+
 				schemaService.addResponseParameter('root', {
 					name,
 					selector: `${tableName}.${columnData.name}`

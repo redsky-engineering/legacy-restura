@@ -50,6 +50,13 @@ export default class SchemaService extends Service {
 		return JSON.stringify(currentSchema) !== JSON.stringify(this.lastSchema);
 	}
 
+	getSelectedRouteData(): Restura.RouteData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		return schema.endpoints[indices.endpointIndex].routes[indices.routeIndex];
+	}
+
 	updateRouteData(routeData: Restura.RouteData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -322,6 +329,14 @@ export default class SchemaService extends Service {
 		if (SchemaService.isCustomRouteData(route)) return;
 		route.assignments.splice(index, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
+	}
+
+	getForeignKey(baseTableName: string, foreignTableName: string) : Restura.ForeignKeyData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let baseTable = schema.database.find((table) => table.name === baseTableName);
+		if (!baseTable) return;
+		return baseTable.foreignKeys.find((key) => key.refTable === foreignTableName);
 	}
 
 	static getIndexesToSelectedRoute(schema: Restura.Schema): { endpointIndex: number; routeIndex: number } {
