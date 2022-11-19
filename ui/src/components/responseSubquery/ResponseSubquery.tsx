@@ -67,11 +67,11 @@ const ResponseSubquery: React.FC<ResponseSubqueryProps> = (props) => {
 
 						let updatedResponse = cloneDeep(latestResponseData)!;
 						updatedResponse.subquery!.joins.push({
-								table: tableName,
-								localColumnName: foreignKey.column,
-								foreignColumnName: foreignKey.refColumn,
-								type: 'INNER'}
-						);
+							table: tableName,
+							localColumnName: foreignKey.column,
+							foreignColumnName: foreignKey.refColumn,
+							type: 'INNER'
+						});
 						schemaService.updateResponseParameter(props.rootPath, props.parameterIndex, updatedResponse);
 
 						// We need to sleep so that recoil can update with the table join

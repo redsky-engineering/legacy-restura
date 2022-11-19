@@ -53,7 +53,12 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 
 		return props.where.map((whereData: Restura.WhereData, whereIndex) => {
 			if (!schema) return <></>;
-			let uniqueKey = props.routeData.path + whereData.tableName + whereData.columnName + whereData.operator + whereData.custom;
+			let uniqueKey =
+				props.routeData.path +
+				whereData.tableName +
+				whereData.columnName +
+				whereData.operator +
+				whereData.custom;
 			return (
 				// Use a random key since we don't have a unique identifier for each where statement
 				<React.Fragment key={uniqueKey}>

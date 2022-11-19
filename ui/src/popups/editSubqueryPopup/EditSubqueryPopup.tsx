@@ -1,15 +1,6 @@
 import * as React from 'react';
 import './EditSubqueryPopup.scss';
-import {
-	Box,
-	Button,
-	Icon,
-	Label,
-	Popup,
-	popupController,
-	PopupProps,
-    rsToastify,
-} from '@redskytech/framework/ui';
+import { Box, Button, Icon, Label, Popup, popupController, PopupProps, rsToastify } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useState } from 'react';
 import cloneDeep from 'lodash.clonedeep';
