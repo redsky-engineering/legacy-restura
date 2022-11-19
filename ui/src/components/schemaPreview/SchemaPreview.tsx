@@ -89,9 +89,15 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = (props) => {
 					<Label variant={'h6'} weight={'medium'} mb={8}>
 						SQL Statements
 					</Label>
-					<Label color={themes.success} variant={'body1'} weight={'regular'}>
-						Changed
-					</Label>
+					{!schemaDiffs.commands.length ? (
+						<Label color={themes.success} variant={'body1'} weight={'regular'}>
+							No Change
+						</Label>
+					) : (
+						<Label color={themes.secondaryOrange500} variant={'body1'} weight={'regular'}>
+							Modified
+						</Label>
+					)}
 				</Box>
 				<Box className={'sectionBox'} padding={24}>
 					<Label variant={'h6'} weight={'medium'} mb={8}>

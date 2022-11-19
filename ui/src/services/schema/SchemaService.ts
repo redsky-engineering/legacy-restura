@@ -162,6 +162,30 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	getResponseParameter(rootPath: string, parameterIndex: number): Restura.ResponseData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).response;
+		let path = rootPath.split('.');
+		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
+		for (let i = 1; i < path.length; i++) {
+			if (currentResponseData === undefined) return;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
+			}) as Restura.ResponseData | undefined;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
+		}
+		if (!currentResponseData) return;
+		return currentResponseData[parameterIndex];
+	}
+
 	addResponseParameter(rootPath: string, responseData: Restura.ResponseData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -418,6 +442,7 @@ export default class SchemaService extends Service {
 			case 'int':
 			case 'bigint':
 			case 'decimal':
+			case 'integer':
 			case 'float':
 			case 'double':
 				return 'number';

@@ -4,15 +4,11 @@ import {
 	Box,
 	Button,
 	Icon,
-	InputText,
 	Label,
 	Popup,
 	popupController,
 	PopupProps,
-	RsFormControl,
-	RsFormGroup,
-	RsValidator,
-	RsValidatorEnum
+    rsToastify,
 } from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useState } from 'react';
@@ -39,7 +35,10 @@ const EditSubqueryPopup: React.FC<EditSubqueryPopupProps> = (props) => {
 	}
 
 	function handleSave() {
-		console.log('onSave');
+		if (!response.subquery?.table) {
+			rsToastify.error('Please select a base table.', 'Missing Base Table');
+			return;
+		}
 		props.onSave(response);
 		popupController.close(EditSubqueryPopup);
 	}

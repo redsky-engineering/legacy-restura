@@ -135,16 +135,6 @@ const standardRouteDecoder = JsonDecoder.objectStrict<Restura.StandardRouteData>
 				{
 					name: JsonDecoder.string,
 					selector: JsonDecoder.optional(JsonDecoder.string),
-					objectArray: JsonDecoder.optional(
-						JsonDecoder.objectStrict(
-							{
-								table: JsonDecoder.string,
-								join: JsonDecoder.string,
-								properties: JsonDecoder.array(JsonDecoder.succeed, 'properties')
-							},
-							'objectArray'
-						)
-					),
 					subquery: JsonDecoder.optional(
 						JsonDecoder.objectStrict<Restura.ResponseData['subquery']>(
 							{

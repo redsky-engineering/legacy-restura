@@ -1,41 +1,41 @@
 import * as React from 'react';
-import './ResponseObjectArray.scss';
-import { Box, Button, Icon, InputText, Label, popupController } from '@redskytech/framework/ui';
+import './ResponseSubquery.scss';
+import { Box, Button, Icon, InputText, Label, popupController, rsToastify } from '@redskytech/framework/ui';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
 import { useState } from 'react';
 import themes from '../../themes/themes.scss?export';
 import ResponseProperty from '../responseProperty/ResponseProperty';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
-import NestedObjectSelectorPopup, {
-	NestedObjectSelectorPopupProps
-} from '../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
 import EditSubqueryPopup, { EditSubqueryPopupProps } from '../../popups/editSubqueryPopup/EditSubqueryPopup.js';
+import { StringUtils, WebUtils } from '../../utils/utils.js';
+import cloneDeep from 'lodash.clonedeep';
 
-interface ResponseObjectArrayProps {
+interface ResponseSubqueryProps {
 	responseData: Restura.ResponseData;
 	parameterIndex: number;
 	rootPath: string;
 }
 
-const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
+const ResponseSubquery: React.FC<ResponseSubqueryProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 
 	function handleAddSubquery() {
 		if (!props.responseData.subquery) return;
-		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
-			baseTable: props.responseData.subquery.table,
-			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
-				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
-					name: foreignTable,
-					subquery: {
-						table: foreignTable,
-						joins: [],
-						where: [],
-						properties: []
-					}
-				});
+		popupController.open<EditSubqueryPopupProps>(EditSubqueryPopup, {
+			response: {
+				name: '', // Name will be assigned on save based on table name
+				subquery: {
+					table: '',
+					joins: [],
+					where: [],
+					properties: []
+				}
+			},
+			onSave: (response: Restura.ResponseData) => {
+				response.name = response.subquery?.table || 'unknown';
+				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, response);
 			}
 		});
 	}
@@ -45,9 +45,42 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
 			baseTable: props.responseData.subquery.table,
 			headerText: 'Select Column',
-			onColumnSelect: (tableName, columnData) => {
+			onColumnSelect: async (tableName, columnData) => {
+				if (!props.responseData.subquery) return;
+				let name = '';
+				if (tableName === props.responseData.subquery.table) {
+					name = columnData.name;
+				} else {
+					name = `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+					let latestResponseData = schemaService.getResponseParameter(props.rootPath, props.parameterIndex);
+					if (!latestResponseData || !latestResponseData.subquery) return;
+					let existingJoin = latestResponseData.subquery.joins.find((join) => join.table === tableName);
+					if (!existingJoin) {
+						// Find the foreign key for this table
+						let foreignKey = schemaService.getForeignKey(props.responseData.subquery.table, tableName);
+						if (!foreignKey) {
+							rsToastify.error(
+								`Could not find foreign key for table ${props.responseData.subquery.table} to table ${tableName}`
+							);
+							return;
+						}
+
+						let updatedResponse = cloneDeep(latestResponseData)!;
+						updatedResponse.subquery!.joins.push({
+								table: tableName,
+								localColumnName: foreignKey.column,
+								foreignColumnName: foreignKey.refColumn,
+								type: 'INNER'}
+						);
+						schemaService.updateResponseParameter(props.rootPath, props.parameterIndex, updatedResponse);
+
+						// We need to sleep so that recoil can update with the table join
+						await WebUtils.sleep(50);
+					}
+				}
+
 				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
-					name: columnData.name,
+					name,
 					selector: `${tableName}.${columnData.name}`
 				});
 			}
@@ -65,7 +98,7 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 	}
 
 	return (
-		<Box className={'rsResponseObjectArray'}>
+		<Box className={'rsResponseSubquery'}>
 			<Box className={'header'}>
 				<Icon
 					fontSize={16}
@@ -134,7 +167,7 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 				{props.responseData.subquery?.properties.map((item, parameterIndex) => {
 					if (item.subquery) {
 						return (
-							<ResponseObjectArray
+							<ResponseSubquery
 								key={item.name}
 								responseData={item}
 								parameterIndex={parameterIndex}
@@ -157,4 +190,4 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 	);
 };
 
-export default ResponseObjectArray;
+export default ResponseSubquery;

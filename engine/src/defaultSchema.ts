@@ -213,29 +213,21 @@ const defaultSchema: Restura.Schema = {
 							selector: 'company.createdOn'
 						},
 						{
-							name: 'teamMates',
+							name: 'company',
 							subquery: {
-								table: 'teamMap',
-								joins: [
-									{
-										table: 'teamRole',
-										type: 'INNER',
-										foreignColumnName: 'id',
-										localColumnName: 'teamRoleId'
-									},
-									{ table: 'user', type: 'INNER', foreignColumnName: 'id', localColumnName: 'userId' }
-								],
+								table: 'company',
+								joins: [],
 								where: [
-									{ tableName: 'teamMap', columnName: 'teamId', operator: '=', value: 'team.id' }
+									{ tableName: 'company', columnName: 'id', operator: '=', value: 'user.companyId' }
 								],
 								properties: [
 									{
-										name: 'userId',
-										selector: 'user.id'
+										name: 'id',
+										selector: 'company.id'
 									},
 									{
-										name: 'role',
-										selector: 'teamRole.name'
+										name: 'name',
+										selector: 'company.name'
 									}
 								]
 							}

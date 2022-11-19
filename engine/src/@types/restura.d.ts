@@ -93,11 +93,6 @@ declare namespace Restura {
 	export interface ResponseData {
 		name: string;
 		selector?: string;
-		objectArray?: {
-			table: string;
-			join: string;
-			properties: ResponseData[];
-		};
 		subquery?: {
 			table: string;
 			joins: JoinData[];

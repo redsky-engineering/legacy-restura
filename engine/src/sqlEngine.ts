@@ -124,7 +124,7 @@ class SqlEngine {
 		return diff.commands('');
 	}
 
-	private createNestedSelect2(
+	private createNestedSelect(
 		req: RsRequest<any>,
 		schema: Restura.Schema,
 		item: Restura.ResponseData,
@@ -158,7 +158,7 @@ class SqlEngine {
 											return;
 										}
 										if (nestedItem.subquery) {
-											return `"${nestedItem.name}", ${this.createNestedSelect2(
+											return `"${nestedItem.name}", ${this.createNestedSelect(
 												req,
 												schema,
 												nestedItem,
@@ -177,49 +177,6 @@ class SqlEngine {
 							${item.subquery.table}
 							${this.generateJoinStatements(req, item.subquery.joins, item.subquery.table, routeData, schema, userRole, sqlParams)}
 							${this.generateWhereClause(req, item.subquery.where, routeData, sqlParams)}
-					), '[]')`;
-	}
-
-	private createNestedSelect(req: RsRequest<any>, schema: Restura.Schema, item: Restura.ResponseData): string {
-		if (!item.objectArray) return '';
-		if (
-			!ObjectUtils.isArrayWithData(
-				item.objectArray.properties.filter((nestedItem) => {
-					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem);
-				})
-			)
-		) {
-			return "'[]'";
-		}
-		return `IFNULL((
-						SELECT JSON_ARRAYAGG(
-							JSON_OBJECT(
-								${item.objectArray.properties
-									.map((nestedItem) => {
-										if (
-											!this.doesRoleHavePermissionToColumn(
-												req.requesterDetails.role,
-												schema,
-												nestedItem
-											)
-										) {
-											return;
-										}
-										if (nestedItem.objectArray) {
-											return `"${nestedItem.name}", ${this.createNestedSelect(
-												req,
-												schema,
-												nestedItem
-											)}`;
-										}
-										return `"${nestedItem.name}", ${nestedItem.selector}`;
-									})
-									.filter(Boolean)
-									.join(',')}
-							)
-						) FROM
-							${item.objectArray.table}
-							WHERE ${item.objectArray.join}
 					), '[]')`;
 	}
 
@@ -267,17 +224,14 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray || item.subquery)
-				selectColumns.push(item);
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.subquery) selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
 		let selectStatement = 'SELECT \n';
 		selectStatement += `\t${selectColumns
 			.map((item) => {
-				if (item.objectArray) {
-					return `${this.createNestedSelect(req, schema, item)} AS ${item.name}`;
-				} else if (item.subquery) {
-					return `${this.createNestedSelect2(req, schema, item, routeData, userRole, sqlParams)} AS ${
+				if (item.subquery) {
+					return `${this.createNestedSelect(req, schema, item, routeData, userRole, sqlParams)} AS ${
 						item.name
 					}`;
 				}
@@ -385,9 +339,9 @@ class SqlEngine {
 				throw new RsError('SCHEMA_ERROR', `Column ${columnName} not found in table ${tableName}`);
 			return !(ObjectUtils.isArrayWithData(columnSchema.roles) && !columnSchema.roles.includes(role));
 		}
-		if (item.objectArray) {
+		if (item.subquery) {
 			return ObjectUtils.isArrayWithData(
-				item.objectArray.properties.filter((nestedItem) => {
+				item.subquery.properties.filter((nestedItem) => {
 					return this.doesRoleHavePermissionToColumn(role, schema, nestedItem);
 				})
 			);

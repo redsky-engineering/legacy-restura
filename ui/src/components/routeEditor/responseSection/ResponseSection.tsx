@@ -17,10 +17,8 @@ import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import ResponseProperty from '../../responseProperty/ResponseProperty';
-import ResponseObjectArray from '../../responseObjectArray/ResponseObjectArray';
-import NestedObjectSelectorPopup, {
-	NestedObjectSelectorPopupProps
-} from '../../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
+import ResponseSubquery from '../../responseSubquery/ResponseSubquery.js';
+import EditSubqueryPopup, { EditSubqueryPopupProps } from '../../../popups/editSubqueryPopup/EditSubqueryPopup.js';
 
 interface ResponseSectionProps {}
 
@@ -44,20 +42,23 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		return [...options, ...matches.map((item) => ({ label: item, value: item }))];
 	}, [schema]);
 
-	function handleAddObjectArray() {
+	function handleAddSubquery() {
 		if (!routeData) return;
 		if (!SchemaService.isStandardRouteData(routeData)) return;
-		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
-			baseTable: routeData.table,
-			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
-				schemaService.addResponseParameter('root', {
-					name: foreignTable,
-					objectArray: {
-						table: foreignTable,
-						join: `${localTable}.${localColumn} = ${foreignTable}.${foreignColumn}`,
-						properties: []
-					}
-				});
+		popupController.open<EditSubqueryPopupProps>(EditSubqueryPopup, {
+			response: {
+				name: '', // Name will be assigned on save based on table name
+				subquery: {
+					table: '',
+					joins: [],
+					where: [],
+					properties: []
+				}
+			},
+			onSave: (response: Restura.ResponseData) => {
+				if (!routeData) return;
+				response.name = response.subquery?.table || 'unknown';
+				schemaService.addResponseParameter('root', response);
 			}
 		});
 	}
@@ -95,8 +96,6 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 							type: 'INNER'
 						});
 
-						console.log('added join that was missing');
-
 						// We need to sleep so that recoil can update with the table join
 						await WebUtils.sleep(50);
 					}
@@ -114,7 +113,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		return standardRouteData.response.map((responseData, parameterIndex) => {
 			{
 				return responseData.subquery ? (
-					<ResponseObjectArray
+					<ResponseSubquery
 						key={responseData.name}
 						responseData={responseData}
 						parameterIndex={parameterIndex}
@@ -147,7 +146,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					<Button look={'textPrimary'} onClick={handleAddProperty}>
 						Add Property
 					</Button>
-					<Button look={'textPrimary'} onClick={handleAddObjectArray}>
+					<Button look={'textPrimary'} onClick={handleAddSubquery}>
 						Add Subquery
 					</Button>
 				</Box>

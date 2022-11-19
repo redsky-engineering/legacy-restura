@@ -62,13 +62,13 @@ export default class ResponseValidator {
 	private getFieldResponseType(field: Restura.ResponseData, tableName: string): Restura.ResponseType {
 		if (field.selector) {
 			return this.getTypeFromTable(field.selector, tableName);
-		} else if (field.objectArray) {
+		} else if (field.subquery) {
 			const table = this.database.find((t) => t.name == tableName);
 			if (!table) return { isArray: true, validator: 'any' };
 			const isOptional = table.roles.length > 0;
 			const validator: Restura.ResponseTypeMap = {};
-			for (const prop of field.objectArray.properties) {
-				validator[prop.name] = this.getFieldResponseType(prop, field.objectArray.table);
+			for (const prop of field.subquery.properties) {
+				validator[prop.name] = this.getFieldResponseType(prop, field.subquery.table);
 			}
 			return {
 				isArray: true,
