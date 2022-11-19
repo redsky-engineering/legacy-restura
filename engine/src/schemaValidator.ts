@@ -5,6 +5,23 @@ import logger from '../../../../src/utils/logger.js';
 import { HtmlStatusCodes } from '../../../../src/utils/errors.js';
 import { JsonDecoder } from 'ts.data.json/dist/cjs/index.js';
 
+const orderByDecoder = JsonDecoder.objectStrict<Restura.OrderByData>(
+	{
+		columnName: JsonDecoder.string,
+		order: JsonDecoder.oneOf([JsonDecoder.isExactly('ASC'), JsonDecoder.isExactly('DESC')], 'order'),
+		tableName: JsonDecoder.string
+	},
+	'orderBy'
+);
+
+const groupByDecoder = JsonDecoder.objectStrict<Restura.GroupByData>(
+	{
+		columnName: JsonDecoder.string,
+		tableName: JsonDecoder.string
+	},
+	'groupBy'
+);
+
 const whereDataDecoder = JsonDecoder.array<Restura.WhereData>(
 	JsonDecoder.objectStrict<Restura.WhereData>(
 		{
@@ -128,13 +145,15 @@ const standardRouteDecoder = JsonDecoder.objectStrict<Restura.StandardRouteData>
 							'objectArray'
 						)
 					),
-					subQuery: JsonDecoder.optional(
-						JsonDecoder.objectStrict<Restura.ResponseData['subQuery']>(
+					subquery: JsonDecoder.optional(
+						JsonDecoder.objectStrict<Restura.ResponseData['subquery']>(
 							{
 								table: JsonDecoder.string,
 								joins: joinDataDecoder,
 								where: whereDataDecoder,
-								properties: JsonDecoder.array(JsonDecoder.succeed, 'properties')
+								properties: JsonDecoder.array(JsonDecoder.succeed, 'properties'),
+								orderBy: JsonDecoder.optional(orderByDecoder),
+								groupBy: JsonDecoder.optional(groupByDecoder)
 							},
 							'objectArray'
 						)
@@ -155,25 +174,8 @@ const standardRouteDecoder = JsonDecoder.objectStrict<Restura.StandardRouteData>
 			'assignments'
 		),
 		where: whereDataDecoder,
-		orderBy: JsonDecoder.optional(
-			JsonDecoder.objectStrict<Restura.OrderByData>(
-				{
-					columnName: JsonDecoder.string,
-					order: JsonDecoder.oneOf([JsonDecoder.isExactly('ASC'), JsonDecoder.isExactly('DESC')], 'order'),
-					tableName: JsonDecoder.string
-				},
-				'orderBy'
-			)
-		),
-		groupBy: JsonDecoder.optional(
-			JsonDecoder.objectStrict<Restura.GroupByData>(
-				{
-					columnName: JsonDecoder.string,
-					tableName: JsonDecoder.string
-				},
-				'groupBy'
-			)
-		)
+		orderBy: JsonDecoder.optional(orderByDecoder),
+		groupBy: JsonDecoder.optional(groupByDecoder)
 	},
 	'route'
 );

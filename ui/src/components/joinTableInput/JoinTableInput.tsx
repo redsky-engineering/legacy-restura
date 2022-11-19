@@ -7,21 +7,24 @@ import JoinSelectorPopup, { JoinSelectorPopupProps } from '../../popups/joinSele
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import AutoComplete from '../autoComplete/AutoComplete';
+import JoinData = Restura.JoinData;
 
 interface JoinTableInputProps {
-	routeData: Restura.RouteData | undefined;
+	routeData: Restura.StandardRouteData;
+	baseTableName: string;
+	joins: JoinData[];
+	onAddJoin: (join: JoinData) => void;
+	onRemoveJoin: (joinIndex: number) => void;
+	onUpdateJoin: (joinIndex: number, join: JoinData) => void;
 }
 
 const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
-	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	function handleAddJoin() {
-		if (!SchemaService.isStandardRouteData(props.routeData)) return;
 		popupController.open<JoinSelectorPopupProps>(JoinSelectorPopup, {
-			baseTable: props.routeData.table,
+			baseTable: props.baseTableName,
 			onSelect: (type, localColumn, foreignTable, foreignColumn) => {
-				if (!SchemaService.isStandardRouteData(props.routeData)) return;
 				let newJoin: Restura.JoinData = {
 					type: 'INNER',
 					table: foreignTable,
@@ -30,33 +33,32 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 						localColumnName: localColumn
 					}),
 					...(type === 'CUSTOM' && {
-						custom: `${props.routeData.table}.${localColumn} = ${foreignTable}.${foreignColumn}`
+						custom: `${props.baseTableName}.${localColumn} = ${foreignTable}.${foreignColumn}`
 					})
 				};
-				schemaService.addJoin(newJoin);
+				props.onAddJoin(newJoin);
 			}
 		});
 	}
 
 	function renderJoins() {
 		if (!schema) return <></>;
-		if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
-		if (props.routeData.joins.length === 0)
+		if (props.joins.length === 0)
 			return (
 				<Label variant={'body1'} weight={'bold'}>
 					No Joins
 				</Label>
 			);
-		return props.routeData.joins.map((joinData: Restura.JoinData, joinIndex) => {
+		return props.joins.map((joinData: Restura.JoinData, joinIndex) => {
 			return (
 				// Use a random key since we don't have a unique identifier for each join statement
-				<Box key={props.routeData!.path + '_' + Math.random() * 1000} className={'joinItem'}>
+				<Box key={props.routeData!.path + '_' + joinData.table} className={'joinItem'}>
 					<Icon
 						iconImg={'icon-delete'}
 						fontSize={16}
 						className={'deleteIcon'}
 						onClick={() => {
-							schemaService.removeJoin(joinIndex);
+							props.onRemoveJoin(joinIndex);
 						}}
 					/>
 					<Box className={'tableName'}>
@@ -67,7 +69,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 					{!joinData.custom ? (
 						<Box className={'standardJoin'}>
 							<Label variant={'body1'} weight={'regular'} className={'keyword'}>
-								{(props.routeData as Restura.StandardRouteData).table}.{joinData.localColumnName}
+								{props.baseTableName}.{joinData.localColumnName}
 							</Label>
 							<Label variant={'body1'} weight={'regular'}>
 								on
@@ -82,12 +84,10 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 								cursorPointer
 								onClick={() => {
 									let updatedJoinData = { ...joinData };
-									updatedJoinData.custom = `${(props.routeData as Restura.StandardRouteData).table}.${
-										joinData.localColumnName
-									} = ${joinData.table}.${joinData.foreignColumnName}`;
+									updatedJoinData.custom = `${props.baseTableName}.${joinData.localColumnName} = ${joinData.table}.${joinData.foreignColumnName}`;
 									delete updatedJoinData.localColumnName;
 									delete updatedJoinData.foreignColumnName;
-									schemaService.updateJoinData(joinIndex, updatedJoinData);
+									props.onUpdateJoin(joinIndex, updatedJoinData);
 								}}
 							/>
 						</Box>
@@ -96,7 +96,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 							options={
 								[
 									...schema.globalParams.map((param) => `#${param}`),
-									...props.routeData!.request!.map((request) => `$${request.name}`)
+									...props.routeData.request.map((request) => `$${request.name}`)
 								] || []
 							}
 							startSymbols={['$', '#']}
@@ -104,7 +104,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 							maxDisplay={5}
 							onChange={(newValue) => {
 								if (!newValue) return;
-								schemaService.updateJoinData(joinIndex, { ...joinData, custom: newValue });
+								props.onUpdateJoin(joinIndex, { ...joinData, custom: newValue });
 							}}
 						/>
 					)}
@@ -116,15 +116,13 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 						]}
 						onChange={(newValue) => {
 							if (!newValue) return;
-							schemaService.updateJoinData(joinIndex, { ...joinData, type: newValue.value });
+							props.onUpdateJoin(joinIndex, { ...joinData, type: newValue.value });
 						}}
 					/>
 				</Box>
 			);
 		});
 	}
-
-	if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
 
 	return (
 		<Box className={'rsJoinTableInput'}>

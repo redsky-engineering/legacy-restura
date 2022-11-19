@@ -132,10 +132,10 @@ class SqlEngine {
 		userRole: string,
 		sqlParams: string[]
 	): string {
-		if (!item.subQuery) return '';
+		if (!item.subquery) return '';
 		if (
 			!ObjectUtils.isArrayWithData(
-				item.subQuery.properties.filter((nestedItem) => {
+				item.subquery.properties.filter((nestedItem) => {
 					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem);
 				})
 			)
@@ -146,7 +146,7 @@ class SqlEngine {
 		return `IFNULL((
 						SELECT JSON_ARRAYAGG(
 							JSON_OBJECT(
-								${item.subQuery.properties
+								${item.subquery.properties
 									.map((nestedItem) => {
 										if (
 											!this.doesRoleHavePermissionToColumn(
@@ -157,7 +157,7 @@ class SqlEngine {
 										) {
 											return;
 										}
-										if (nestedItem.subQuery) {
+										if (nestedItem.subquery) {
 											return `"${nestedItem.name}", ${this.createNestedSelect2(
 												req,
 												schema,
@@ -174,9 +174,9 @@ class SqlEngine {
 							)
 						) 
 						FROM
-							${item.subQuery.table}
-							${this.generateJoinStatements(req, item.subQuery.joins, item.subQuery.table, routeData, schema, userRole, sqlParams)}
-							${this.generateWhereClause(req, item.subQuery.where, routeData, sqlParams)}
+							${item.subquery.table}
+							${this.generateJoinStatements(req, item.subquery.joins, item.subquery.table, routeData, schema, userRole, sqlParams)}
+							${this.generateWhereClause(req, item.subquery.where, routeData, sqlParams)}
 					), '[]')`;
 	}
 
@@ -267,7 +267,7 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray || item.subQuery)
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.objectArray || item.subquery)
 				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
@@ -276,14 +276,24 @@ class SqlEngine {
 			.map((item) => {
 				if (item.objectArray) {
 					return `${this.createNestedSelect(req, schema, item)} AS ${item.name}`;
-				} else if (item.subQuery) {
-					return `${this.createNestedSelect2(req, schema, item, routeData, userRole, sqlParams)} AS ${item.name}`;
+				} else if (item.subquery) {
+					return `${this.createNestedSelect2(req, schema, item, routeData, userRole, sqlParams)} AS ${
+						item.name
+					}`;
 				}
 				return `${item.selector} AS ${item.name}`;
 			})
 			.join(',\n\t')}\n`;
 		sqlStatement += `FROM \`${routeData.table}\`\n`;
-		sqlStatement += this.generateJoinStatements(req, routeData.joins, routeData.table, routeData, schema, userRole, sqlParams);
+		sqlStatement += this.generateJoinStatements(
+			req,
+			routeData.joins,
+			routeData.table,
+			routeData,
+			schema,
+			userRole,
+			sqlParams
+		);
 		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		let groupByOrderByStatement = this.generateGroupBy(routeData);
 		groupByOrderByStatement += this.generateOrderBy(req, routeData);

@@ -10,6 +10,7 @@ import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPi
 import NestedObjectSelectorPopup, {
 	NestedObjectSelectorPopupProps
 } from '../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
+import EditSubqueryPopup, { EditSubqueryPopupProps } from '../../popups/editSubqueryPopup/EditSubqueryPopup.js';
 
 interface ResponseObjectArrayProps {
 	responseData: Restura.ResponseData;
@@ -21,16 +22,17 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 
-	function handleAddObjectArray() {
-		if (!props.responseData.objectArray) return;
+	function handleAddSubquery() {
+		if (!props.responseData.subquery) return;
 		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
-			baseTable: props.responseData.objectArray.table,
+			baseTable: props.responseData.subquery.table,
 			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
 				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
 					name: foreignTable,
-					objectArray: {
+					subquery: {
 						table: foreignTable,
-						join: `${localTable}.${localColumn} = ${foreignTable}.${foreignColumn}`,
+						joins: [],
+						where: [],
 						properties: []
 					}
 				});
@@ -39,16 +41,25 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 	}
 
 	function handleAddProperty() {
-		if (!props.responseData.objectArray) return;
+		if (!props.responseData.subquery) return;
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
-			baseTable: props.responseData.objectArray.table,
-			baseTableOnly: true,
+			baseTable: props.responseData.subquery.table,
 			headerText: 'Select Column',
 			onColumnSelect: (tableName, columnData) => {
 				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
 					name: columnData.name,
 					selector: `${tableName}.${columnData.name}`
 				});
+			}
+		});
+	}
+
+	function handleEditSubquery() {
+		if (!props.responseData.subquery) return;
+		popupController.open<EditSubqueryPopupProps>(EditSubqueryPopup, {
+			response: props.responseData,
+			onSave: (response) => {
+				schemaService.updateResponseParameter(props.rootPath, props.parameterIndex, response);
 			}
 		});
 	}
@@ -102,19 +113,26 @@ const ResponseObjectArray: React.FC<ResponseObjectArrayProps> = (props) => {
 						</Label>
 					)}
 					<Label variant={'caption2'} weight={'regular'} color={themes.neutralBeige600}>
-						Object Array ({props.responseData.objectArray?.table})
+						Object Array
 					</Label>
 				</Box>
 				<Button look={'textPrimary'} onClick={handleAddProperty}>
 					Add Property
 				</Button>
-				<Button look={'textPrimary'} onClick={handleAddObjectArray}>
-					Add Array Of Objects
+				<Button look={'textPrimary'} onClick={handleAddSubquery}>
+					Add Subquery
 				</Button>
+				<Icon
+					iconImg={'icon-edit'}
+					fontSize={20}
+					color={themes.neutralBeige600}
+					cursorPointer
+					onClick={handleEditSubquery}
+				/>
 			</Box>
 			<Box pl={40}>
-				{props.responseData.objectArray?.properties.map((item, parameterIndex) => {
-					if (item.objectArray) {
+				{props.responseData.subquery?.properties.map((item, parameterIndex) => {
+					if (item.subquery) {
 						return (
 							<ResponseObjectArray
 								key={item.name}

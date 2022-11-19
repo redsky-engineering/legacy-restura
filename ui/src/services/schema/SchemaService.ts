@@ -176,11 +176,11 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		// Check for duplicate name
@@ -204,11 +204,11 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		currentResponseData.splice(parameterIndex, 1);
@@ -229,16 +229,20 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 
 		// Check for duplicate name
-		if (currentResponseData.findIndex((item) => item.name === responseData.name) !== -1) {
+		if (
+			currentResponseData.findIndex(
+				(item, index) => item.name === responseData.name && parameterIndex !== index
+			) !== -1
+		) {
 			rsToastify.error('Can not update with a duplicate name.', 'Duplicate name');
 			return;
 		}
@@ -331,7 +335,7 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
-	getForeignKey(baseTableName: string, foreignTableName: string) : Restura.ForeignKeyData | undefined {
+	getForeignKey(baseTableName: string, foreignTableName: string): Restura.ForeignKeyData | undefined {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
 		let baseTable = schema.database.find((table) => table.name === baseTableName);

@@ -113,7 +113,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	function renderResponseObject(standardRouteData: Restura.StandardRouteData) {
 		return standardRouteData.response.map((responseData, parameterIndex) => {
 			{
-				return responseData.objectArray ? (
+				return responseData.subquery ? (
 					<ResponseObjectArray
 						key={responseData.name}
 						responseData={responseData}
@@ -148,7 +148,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 						Add Property
 					</Button>
 					<Button look={'textPrimary'} onClick={handleAddObjectArray}>
-						Add Array of Objects
+						Add Subquery
 					</Button>
 				</Box>
 				{renderResponseObject(standardRouteData)}

@@ -214,7 +214,7 @@ const defaultSchema: Restura.Schema = {
 						},
 						{
 							name: 'teamMates',
-							subQuery: {
+							subquery: {
 								table: 'teamMap',
 								joins: [
 									{

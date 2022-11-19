@@ -12,8 +12,11 @@ import { SelectedRoute } from '../services/schema/SchemaService';
 enum GlobalStateKeys {
 	LOGIN_DETAILS = 'LoginDetails',
 	SCHEMA = 'Schema',
-	Route = 'Route'
+	ROUTE = 'Route',
+	EDIT_MODE = 'EditMode'
 }
+
+export type EditMode = 'API_DETAILS' | 'RESPONSE' | 'RAW_DATA';
 
 const KEY_PREFIX = 'restura-';
 
@@ -21,6 +24,7 @@ class GlobalState {
 	loginDetails: RecoilState<Restura.LoginDetails | undefined>;
 	schema: RecoilState<Restura.Schema | undefined>;
 	selectedRoute: RecoilState<SelectedRoute | undefined>;
+	editMode: RecoilState<EditMode>;
 
 	saveToStorageList: string[] = [];
 
@@ -36,12 +40,17 @@ class GlobalState {
 		});
 
 		this.selectedRoute = atom<SelectedRoute | undefined>({
-			key: GlobalStateKeys.Route,
-			default: undefined
+			key: GlobalStateKeys.ROUTE,
+			default: this.loadFromLocalStorage(GlobalStateKeys.ROUTE, undefined)
+		});
+
+		this.editMode = atom<EditMode>({
+			key: GlobalStateKeys.EDIT_MODE,
+			default: this.loadFromLocalStorage(GlobalStateKeys.EDIT_MODE, 'API_DETAILS')
 		});
 
 		// Save Variables off into local storage on change
-		this.saveToStorageList = [GlobalStateKeys.LOGIN_DETAILS];
+		this.saveToStorageList = [GlobalStateKeys.LOGIN_DETAILS, GlobalStateKeys.ROUTE, GlobalStateKeys.EDIT_MODE];
 	}
 
 	private loadFromLocalStorage<T>(key: string, defaultValue: T): T {
