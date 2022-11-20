@@ -211,6 +211,26 @@ const defaultSchema: Restura.Schema = {
 						{
 							name: 'companyCreatedOn',
 							selector: 'company.createdOn'
+						},
+						{
+							name: 'company',
+							subquery: {
+								table: 'company',
+								joins: [],
+								where: [
+									{ tableName: 'company', columnName: 'id', operator: '=', value: 'user.companyId' }
+								],
+								properties: [
+									{
+										name: 'id',
+										selector: 'company.id'
+									},
+									{
+										name: 'name',
+										selector: 'company.name'
+									}
+								]
+							}
 						}
 					],
 					assignments: [],

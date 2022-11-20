@@ -1,6 +1,16 @@
 import * as React from 'react';
 import './ColumnPickerPopup.scss';
-import { Box, Button, Icon, InputText, Label, Popup, popupController, PopupProps } from '@redskytech/framework/ui';
+import {
+	Box,
+	Button,
+	Icon,
+	InputText,
+	Label,
+	Popup,
+	popupController,
+	PopupProps,
+	rsToastify
+} from '@redskytech/framework/ui';
 import themes from '../../themes/themes.scss?export';
 import { useEffect, useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
@@ -14,6 +24,7 @@ export interface ColumnPickerPopupProps extends PopupProps {
 	baseTableOnly?: boolean;
 	onColumnSelect: (tableName: string, columnData: Restura.ColumnData) => void;
 	onCustomSelect?: () => void;
+	autoCloseOnSelect?: boolean;
 }
 
 const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
@@ -32,10 +43,11 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 
 	useEffect(() => {
 		if (tableList.length === 0) return;
+		if (selectedTable) return;
 		setSelectedTable(tableList[0]);
 	}, [tableList]);
 
-	function onReject() {
+	function handleClose() {
 		popupController.close(ColumnPickerPopup);
 	}
 
@@ -46,7 +58,8 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 
 	function handleColumnClick(columnData: Restura.ColumnData) {
 		props.onColumnSelect(selectedTable, columnData);
-		popupController.close(ColumnPickerPopup);
+		if (props.autoCloseOnSelect) handleClose();
+		rsToastify.success(`${selectedTable}.${columnData.name} - added`, 'Added Column');
 	}
 
 	function handleAddAll() {
@@ -64,7 +77,8 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 			}, 100 * index);
 		});
 		setTimeout(() => {
-			popupController.close(ColumnPickerPopup);
+			rsToastify.success(`Multiple columns added`, 'Added All Columns');
+			if (props.autoCloseOnSelect) handleClose();
 		}, 100 * filteredColumns.length);
 	}
 
@@ -148,7 +162,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 					<Icon
 						iconImg={'icon-close'}
 						color={themes.neutralWhite}
-						onClick={onReject}
+						onClick={handleClose}
 						cursorPointer
 						p={4}
 						fontSize={16}

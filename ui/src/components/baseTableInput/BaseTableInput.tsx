@@ -3,15 +3,13 @@ import { Box, Label, Select } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import { useMemo } from 'react';
-import serviceFactory from '../../services/serviceFactory';
-import SchemaService from '../../services/schema/SchemaService';
 
 interface BaseTableInputProps {
-	routeData: Restura.RouteData | undefined;
+	tableName: string;
+	onChange: (newTableName: string) => void;
 }
 
 const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
-	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	const tableList = useMemo<string[]>(() => {
@@ -21,24 +19,19 @@ const BaseTableInput: React.FC<BaseTableInputProps> = (props) => {
 		});
 	}, [schema]);
 
-	if (!SchemaService.isStandardRouteData(props.routeData)) return null;
-
 	return (
 		<Box className={'rsBaseTableInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
 				Base Table
 			</Label>
 			<Select
-				value={{ value: props.routeData.table, label: props.routeData.table }}
+				value={{ value: props.tableName, label: props.tableName }}
 				options={tableList.map((table) => {
 					return { value: table, label: table };
 				})}
 				onChange={(newValue) => {
 					if (!newValue) return;
-					schemaService.updateRouteData({
-						...(props.routeData as Restura.StandardRouteData),
-						table: newValue.value
-					});
+					props.onChange(newValue.value);
 				}}
 			/>
 		</Box>

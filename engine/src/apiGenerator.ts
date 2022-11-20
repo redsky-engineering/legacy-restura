@@ -149,8 +149,8 @@ class ApiTree {
 			array = false;
 		if (p.selector) {
 			({ responseType, optional } = this.getTypeFromTable(p.selector, p.name));
-		} else if (p.objectArray) {
-			responseType = this.getFields(p.objectArray.properties);
+		} else if (p.subquery) {
+			responseType = this.getFields(p.subquery.properties);
 			array = true;
 		}
 		return `${p.name}${optional ? '?' : ''}:${responseType}${array ? '[]' : ''}`;

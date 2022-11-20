@@ -1,6 +1,5 @@
 import * as express from 'express';
 
-import endpointValidation from '../../../../src/middleware/apiValidation/apiValidation.js';
 import { RsRequest, RsResponse } from '../../../../src/@types/expressCustom.js';
 import { boundMethod } from 'autobind-decorator';
 import config from '../../../../src/utils/config.js';
@@ -24,6 +23,7 @@ import { fileURLToPath } from 'url';
 import ResponseValidator from './responseValidator.js';
 
 import validationGenerator, { ValidationDictionary } from './validationGenerator.js';
+import schemaValidator from './schemaValidator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,7 +65,7 @@ class ResturaEngine {
 
 	init(app: express.Application): Promise<void> {
 		app.use('/restura', this.resturaAuthentication);
-		app.use('/restura', (endpointValidation as unknown) as express.RequestHandler);
+		app.use('/restura', (schemaValidator as unknown) as express.RequestHandler);
 		app.post('/restura/v1/schema', (this.createSchema as unknown) as express.RequestHandler);
 		app.put('/restura/v1/schema', (this.updateSchema as unknown) as express.RequestHandler);
 		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);

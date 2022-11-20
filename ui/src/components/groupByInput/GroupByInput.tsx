@@ -1,25 +1,20 @@
 import * as React from 'react';
 import { Box, Label, Select } from '@redskytech/framework/ui';
-import SchemaService from '../../services/schema/SchemaService';
-import serviceFactory from '../../services/serviceFactory';
-import { useRecoilValue } from 'recoil';
-import globalState from '../../state/globalState';
 import useJoinedColumnList from '../../customHooks/useJoinedColumnList';
 
 interface GroupByInputProps {
-	routeData: Restura.RouteData | undefined;
+	baseTableName: string;
+	joins: Restura.JoinData[];
+	groupBy: Restura.GroupByData | undefined;
+	onUpdate: (updatedGroupBy: Restura.GroupByData | undefined) => void;
 }
 
 const GroupByInput: React.FC<GroupByInputProps> = (props) => {
-	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
-	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
-
-	const joinedColumnList = useJoinedColumnList(schema, props.routeData);
+	const joinedColumnList = useJoinedColumnList(props.baseTableName, props.joins);
 
 	function getGroupByValue() {
-		if (!SchemaService.isStandardRouteData(props.routeData)) return undefined;
-		if (!props.routeData.groupBy) return { value: 'not grouped', label: 'not grouped' };
-		const groupBy = props.routeData.groupBy;
+		if (!props.groupBy) return { value: 'not grouped', label: 'not grouped' };
+		const groupBy = props.groupBy;
 		return {
 			value: `${groupBy.tableName}.${groupBy.columnName}`,
 			label: `${groupBy.tableName}.${groupBy.columnName}`
@@ -39,8 +34,6 @@ const GroupByInput: React.FC<GroupByInputProps> = (props) => {
 		return options;
 	}
 
-	if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
-
 	return (
 		<Box className={'rsGroupByInput'}>
 			<Label variant={'body1'} weight={'regular'} mb={4}>
@@ -51,20 +44,16 @@ const GroupByInput: React.FC<GroupByInputProps> = (props) => {
 				options={getGroupByOptions()}
 				onChange={(newValue) => {
 					if (!newValue) return;
-					if (!SchemaService.isStandardRouteData(props.routeData)) return;
 
-					let updatedRouteData = { ...props.routeData };
 					if (newValue.value === 'not grouped') {
-						delete updatedRouteData.groupBy;
-						schemaService.updateRouteData(updatedRouteData);
+						props.onUpdate(undefined);
 						return;
 					}
 
-					updatedRouteData.groupBy = {
+					props.onUpdate({
 						tableName: newValue.value.split('.')[0],
 						columnName: newValue.value.split('.')[1]
-					};
-					schemaService.updateRouteData(updatedRouteData);
+					});
 				}}
 			/>
 		</Box>

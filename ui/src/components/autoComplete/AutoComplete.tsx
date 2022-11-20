@@ -76,6 +76,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = (props) => {
 		setFilter('');
 		setCursorPosition(newText.length);
 		setValue(newText.split(' ').join(' ').trim());
+		props.onChange(newText.split(' ').join(' ').trim());
 		setShowSuggestions(false);
 	}
 
@@ -115,11 +116,8 @@ const AutoComplete: React.FC<AutoCompleteProps> = (props) => {
 					setValue(newValue);
 				}}
 				onBlur={() => {
-					// Without this delay, clicking on suggestions will fail
-					setTimeout(() => {
-						setShowSuggestions(false);
-						props.onChange(value);
-					}, 100);
+					if (value === props.value) return;
+					props.onChange(value);
 				}}
 				onKeyDown={(event) => {
 					if (!showSuggestions) return;

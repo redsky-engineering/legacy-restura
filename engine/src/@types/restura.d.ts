@@ -93,10 +93,13 @@ declare namespace Restura {
 	export interface ResponseData {
 		name: string;
 		selector?: string;
-		objectArray?: {
+		subquery?: {
 			table: string;
-			join: string;
+			joins: JoinData[];
+			where: WhereData[];
 			properties: ResponseData[];
+			groupBy?: GroupByData;
+			orderBy?: OrderByData;
 		};
 	}
 

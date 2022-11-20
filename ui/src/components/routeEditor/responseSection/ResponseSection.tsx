@@ -1,13 +1,13 @@
 import * as React from 'react';
 import './ResponseSection.scss';
-import { Box, Button, Label, popupController, Select } from '@redskytech/framework/ui';
+import { Box, Button, Label, popupController, rsToastify, Select } from '@redskytech/framework/ui';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../../state/globalState';
 import { useMemo } from 'react';
 import serviceFactory from '../../../services/serviceFactory';
 import SchemaService from '../../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../../popups/columnPickerPopup/ColumnPickerPopup';
-import { StringUtils } from '../../../utils/utils';
+import { StringUtils, WebUtils } from '../../../utils/utils';
 import useRouteData from '../../../customHooks/useRouteData';
 
 import AceEditor from 'react-ace';
@@ -17,10 +17,8 @@ import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import ResponseProperty from '../../responseProperty/ResponseProperty';
-import ResponseObjectArray from '../../responseObjectArray/ResponseObjectArray';
-import NestedObjectSelectorPopup, {
-	NestedObjectSelectorPopupProps
-} from '../../../popups/nestedObjectSelectorPopup/NestedObjectSelectorPopup';
+import ResponseSubquery from '../../responseSubquery/ResponseSubquery.js';
+import EditSubqueryPopup, { EditSubqueryPopupProps } from '../../../popups/editSubqueryPopup/EditSubqueryPopup.js';
 
 interface ResponseSectionProps {}
 
@@ -44,20 +42,23 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		return [...options, ...matches.map((item) => ({ label: item, value: item }))];
 	}, [schema]);
 
-	function handleAddObjectArray() {
+	function handleAddSubquery() {
 		if (!routeData) return;
 		if (!SchemaService.isStandardRouteData(routeData)) return;
-		popupController.open<NestedObjectSelectorPopupProps>(NestedObjectSelectorPopup, {
-			baseTable: routeData.table,
-			onSelect: (localTable: string, localColumn: string, foreignTable: string, foreignColumn: string) => {
-				schemaService.addResponseParameter('root', {
-					name: foreignTable,
-					objectArray: {
-						table: foreignTable,
-						join: `${localTable}.${localColumn} = ${foreignTable}.${foreignColumn}`,
-						properties: []
-					}
-				});
+		popupController.open<EditSubqueryPopupProps>(EditSubqueryPopup, {
+			response: {
+				name: '', // Name will be assigned on save based on table name
+				subquery: {
+					table: '',
+					joins: [],
+					where: [],
+					properties: []
+				}
+			},
+			onSave: (response: Restura.ResponseData) => {
+				if (!routeData) return;
+				response.name = response.subquery?.table || 'unknown';
+				schemaService.addResponseParameter('root', response);
 			}
 		});
 	}
@@ -68,11 +69,38 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
 			baseTable: routeData.table,
 			headerText: 'Select Column',
-			onColumnSelect: (tableName, columnData) => {
-				let name =
-					tableName === routeData.table
-						? columnData.name
-						: `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+			onColumnSelect: async (tableName, columnData) => {
+				let name = '';
+				if (tableName === routeData.table) {
+					name = columnData.name;
+				} else {
+					name = `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+					// Since we are in a closure, we need to make sure we are using the latest value of routeData
+					let latestRouteData = schemaService.getSelectedRouteData() as Restura.StandardRouteData;
+					if (!latestRouteData) return;
+					let existingJoin = latestRouteData.joins.find((join) => join.table === tableName);
+					if (!existingJoin) {
+						// Find the foreign key for this table
+						let foreignKey = schemaService.getForeignKey(latestRouteData.table, tableName);
+						if (!foreignKey) {
+							rsToastify.error(
+								`Could not find foreign key for table ${latestRouteData.table} to table ${tableName}`
+							);
+							return;
+						}
+
+						schemaService.addJoin({
+							table: tableName,
+							localColumnName: foreignKey.column,
+							foreignColumnName: foreignKey.refColumn,
+							type: 'INNER'
+						});
+
+						// We need to sleep so that recoil can update with the table join
+						await WebUtils.sleep(50);
+					}
+				}
+
 				schemaService.addResponseParameter('root', {
 					name,
 					selector: `${tableName}.${columnData.name}`
@@ -84,8 +112,8 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 	function renderResponseObject(standardRouteData: Restura.StandardRouteData) {
 		return standardRouteData.response.map((responseData, parameterIndex) => {
 			{
-				return responseData.objectArray ? (
-					<ResponseObjectArray
+				return responseData.subquery ? (
+					<ResponseSubquery
 						key={responseData.name}
 						responseData={responseData}
 						parameterIndex={parameterIndex}
@@ -118,8 +146,8 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					<Button look={'textPrimary'} onClick={handleAddProperty}>
 						Add Property
 					</Button>
-					<Button look={'textPrimary'} onClick={handleAddObjectArray}>
-						Add Array of Objects
+					<Button look={'textPrimary'} onClick={handleAddSubquery}>
+						Add Subquery
 					</Button>
 				</Box>
 				{renderResponseObject(standardRouteData)}

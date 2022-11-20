@@ -50,6 +50,13 @@ export default class SchemaService extends Service {
 		return JSON.stringify(currentSchema) !== JSON.stringify(this.lastSchema);
 	}
 
+	getSelectedRouteData(): Restura.RouteData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		return schema.endpoints[indices.endpointIndex].routes[indices.routeIndex];
+	}
+
 	updateRouteData(routeData: Restura.RouteData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -155,6 +162,30 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	getResponseParameter(rootPath: string, parameterIndex: number): Restura.ResponseData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let updatedSchema = cloneDeep(schema);
+		let indices = SchemaService.getIndexesToSelectedRoute(schema);
+		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
+			return;
+		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
+			indices.routeIndex
+		] as Restura.StandardRouteData).response;
+		let path = rootPath.split('.');
+		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
+		for (let i = 1; i < path.length; i++) {
+			if (currentResponseData === undefined) return;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
+			}) as Restura.ResponseData | undefined;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
+		}
+		if (!currentResponseData) return;
+		return currentResponseData[parameterIndex];
+	}
+
 	addResponseParameter(rootPath: string, responseData: Restura.ResponseData) {
 		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
 		if (!schema) return;
@@ -169,11 +200,11 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		// Check for duplicate name
@@ -197,11 +228,11 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 		currentResponseData.splice(parameterIndex, 1);
@@ -222,16 +253,20 @@ export default class SchemaService extends Service {
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
 			if (currentResponseData === undefined) return;
-			let objectArrayData = currentResponseData.find((item) => {
-				return item.name === path[i] && !!item.objectArray;
+			let subqueryData = currentResponseData.find((item) => {
+				return item.name === path[i] && !!item.subquery;
 			}) as Restura.ResponseData | undefined;
-			if (objectArrayData === undefined) return;
-			currentResponseData = objectArrayData.objectArray?.properties;
+			if (subqueryData === undefined) return;
+			currentResponseData = subqueryData.subquery?.properties;
 		}
 		if (currentResponseData === undefined) return;
 
 		// Check for duplicate name
-		if (currentResponseData.findIndex((item) => item.name === responseData.name) !== -1) {
+		if (
+			currentResponseData.findIndex(
+				(item, index) => item.name === responseData.name && parameterIndex !== index
+			) !== -1
+		) {
 			rsToastify.error('Can not update with a duplicate name.', 'Duplicate name');
 			return;
 		}
@@ -324,6 +359,14 @@ export default class SchemaService extends Service {
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
+	getForeignKey(baseTableName: string, foreignTableName: string): Restura.ForeignKeyData | undefined {
+		let schema = getRecoilExternalValue<Restura.Schema | undefined>(globalState.schema);
+		if (!schema) return;
+		let baseTable = schema.database.find((table) => table.name === baseTableName);
+		if (!baseTable) return;
+		return baseTable.foreignKeys.find((key) => key.refTable === foreignTableName);
+	}
+
 	static getIndexesToSelectedRoute(schema: Restura.Schema): { endpointIndex: number; routeIndex: number } {
 		let selectedRoute = getRecoilExternalValue<SelectedRoute | undefined>(globalState.selectedRoute);
 		let indices = {
@@ -399,6 +442,7 @@ export default class SchemaService extends Service {
 			case 'int':
 			case 'bigint':
 			case 'decimal':
+			case 'integer':
 			case 'float':
 			case 'double':
 				return 'number';

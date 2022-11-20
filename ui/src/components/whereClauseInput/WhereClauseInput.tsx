@@ -1,31 +1,32 @@
 import * as React from 'react';
 import './WhereClauseInput.scss';
 import { Box, Button, Icon, Label, popupController, Select } from '@redskytech/framework/ui';
-import serviceFactory from '../../services/serviceFactory';
-import SchemaService from '../../services/schema/SchemaService';
 import ColumnPickerPopup, { ColumnPickerPopupProps } from '../../popups/columnPickerPopup/ColumnPickerPopup';
 import AutoComplete from '../autoComplete/AutoComplete';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 
 interface WhereClauseInputProps {
-	routeData: Restura.RouteData | undefined;
+	routeData: Restura.StandardRouteData;
+	baseTableName: string;
+	where: Restura.WhereData[];
+	onAddWhereClause: (whereClause: Restura.WhereData) => void;
+	onUpdateWhereClause: (whereIndex: number, whereClause: Restura.WhereData) => void;
+	onRemoveWhereClause: (whereIndex: number) => void;
 }
 
 const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
-	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
 	function handleAddStatement() {
-		if (!SchemaService.isStandardRouteData(props.routeData)) return;
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
+			autoCloseOnSelect: true,
 			headerText: 'Select Column',
-			baseTable: props.routeData.table,
+			baseTable: props.baseTableName,
 			onColumnSelect: (tableName, columnData) => {
-				if (!SchemaService.isStandardRouteData(props.routeData)) return;
-				let whereClauseLength = props.routeData.where.length;
+				let whereClauseLength = props.where.length;
 
-				schemaService.addWhereClause({
+				props.onAddWhereClause({
 					tableName,
 					columnName: columnData.name,
 					operator: '=',
@@ -34,7 +35,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 				});
 			},
 			onCustomSelect: () => {
-				schemaService.addWhereClause({
+				props.onAddWhereClause({
 					custom: 'TRUE',
 					conjunction: 'AND'
 				});
@@ -43,19 +44,24 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 	}
 
 	function renderWhereStatements() {
-		if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
-		if (props.routeData.where.length === 0)
+		if (props.where.length === 0)
 			return (
 				<Label variant={'body1'} weight={'bold'}>
 					No Where Clause
 				</Label>
 			);
 
-		return props.routeData.where.map((whereData: Restura.WhereData, whereIndex) => {
+		return props.where.map((whereData: Restura.WhereData, whereIndex) => {
 			if (!schema) return <></>;
+			let uniqueKey =
+				props.routeData.path +
+				whereData.tableName +
+				whereData.columnName +
+				whereData.operator +
+				whereData.custom;
 			return (
 				// Use a random key since we don't have a unique identifier for each where statement
-				<React.Fragment key={props.routeData!.path + '_' + Math.random() * 1000}>
+				<React.Fragment key={uniqueKey}>
 					{!!whereData.conjunction && (
 						<Select
 							value={{ label: whereData.conjunction, value: whereData.conjunction }}
@@ -66,10 +72,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 							className={'conjunction'}
 							onChange={(newValue) => {
 								if (!newValue) return;
-								schemaService.updateWhereData(whereIndex, {
-									...whereData,
-									conjunction: newValue.value
-								});
+								props.onUpdateWhereClause(whereIndex, { ...whereData, conjunction: newValue.value });
 							}}
 						/>
 					)}
@@ -80,7 +83,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								fontSize={16}
 								className={'deleteIcon'}
 								onClick={() => {
-									schemaService.removeWhereClause(whereIndex);
+									props.onRemoveWhereClause(whereIndex);
 								}}
 							/>
 							<AutoComplete
@@ -92,7 +95,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								value={whereData.custom}
 								onChange={(newValue) => {
 									if (!newValue) return;
-									schemaService.updateWhereData(whereIndex, { ...whereData, custom: newValue });
+									props.onUpdateWhereClause(whereIndex, { ...whereData, custom: newValue });
 								}}
 							/>
 						</Box>
@@ -103,7 +106,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								fontSize={16}
 								className={'deleteIcon'}
 								onClick={() => {
-									schemaService.removeWhereClause(whereIndex);
+									props.onRemoveWhereClause(whereIndex);
 								}}
 							/>
 							<Label variant={'body1'} weight={'regular'} className={'keyword'}>
@@ -126,10 +129,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								]}
 								onChange={(newValue) => {
 									if (!newValue) return;
-									schemaService.updateWhereData(whereIndex, {
-										...whereData,
-										operator: newValue.value
-									});
+									props.onUpdateWhereClause(whereIndex, { ...whereData, operator: newValue.value });
 								}}
 							/>
 							<AutoComplete
@@ -141,7 +141,7 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 								value={whereData.value || ''}
 								onChange={(newValue) => {
 									if (!newValue) return;
-									schemaService.updateWhereData(whereIndex, { ...whereData, value: newValue });
+									props.onUpdateWhereClause(whereIndex, { ...whereData, value: newValue });
 								}}
 							/>
 						</Box>
@@ -150,8 +150,6 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 			);
 		});
 	}
-
-	if (!SchemaService.isStandardRouteData(props.routeData)) return <></>;
 
 	return (
 		<Box className={'rsWhereClauseInput'}>

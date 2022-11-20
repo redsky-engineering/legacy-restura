@@ -1,9 +1,8 @@
 import * as React from 'react';
 import './RouteEditor.scss';
 import { Box, Label } from '@redskytech/framework/ui';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import globalState from '../../state/globalState.js';
-import { useState } from 'react';
+import { useRecoilState } from 'recoil';
+import globalState, { EditMode } from '../../state/globalState.js';
 import classNames from 'classnames';
 import ApiDetailsSection from './apiDetailsSection/ApiDetailsSection.js';
 import ResponseSection from './responseSection/ResponseSection.js';
@@ -12,7 +11,7 @@ import RawDataSection from './rawDataSection/RawDataSection.js';
 interface RouteEditorProps {}
 
 const RouteEditor: React.FC<RouteEditorProps> = (props) => {
-	const [editMode, setEditMode] = useState<'API_DETAILS' | 'RESPONSE' | 'RAW_DATA'>('API_DETAILS');
+	const [editMode, setEditMode] = useRecoilState<EditMode>(globalState.editMode);
 
 	function renderTabHeader() {
 		return (
