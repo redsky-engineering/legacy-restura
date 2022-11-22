@@ -200,6 +200,7 @@ class SqlEngine {
 		const whereData: Restura.WhereData[] = [
 			...routeData.where,
 			{
+				...(routeData.where.length ? { conjunction: 'AND' } : {}),
 				tableName: routeData.table,
 				value: `${insertId}`,
 				columnName: 'id',
@@ -321,7 +322,18 @@ class SqlEngine {
 		schema: Restura.Schema
 	): Promise<any> {
 		const sqlParams: string[] = [];
-		let deleteStatement = `DELETE \n \tFROM ${routeData.table} `;
+
+		let joinStatement = this.generateJoinStatements(
+			req,
+			routeData.joins,
+			routeData.table,
+			routeData,
+			schema,
+			req.requesterDetails.role,
+			sqlParams
+		);
+
+		let deleteStatement = `DELETE \n ${routeData.table} \tFROM ${routeData.table} ${joinStatement}`;
 		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		deleteStatement += ';';
 		await mainConnection.runQuery(deleteStatement, sqlParams);
