@@ -454,7 +454,7 @@ class SqlEngine {
 			const replacedValue = this.replaceParamKeywords(item.value, routeData, req, sqlParams);
 			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${
 				item.columnName
-			}\` ${operator} ${replacedValue}\n`;
+			}\` ${operator} ${operator === 'IN' ? `(${replacedValue})` : replacedValue}\n`;
 		});
 		if (routeData.type === 'PAGED' && !!req.data.filter) {
 			let statement = req.data.filter.replace(/\$[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
