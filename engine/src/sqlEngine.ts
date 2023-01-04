@@ -39,7 +39,8 @@ class SqlEngine {
 		let sqlStatements = [];
 		// Setup tables and indexes first
 		for (let table of schema.database) {
-			let sql = `CREATE TABLE \`${table.name}\` (\n`;
+			let sql = `CREATE TABLE \`${table.name}\`
+                       (  `;
 			for (let column of table.columns) {
 				sql += `\t\`${column.name}\` ${column.type}`;
 				if (column.value) sql += `(${column.value})`;
@@ -73,7 +74,7 @@ class SqlEngine {
 		// Now setup foreign keys
 		for (let table of schema.database) {
 			if (!table.foreignKeys.length) continue;
-			let sql = `ALTER TABLE \`${table.name}\`\n`;
+			let sql = `ALTER TABLE \`${table.name}\`  `;
 			let constraints: string[] = [];
 			for (let foreignKey of table.foreignKeys) {
 				let constraint = `\tADD CONSTRAINT \`${foreignKey.name}\` FOREIGN KEY (\`${foreignKey.column}\`) REFERENCES \`${foreignKey.refTable}\`(\`${foreignKey.refColumn}\`)`;
@@ -193,7 +194,8 @@ class SqlEngine {
 			})
 			.join(', ');
 		const createdItem = await mainConnection.runQuery(
-			`INSERT INTO \`${routeData.table}\` SET ? ${parameterString ? `, ${parameterString}` : ''};`,
+			`INSERT INTO \`${routeData.table}\`
+             SET ? ${parameterString ? `, ${parameterString}` : ''};`,
 			[{ ...req.data }, ...sqlParams]
 		);
 		const insertId = createdItem.insertId;
@@ -309,7 +311,8 @@ class SqlEngine {
 			req.requesterDetails.role,
 			sqlParams
 		);
-		let sqlStatement = `UPDATE \`${routeData.table}\` ${joinStatement} SET ? `;
+		let sqlStatement = `UPDATE \`${routeData.table}\` ${joinStatement}
+                            SET ? `;
 		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		sqlStatement += ';';
 		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams]);
@@ -333,7 +336,10 @@ class SqlEngine {
 			sqlParams
 		);
 
-		let deleteStatement = `DELETE \n ${routeData.table} \tFROM ${routeData.table} ${joinStatement}`;
+		let deleteStatement = `DELETE
+        ${routeData.table} \tFROM
+        ${routeData.table}
+        ${joinStatement}`;
 		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		deleteStatement += ';';
 		await mainConnection.runQuery(deleteStatement, sqlParams);
@@ -452,9 +458,9 @@ class SqlEngine {
 			}
 
 			const replacedValue = this.replaceParamKeywords(item.value, routeData, req, sqlParams);
-			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${
-				item.columnName
-			}\` ${operator} ${operator === 'IN' ? `(${replacedValue})` : replacedValue}\n`;
+			whereClause += `\t${item.conjunction || ''} \`${item.tableName}\`.\`${item.columnName}\` ${operator} ${
+				operator === 'IN' || operator === 'NOT IN' ? `(${replacedValue})` : replacedValue
+			}\n`;
 		});
 		if (routeData.type === 'PAGED' && !!req.data.filter) {
 			let statement = req.data.filter.replace(/\$[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
