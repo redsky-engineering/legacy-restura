@@ -10,6 +10,7 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@types/prettier": "^2.7.2",
 		"@types/tmp": "^0.2.3",
 		"husky": "^8.0.1",
 		"lint-staged": "^13.0.3",
@@ -23,6 +24,7 @@
 	"dependencies": {
 		"dbdiff": "https://github.com/snppla/dbdiff.git",
 		"jsonschema": "^1.4.1",
+		"prettier": "^2.8.3",
 		"tmp": "^0.2.1",
 		"typescript-json-schema": "^0.54.0"
 	}

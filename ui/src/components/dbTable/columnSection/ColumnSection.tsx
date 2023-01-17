@@ -14,7 +14,6 @@ export const columnTypeList: (
 	| Restura.MariaDbColumnDateTypes
 	| Restura.MariaDbColumnStringTypes
 	| Restura.MariaDbColumnNumericTypes
-	| Restura.MariaDbEnumType
 )[] = [
 	'BOOLEAN',
 	'TINYINT',
@@ -54,13 +53,11 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
-			| Restura.MariaDbEnumType
 	): boolean {
 		let lengthTypes: (
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
-			| Restura.MariaDbEnumType
 		)[] = ['CHAR', 'VARCHAR'];
 		return lengthTypes.includes(type);
 	}
@@ -70,13 +67,11 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
-			| Restura.MariaDbEnumType
 	): boolean {
 		let autoTypes: (
 			| Restura.MariaDbColumnNumericTypes
 			| Restura.MariaDbColumnStringTypes
 			| Restura.MariaDbColumnDateTypes
-			| Restura.MariaDbEnumType
 		)[] = ['BIGINT', 'INTEGER', 'MEDIUMINT', 'SMALLINT', 'TINYINT'];
 		return autoTypes.includes(type);
 	}
