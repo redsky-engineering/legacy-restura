@@ -2,6 +2,7 @@ import { StringUtils } from '../../../../src/utils/utils.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
 import ResponseValidator from './responseValidator.js';
+import {SqlUtils} from "./utils/utils.js";
 
 type TreeData = Restura.RouteData | Restura.EndpointData;
 
@@ -167,7 +168,7 @@ class ApiTree {
 		if (!table || !column) return { responseType: 'any', optional: false };
 
 		return {
-			responseType: StringUtils.convertDatabaseTypeToTypescript(column.type, column.value),
+			responseType: SqlUtils.convertDatabaseTypeToTypescript(column.type, column.value),
 			optional: column.roles.length > 0 || column.isNullable
 		};
 	}

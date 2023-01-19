@@ -20,15 +20,14 @@ declare namespace Restura {
 		| 'MEDIUMTEXT' //	16 MB	Holds a medium amount of letters, numbers, and special characters of variable length. Supported from version 1.1.0 onwards.
 		| 'MEDIUMBLOB' //	16 MB	Holds a medium amount of binary data of variable length. Supported from version 1.1.0 onwards.
 		| 'LONGTEXT' //	1.96 GB	Holds a large amount of letters, numbers, and special characters of variable length. Supported from version 1.1.0 onwards.
-		| 'LONGBLOB'; // 1.96 GB	Holds a large amount of binary data of variable length. Supported from version 1.1.0 onwards.
+		| 'LONGBLOB' // 1.96 GB	Holds a large amount of binary data of variable length. Supported from version 1.1.0 onwards.
+	   | 'ENUM';
 
 	export type MariaDbColumnDateTypes =
 		| 'DATE' //	4-bytes	Date has year, month, and day. The internal representation of a date is a string of 4 bytes. The first 2 bytes represent the year, .5 bytes the month, and .75 bytes the day in the following format: YYYY-MM-DD. Supported range is 1000-01-01 to 9999-12-31.
 		| 'DATETIME' //	8-bytes	A date and time combination. Supported range is 1000-01-01 00:00:00 to 9999-12-31 23:59:59. From version 1.2.0 microseconds are also supported.
 		| 'TIME' //	8-bytes	Holds hour, minute, second and optionally microseconds for time. Supported range is '-838:59:59.999999' to '838:59:59.999999'. Supported from version 1.2.0 onwards.
 		| 'TIMESTAMP'; //	4-bytes	Values are stored as the number of seconds since 1970-01-01 00:00:00 UTC, and optionally microseconds. The max value is currently 2038-01-19 03:14:07 UTC. Supported starting with MariaDB ColumnStore 1.4.2.
-
-	export type MariaDbEnumType = 'ENUM';
 
 	export type ForeignKeyActions = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION' | 'SET DEFAULT';
 
@@ -51,7 +50,7 @@ declare namespace Restura {
 
 	export interface ColumnData {
 		name: string;
-		type: MariaDbColumnNumericTypes | MariaDbColumnStringTypes | MariaDbColumnDateTypes | MariaDbEnumType;
+		type: MariaDbColumnNumericTypes | MariaDbColumnStringTypes | MariaDbColumnDateTypes;
 		isNullable: boolean;
 		roles: string[];
 		comment?: string;

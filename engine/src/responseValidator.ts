@@ -1,5 +1,6 @@
 import { StringUtils } from '../../../../src/utils/utils.js';
 import { RsError } from '../../../../src/utils/errors.js';
+import {SqlUtils} from "./utils/utils.js";
 
 export default class ResponseValidator {
 	private readonly rootMap: Restura.ResponseTypeMap;
@@ -89,7 +90,7 @@ export default class ResponseValidator {
 		const column = table?.columns.find((c) => c.name == columnName);
 		if (!table || !column) return { validator: 'any', isOptional: false };
 
-		let validator: Restura.ValidatorString | string | string[] = StringUtils.convertDatabaseTypeToTypescript(
+		let validator: Restura.ValidatorString | string | string[] = SqlUtils.convertDatabaseTypeToTypescript(
 			column.type,
 			column.value
 		);

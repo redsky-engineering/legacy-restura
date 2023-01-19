@@ -95,7 +95,7 @@ class SqlEngine {
 				host: dbConfig.host,
 				user: dbConfig.user,
 				password: dbConfig.password,
-				port: dbConfig.port
+				port: dbConfig.port,
 			}
 		]);
 		await scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
