@@ -136,9 +136,9 @@ function performOneOfCheck(requestValue: any, validator: Restura.ValidatorData, 
 	if (!(validator.value as any[]).includes(requestValue as string | number))
 		throw new RsError(
 			'BAD_REQUEST',
-			`Request param (${requestParamName}) with value (${requestValue}) is not one of (${(validator.value as any[]).join(
-				', '
-			)})`
+			`Request param (${requestParamName}) with value (${requestValue}) is not one of (${(
+				validator.value as any[]
+			).join(', ')})`
 		);
 }
 

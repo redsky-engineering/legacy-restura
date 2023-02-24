@@ -65,11 +65,11 @@ class ResturaEngine {
 
 	init(app: express.Application): Promise<void> {
 		app.use('/restura', this.resturaAuthentication);
-		app.use('/restura', (schemaValidator as unknown) as express.RequestHandler);
-		app.post('/restura/v1/schema', (this.createSchema as unknown) as express.RequestHandler);
-		app.put('/restura/v1/schema', (this.updateSchema as unknown) as express.RequestHandler);
-		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);
-		app.post('/restura/v1/schema/reload', (this.reloadSchema as unknown) as express.RequestHandler);
+		app.use('/restura', schemaValidator as unknown as express.RequestHandler);
+		app.post('/restura/v1/schema', this.createSchema as unknown as express.RequestHandler);
+		app.put('/restura/v1/schema', this.updateSchema as unknown as express.RequestHandler);
+		app.post('/restura/v1/schema/preview', this.previewCreateSchema as unknown as express.RequestHandler);
+		app.post('/restura/v1/schema/reload', this.reloadSchema as unknown as express.RequestHandler);
 		app.get('/restura/v1/schema', this.getSchema);
 		app.get('/restura/v1/schema/generated', this.getSchemaGenerated);
 		this.expressApp = app;
@@ -132,7 +132,7 @@ class ResturaEngine {
 
 				this.resturaRouter[route.method.toLowerCase() as Lowercase<typeof route.method>](
 					route.path, // <-- Notice we only use path here since the baseUrl is already added to the router.
-					(this.executeRouteLogic as unknown) as express.RequestHandler
+					this.executeRouteLogic as unknown as express.RequestHandler
 				);
 				routeCount++;
 			}

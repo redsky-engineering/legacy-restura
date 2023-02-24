@@ -49,10 +49,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	const [schema, setSchema] = useRecoilState(globalState.schema);
 
 	function getAllowLengthEdit(
-		type:
-			| Restura.MariaDbColumnNumericTypes
-			| Restura.MariaDbColumnStringTypes
-			| Restura.MariaDbColumnDateTypes
+		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
 	): boolean {
 		let lengthTypes: (
 			| Restura.MariaDbColumnNumericTypes
@@ -63,10 +60,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 	}
 
 	function getAllowAutoIncrement(
-		type:
-			| Restura.MariaDbColumnNumericTypes
-			| Restura.MariaDbColumnStringTypes
-			| Restura.MariaDbColumnDateTypes
+		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
 	): boolean {
 		let autoTypes: (
 			| Restura.MariaDbColumnNumericTypes

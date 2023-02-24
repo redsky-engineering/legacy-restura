@@ -2,7 +2,7 @@ import { StringUtils } from '../../../../src/utils/utils.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
 import ResponseValidator from './responseValidator.js';
-import {SqlUtils} from "./utils/utils.js";
+import { SqlUtils } from './utils/utils.js';
 
 type TreeData = Restura.RouteData | Restura.EndpointData;
 
@@ -123,7 +123,7 @@ class ApiTree {
 									}
 									return `'${p.name}'${p.required ? '' : '?'}:${requestType}`;
 								})
-								.join(';\n')}
+								.join(';\n')}${ObjectUtils.isArrayWithData(route.request) ? ';' : ''}
 		 `;
 
 		modelString += `}`;
@@ -138,9 +138,10 @@ class ApiTree {
 	}
 
 	getFields(fields: ReadonlyArray<Restura.ResponseData>): string {
+		let nameFields = fields.map((f) => this.getNameAndType(f));
 		let nested: string = `{
-		${fields.map((f) => this.getNameAndType(f)).join(';')}
-	}`;
+			${nameFields.join(';\n\t')}${ObjectUtils.isArrayWithData(nameFields) ? ';' : ''}
+		}`;
 		return nested;
 	}
 
