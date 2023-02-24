@@ -1,6 +1,6 @@
 import { StringUtils } from '../../../../src/utils/utils.js';
 import { RsError } from '../../../../src/utils/errors.js';
-import {SqlUtils} from "./utils/utils.js";
+import { SqlUtils } from './utils/utils.js';
 
 export default class ResponseValidator {
 	private readonly rootMap: Restura.ResponseTypeMap;

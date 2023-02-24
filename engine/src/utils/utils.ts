@@ -1,40 +1,40 @@
-import {StringUtils} from "@redskytech/framework/utils/index.js";
+import { StringUtils } from '@redskytech/framework/utils/index.js';
 
-class SqlUtils{
-    static convertDatabaseTypeToTypescript(type: string): Restura.ValidatorString | string;
-    static convertDatabaseTypeToTypescript(type: string, value?: string): Restura.ValidatorString | string;
-    static convertDatabaseTypeToTypescript(type: string, value?: string): Restura.ValidatorString | string {
-        type = type.toLocaleLowerCase();
-        if (type.startsWith('tinyint') || type.startsWith('boolean')) return 'boolean';
-        if (
-            type.indexOf('int') > -1 ||
-            type.startsWith('decimal') ||
-            type.startsWith('double') ||
-            type.startsWith('float')
-        )
-            return 'number';
-        if (
-            type.startsWith('varchar') ||
-            type.indexOf('text') > -1 ||
-            type.startsWith('char') ||
-            type.indexOf('blob') > -1 ||
-            type.startsWith('binary')
-        )
-            return 'string';
-        if (type.startsWith('date') || type.startsWith('time')) return 'string';
-        if (type.startsWith('enum')) return SqlUtils.convertDatabaseEnumToStringUnion(value || type);
-        return 'any';
-    }
+class SqlUtils {
+	static convertDatabaseTypeToTypescript(type: string): Restura.ValidatorString | string;
+	static convertDatabaseTypeToTypescript(type: string, value?: string): Restura.ValidatorString | string;
+	static convertDatabaseTypeToTypescript(type: string, value?: string): Restura.ValidatorString | string {
+		type = type.toLocaleLowerCase();
+		if (type.startsWith('tinyint') || type.startsWith('boolean')) return 'boolean';
+		if (
+			type.indexOf('int') > -1 ||
+			type.startsWith('decimal') ||
+			type.startsWith('double') ||
+			type.startsWith('float')
+		)
+			return 'number';
+		if (
+			type.startsWith('varchar') ||
+			type.indexOf('text') > -1 ||
+			type.startsWith('char') ||
+			type.indexOf('blob') > -1 ||
+			type.startsWith('binary')
+		)
+			return 'string';
+		if (type.startsWith('date') || type.startsWith('time')) return 'string';
+		if (type.startsWith('enum')) return SqlUtils.convertDatabaseEnumToStringUnion(value || type);
+		return 'any';
+	}
 
-    static convertDatabaseEnumToStringUnion(type: string): string {
-        return type
-            .replace(/^enum\(|\)/g, '')
-            .split(',')
-            .map((value) => {
-                return `'${value.replace(/'/g, '')}'`;
-            })
-            .join(' | ');
-    }
+	static convertDatabaseEnumToStringUnion(type: string): string {
+		return type
+			.replace(/^enum\(|\)/g, '')
+			.split(',')
+			.map((value) => {
+				return `'${value.replace(/'/g, '')}'`;
+			})
+			.join(' | ');
+	}
 }
 
-export {SqlUtils};
+export { SqlUtils };
