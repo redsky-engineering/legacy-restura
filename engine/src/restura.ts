@@ -23,7 +23,7 @@ import ResponseValidator from './responseValidator.js';
 import customTypeValidationGenerator, { ValidationDictionary } from './customTypeValidationGenerator.js';
 import schemaValidator, { isSchemaValid } from './schemaValidator.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
-import * as process from 'process';
+import prettier from 'prettier';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,11 +46,11 @@ class ResturaEngine {
 	async init(app: express.Application): Promise<void> {
 		// Middleware
 		app.use('/restura', this.resturaAuthentication);
-		app.use('/restura', schemaValidator as unknown as express.RequestHandler);
+		app.use('/restura', (schemaValidator as unknown) as express.RequestHandler);
 
 		// Routes
-		app.put('/restura/v1/schema', this.updateSchema as unknown as express.RequestHandler);
-		app.post('/restura/v1/schema/preview', this.previewCreateSchema as unknown as express.RequestHandler);
+		app.put('/restura/v1/schema', (this.updateSchema as unknown) as express.RequestHandler);
+		app.post('/restura/v1/schema/preview', (this.previewCreateSchema as unknown) as express.RequestHandler);
 		app.get('/restura/v1/schema', this.getSchema);
 		app.get('/restura/v1/schema/types', this.getSchemaAndTypes);
 
@@ -81,7 +81,9 @@ class ResturaEngine {
 		return schema;
 	}
 
-	getHashes(providedSchema: Restura.Schema): {
+	getHashes(
+		providedSchema: Restura.Schema
+	): {
 		schemaHash: string;
 		apiCreatedSchemaHash: string;
 		modelCreatedSchemaHash: string;
@@ -122,7 +124,7 @@ class ResturaEngine {
 
 				this.resturaRouter[route.method.toLowerCase() as Lowercase<typeof route.method>](
 					route.path, // <-- Notice we only use path here since the baseUrl is already added to the router.
-					this.executeRouteLogic as unknown as express.RequestHandler
+					(this.executeRouteLogic as unknown) as express.RequestHandler
 				);
 				routeCount++;
 			}
@@ -259,11 +261,33 @@ class ResturaEngine {
 	}
 
 	private generateHashForSchema(providedSchema: Restura.Schema): string {
-		return createHash('sha256').update(JSON.stringify(providedSchema, null, 2)).digest('hex');
+		const schemaPrettyStr = prettier.format(JSON.stringify(providedSchema), {
+			parser: 'json',
+			...{
+				trailingComma: 'none',
+				tabWidth: 4,
+				useTabs: true,
+				endOfLine: 'lf',
+				printWidth: 120,
+				singleQuote: true
+			}
+		});
+		return createHash('sha256').update(schemaPrettyStr).digest('hex');
 	}
 
 	private storeFileSystemSchema() {
-		fs.writeFileSync(this.schemaFilePath, JSON.stringify(this.schema, null, 2));
+		const schemaPrettyStr = prettier.format(JSON.stringify(this.schema), {
+			parser: 'json',
+			...{
+				trailingComma: 'none',
+				tabWidth: 4,
+				useTabs: true,
+				endOfLine: 'lf',
+				printWidth: 120,
+				singleQuote: true
+			}
+		});
+		fs.writeFileSync(this.schemaFilePath, schemaPrettyStr);
 	}
 
 	private resetPublicEndpoints() {
