@@ -2,7 +2,7 @@ import jsonschema, { Schema } from 'jsonschema';
 import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { ObjectUtils } from '../../../../src/utils/utils.js';
 import { RsError } from '../../../../src/utils/errors.js';
-import { ValidationDictionary } from './validationGenerator.js';
+import { ValidationDictionary } from './customTypeValidationGenerator.js';
 
 export default function validateRequestParams(
 	req: RsRequest<any>,

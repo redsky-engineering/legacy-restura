@@ -9,7 +9,7 @@ export interface ValidationDictionary {
 	[Key: string]: Definition;
 }
 
-export default function validationGenerator(currentSchema: Restura.Schema): ValidationDictionary {
+export default function customTypeValidationGenerator(currentSchema: Restura.Schema): ValidationDictionary {
 	let schemaObject: ValidationDictionary = {};
 	let customInterfaceNames = currentSchema.customTypes.match(/(?<=\binterface\s+)(\w+)/g);
 	if (!customInterfaceNames) return {};
@@ -31,8 +31,6 @@ export default function validationGenerator(currentSchema: Restura.Schema): Vali
 	});
 
 	temporaryFile.removeCallback();
-
-	console.log(schemaObject);
 
 	return schemaObject;
 }

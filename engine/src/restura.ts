@@ -20,7 +20,7 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import ResponseValidator from './responseValidator.js';
 
-import validationGenerator, { ValidationDictionary } from './validationGenerator.js';
+import customTypeValidationGenerator, { ValidationDictionary } from './customTypeValidationGenerator.js';
 import schemaValidator, { isSchemaValid } from './schemaValidator.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import * as process from 'process';
@@ -101,7 +101,7 @@ class ResturaEngine {
 	@boundMethod
 	private async reloadEndpoints() {
 		this.schema = await this.getLatestFileSystemSchema();
-		this.customTypeValidation = validationGenerator(this.schema);
+		this.customTypeValidation = customTypeValidationGenerator(this.schema);
 		this.resturaRouter = express.Router();
 		this.resetPublicEndpoints();
 
