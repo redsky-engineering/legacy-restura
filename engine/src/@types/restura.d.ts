@@ -169,7 +169,6 @@ declare namespace Restura {
 		globalParams: string[];
 		roles: string[];
 		customTypes: string;
-		version: string; // MAJOR.MINOR.PATCH
 	}
 
 	export interface SchemaChangeValue {

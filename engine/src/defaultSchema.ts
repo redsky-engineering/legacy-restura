@@ -341,8 +341,7 @@ const defaultSchema: Restura.Schema = {
 		refreshToken: string;
 		user: IUserService.FilteredUser;
 	}
-	`,
-	version: '0.0.0'
+	`
 };
 
 export default defaultSchema;

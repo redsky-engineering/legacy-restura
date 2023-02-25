@@ -10,8 +10,7 @@ const emptySchema: Restura.Schema = {
 	],
 	globalParams: [],
 	roles: [],
-	customTypes: '',
-	version: '0.0.0'
+	customTypes: ''
 };
 
 console.log(JSON.stringify(emptySchema));
