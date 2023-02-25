@@ -18,8 +18,7 @@ import {
 import { Page } from '@redskytech/framework/996';
 
 enum FormKeys {
-	PASSWORD = 'password',
-	EMAIL = 'email'
+	AUTH_TOKEN = 'authToken'
 }
 
 const LoginPage: React.FC = () => {
@@ -28,11 +27,7 @@ const LoginPage: React.FC = () => {
 	const [loginErrorMessage, setLoginErrorMessage] = useState<string>('');
 	const [loginForm, setLoginForm] = useState(
 		new RsFormGroup([
-			new RsFormControl(FormKeys.PASSWORD, '', [new RsValidator(RsValidatorEnum.REQ, 'Password is required')]),
-			new RsFormControl(FormKeys.EMAIL, '', [
-				new RsValidator(RsValidatorEnum.REQ, 'Email is required'),
-				new RsValidator(RsValidatorEnum.EMAIL, 'Email is invalid')
-			])
+			new RsFormControl(FormKeys.AUTH_TOKEN, '', [new RsValidator(RsValidatorEnum.REQ, 'Token is required')])
 		])
 	);
 
@@ -48,8 +43,8 @@ const LoginPage: React.FC = () => {
 		try {
 			setLoginErrorMessage('');
 			setIsAttemptingLogin(true);
-			let loginValues = loginForm.toModel<{ email: string; password: string }>();
-			await userService.loginUserByPassword(loginValues.email, loginValues.password);
+			let loginValues = loginForm.toModel<{ authToken: string }>();
+			await userService.loginUserByToken(loginValues.authToken);
 		} catch (e) {
 			setIsAttemptingLogin(false);
 			setLoginErrorMessage('Failed logging in.');
@@ -78,21 +73,10 @@ const LoginPage: React.FC = () => {
 						<InputText
 							inputMode={'text'}
 							className="signInInput"
-							placeholder="Email Address"
-							autocompleteType={'email'}
-							type={'text'}
-							look={'filled'}
-							control={loginForm.get(FormKeys.EMAIL)}
-							updateControl={(updateControl) => setLoginForm(loginForm.clone().update(updateControl))}
-						/>
-						<InputText
-							inputMode={'text'}
-							className="signInInput"
-							placeholder="Password"
-							autocompleteType={'current-password'}
+							placeholder="Token"
 							type={'password'}
 							look={'filled'}
-							control={loginForm.get(FormKeys.PASSWORD)}
+							control={loginForm.get(FormKeys.AUTH_TOKEN)}
 							updateControl={(updateControl) => setLoginForm(loginForm.clone().update(updateControl))}
 						/>
 						<Button
@@ -108,9 +92,6 @@ const LoginPage: React.FC = () => {
 								{loginErrorMessage}
 							</Label>
 						)}
-						<Label className={'forgotPassword'} weight={'medium'} variant={'body1'}>
-							Forgot password?
-						</Label>
 					</form>
 				</Box>
 			</Box>

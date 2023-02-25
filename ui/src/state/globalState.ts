@@ -10,7 +10,7 @@ import * as React from 'react';
 import { SelectedRoute } from '../services/schema/SchemaService';
 
 enum GlobalStateKeys {
-	LOGIN_DETAILS = 'LoginDetails',
+	AUTH_TOKEN = 'AuthToken',
 	SCHEMA = 'Schema',
 	ROUTE = 'Route',
 	EDIT_MODE = 'EditMode'
@@ -21,7 +21,7 @@ export type EditMode = 'API_DETAILS' | 'RESPONSE' | 'RAW_DATA';
 const KEY_PREFIX = 'restura-';
 
 class GlobalState {
-	loginDetails: RecoilState<Restura.LoginDetails | undefined>;
+	authToken: RecoilState<string | undefined>;
 	schema: RecoilState<Restura.Schema | undefined>;
 	selectedRoute: RecoilState<SelectedRoute | undefined>;
 	editMode: RecoilState<EditMode>;
@@ -29,9 +29,9 @@ class GlobalState {
 	saveToStorageList: string[] = [];
 
 	constructor() {
-		this.loginDetails = atom<Restura.LoginDetails | undefined>({
-			key: GlobalStateKeys.LOGIN_DETAILS,
-			default: this.loadFromLocalStorage(GlobalStateKeys.LOGIN_DETAILS, undefined)
+		this.authToken = atom<string | undefined>({
+			key: GlobalStateKeys.AUTH_TOKEN,
+			default: this.loadFromLocalStorage(GlobalStateKeys.AUTH_TOKEN, undefined)
 		});
 
 		this.schema = atom<Restura.Schema | undefined>({
@@ -50,7 +50,7 @@ class GlobalState {
 		});
 
 		// Save Variables off into local storage on change
-		this.saveToStorageList = [GlobalStateKeys.LOGIN_DETAILS, GlobalStateKeys.ROUTE, GlobalStateKeys.EDIT_MODE];
+		this.saveToStorageList = [GlobalStateKeys.AUTH_TOKEN, GlobalStateKeys.ROUTE, GlobalStateKeys.EDIT_MODE];
 	}
 
 	private loadFromLocalStorage<T>(key: string, defaultValue: T): T {

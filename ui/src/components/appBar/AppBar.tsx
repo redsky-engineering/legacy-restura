@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './AppBar.scss';
-import UserBadge from '../userBadge/UserBadge';
 import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import { Box, Button, Img } from '@redskytech/framework/ui';
@@ -11,7 +10,6 @@ import SchemaPreview from '../schemaPreview/SchemaPreview';
 import classNames from 'classnames';
 
 const AppBar: React.FC = () => {
-	const loginDetails = useRecoilValue<Restura.LoginDetails | undefined>(globalState.loginDetails);
 	const schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
@@ -29,12 +27,9 @@ const AppBar: React.FC = () => {
 						setShowPreview(true);
 					}}
 					disabled={!schemaService.isSchemaChanged(schema)}
-					mr={16}
 				>
 					Preview Schema
 				</Button>
-				<Box className={'dividerLine'} />
-				<UserBadge userName={`${loginDetails?.user.firstName} ${loginDetails?.user.lastName}`} imageUrl={''} />
 			</Box>
 			<SchemaPreview onClose={() => setShowPreview(false)} open={showPreview} />
 		</Box>
