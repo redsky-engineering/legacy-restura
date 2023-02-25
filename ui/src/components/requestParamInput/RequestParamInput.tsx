@@ -187,7 +187,8 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props: RequestParam
 												isDisabled={isPageParam}
 												onChange={(newValue) => {
 													if (!newValue) return;
-													let newValidatorType = newValue.value as Restura.ValidatorData['type'];
+													let newValidatorType =
+														newValue.value as Restura.ValidatorData['type'];
 													let sanitizedValue = parseValueFromType(
 														newValidatorType,
 														validator.value.toString()
