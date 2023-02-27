@@ -8,10 +8,6 @@
 	justify-content: space-between;
 	align-items: center;
 
-	&.isSchemaMismatch {
-		background: linear-gradient(270deg, #dd314e 60.94%, rgba(221, 49, 78, 0.04) 84.38%), #241414;
-	}
-
 	.dividerLine {
 		width: 1px;
 		min-height: $desktopAppBarHeight;

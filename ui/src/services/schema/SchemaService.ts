@@ -35,17 +35,6 @@ export default class SchemaService extends Service {
 		await this.getCurrentSchema();
 	}
 
-	async checkForSchemaMismatch(): Promise<boolean> {
-		if (!this.lastSchema) return false;
-		try {
-			let res = await http.get<RedSky.RsResponseData<Restura.Schema>, void>('/schema');
-			return res.data.data.version !== this.lastSchema.version;
-		} catch (e) {
-			rsToastify.error('Error checking for schema mismatch, could not get latest schema');
-			return false;
-		}
-	}
-
 	isSchemaChanged(currentSchema: Restura.Schema | undefined): boolean {
 		return JSON.stringify(currentSchema) !== JSON.stringify(this.lastSchema);
 	}
@@ -143,9 +132,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		(updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).joins.push(joinData);
+		(
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).joins.push(joinData);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -156,9 +145,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		(updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).joins.splice(joinIndex, 1);
+		(
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).joins.splice(joinIndex, 1);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -169,9 +158,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).response;
+		let updatedResponseData = (
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).response;
 		let path = rootPath.split('.');
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
@@ -193,9 +182,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).response;
+		let updatedResponseData = (
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).response;
 		let path = rootPath.split('.');
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
@@ -221,9 +210,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).response;
+		let updatedResponseData = (
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).response;
 		let path = rootPath.split('.');
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
@@ -246,9 +235,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		let updatedResponseData = (updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).response;
+		let updatedResponseData = (
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).response;
 		let path = rootPath.split('.');
 		let currentResponseData: Restura.ResponseData[] | undefined = updatedResponseData;
 		for (let i = 1; i < path.length; i++) {
@@ -281,9 +270,9 @@ export default class SchemaService extends Service {
 		let updatedSchema = cloneDeep(schema);
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex].request === undefined) return;
-		(updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).request[requestParamIndex].validator.push({
+		(
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).request[requestParamIndex].validator.push({
 			type: 'MIN',
 			value: 0
 		});
@@ -309,9 +298,9 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		(updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).where.push(whereData);
+		(
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).where.push(whereData);
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 
@@ -322,18 +311,18 @@ export default class SchemaService extends Service {
 		let indices = SchemaService.getIndexesToSelectedRoute(schema);
 		if (SchemaService.isCustomRouteData(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex]))
 			return;
-		(updatedSchema.endpoints[indices.endpointIndex].routes[
-			indices.routeIndex
-		] as Restura.StandardRouteData).where.splice(whereIndex, 1);
+		(
+			updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+		).where.splice(whereIndex, 1);
 		if (
 			(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData)
 				.where.length > 0 &&
 			(updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData)
 				.where[0].conjunction
 		)
-			delete (updatedSchema.endpoints[indices.endpointIndex].routes[
-				indices.routeIndex
-			] as Restura.StandardRouteData).where[0].conjunction;
+			delete (
+				updatedSchema.endpoints[indices.endpointIndex].routes[indices.routeIndex] as Restura.StandardRouteData
+			).where[0].conjunction;
 		setRecoilExternalValue<Restura.Schema | undefined>(globalState.schema, updatedSchema);
 	}
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import globalState, { clearPersistentState } from '../state/globalState';
 import serviceFactory from '../services/serviceFactory';
 import UserService from '../services/user/UserService.js';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilValue } from 'recoil';
 
 export enum LoginStatus {
 	UNKNOWN,
@@ -13,29 +13,28 @@ export enum LoginStatus {
 export default function useLoginState() {
 	const [loginStatus, setLoginStatus] = useState<LoginStatus>(LoginStatus.UNKNOWN);
 	const userService = serviceFactory.get<UserService>('UserService');
-	const loginDetails = useRecoilValue<Restura.LoginDetails | undefined>(globalState.loginDetails);
+	const authToken = useRecoilValue(globalState.authToken);
 
 	useEffect(() => {
 		// Determine if our token is valid or not
 		if (loginStatus === LoginStatus.UNKNOWN) return;
 
-		if (!loginDetails) {
+		if (!authToken) {
 			setLoginStatus(LoginStatus.LOGGED_OUT);
 		} else {
 			setLoginStatus(LoginStatus.LOGGED_IN);
 		}
-	}, [loginStatus, loginDetails]);
+	}, [loginStatus, authToken]);
 
 	useEffect(() => {
 		async function initialStartup() {
-			if (!loginDetails) {
+			if (!authToken) {
 				setLoginStatus(LoginStatus.LOGGED_OUT);
 				return;
 			}
 
 			try {
-				//				await userService.loginUserByToken(adminToken);
-				await userService.onAfterLogin(loginDetails);
+				await userService.loginUserByToken(authToken);
 				setLoginStatus(LoginStatus.LOGGED_IN);
 			} catch (e) {
 				clearPersistentState();

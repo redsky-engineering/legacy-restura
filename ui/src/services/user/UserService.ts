@@ -24,41 +24,21 @@ export default class UserService extends Service {
 		this.schemaService = serviceFactory.get<SchemaService>('SchemaService');
 	}
 
-	async loginUserByPassword(username: string, password: string) {
-		// password = SparkMD5.hash(password);
-		// try {
-		// 	let axiosResponse = await http.post<RedSky.RsResponseData<Api.User.Res.Login>, Api.User.Req.Login>(
-		// 		'user/login',
-		// 		{
-		// 			username,
-		// 			password
-		// 		}
-		// 	);
-		// 	await this.onAfterLogin(axiosResponse.data.data);
-		// } catch (e) {
-		await this.onAfterLogin(fakeUser); // TODO: DELETE TRY CATCH AND THIS CODE WHEN CLONING;
-		// }
-	}
-
-	logout() {
-		setRecoilExternalValue<Restura.LoginDetails | undefined>(globalState.loginDetails, undefined);
-	}
-
-	async onAfterLogin(user: Restura.LoginDetails) {
+	async loginUserByToken(authToken: string) {
 		let axiosConfig = http.currentConfig();
 		axiosConfig.headers = {
 			'Content-Type': 'application/json',
 			'Access-Control-Allow-Origin': '*',
 			Accept: 'application/json, text/plain, */*',
 			'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT',
-			'x-auth-token': '123'
+			'x-auth-token': authToken
 		};
 		http.changeConfig(axiosConfig);
+		await this.schemaService.getCurrentSchema();
+		setRecoilExternalValue(globalState.authToken, authToken);
+	}
 
-		setRecoilExternalValue<Restura.LoginDetails | undefined>(globalState.loginDetails, user);
-		this.schemaService.getCurrentSchema().catch((e) => {
-			rsToastify.error('Failed to get current schema', 'Schema Read Error');
-			console.error(e);
-		});
+	logout() {
+		setRecoilExternalValue(globalState.authToken, undefined);
 	}
 }

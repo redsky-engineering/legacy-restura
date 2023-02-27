@@ -298,8 +298,7 @@ const schemaValidationDecoder = JsonDecoder.objectStrict<Restura.Schema>(
 		),
 		globalParams: JsonDecoder.array(JsonDecoder.string, 'globalParams'),
 		roles: JsonDecoder.array(JsonDecoder.string, 'roles'),
-		customTypes: JsonDecoder.string,
-		version: JsonDecoder.string
+		customTypes: JsonDecoder.string
 	},
 	'schema'
 );
@@ -323,6 +322,20 @@ export default async function schemaValidator(req: RsRequest<any>, res: RsRespon
 			logger.error(error);
 			res.sendError('BAD_REQUEST', error, HtmlStatusCodes.BAD_REQUEST);
 		});
+}
+
+export async function isSchemaValid(schemaToCheck: any): Promise<boolean> {
+	return new Promise((resolve) => {
+		schemaValidationDecoder
+			.decodeToPromise(schemaToCheck)
+			.then(() => {
+				resolve(true);
+			})
+			.catch((error) => {
+				logger.error(error);
+				resolve(false);
+			});
+	});
 }
 
 function getData(req: RsRequest<any>) {

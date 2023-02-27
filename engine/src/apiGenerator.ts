@@ -182,8 +182,8 @@ function pathToNamespaces(path: string): string[] {
 		.filter((e) => e);
 }
 
-export default function apiGenerator(schema: Restura.Schema): string {
-	let apiString = `/** Auto generated file from Schema Version (${schema.version}). DO NOT MODIFY **/`;
+export default function apiGenerator(schema: Restura.Schema, schemaHash: string): string {
+	let apiString = `/** Auto generated file from Schema Hash (${schemaHash}). DO NOT MODIFY **/`;
 	const rootNamespace = ApiTree.createRootNode(schema.database);
 	for (let endpoint of schema.endpoints) {
 		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
