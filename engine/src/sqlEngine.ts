@@ -483,7 +483,7 @@ class SqlEngine {
 
 			statement = filterSqlParser.parse(statement);
 			if (whereClause.startsWith('WHERE')) {
-				whereClause += ` AND ${statement}\n`;
+				whereClause += ` AND (${statement})\n`;
 			} else {
 				whereClause += `WHERE ${statement}\n`;
 			}
