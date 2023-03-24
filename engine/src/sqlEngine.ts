@@ -6,6 +6,7 @@ import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
 import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
 import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
 import DbDiff from 'dbdiff';
+import { DateUtils } from '@redskytech/framework/utils/index.js';
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
@@ -295,6 +296,17 @@ class SqlEngine {
 	): Promise<any> {
 		const sqlParams: string[] = [];
 		const { id, ...bodyNoId } = req.body;
+
+		// See if table has a modifiedOn column, if so set it to now
+		// Find the database table
+		const table = schema.database.find((item) => {
+			return item.name === routeData.table;
+		});
+		if (!table) throw new RsError('UNKNOWN_ERROR', 'Unknown table.');
+		if (table.columns.find((column) => column.name === 'modifiedOn')) {
+			bodyNoId.modifiedOn = DateUtils.dbNow();
+		}
+
 		// In order remove ambiguity, we need to add the table name to the column names when the table is joined
 		for (let i in bodyNoId) {
 			if (i.includes('.')) continue;
