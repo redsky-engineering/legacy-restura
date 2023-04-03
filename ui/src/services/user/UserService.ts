@@ -1,21 +1,8 @@
 import http from '../../utils/http';
-import SparkMD5 from 'spark-md5';
 import { Service } from '../Service';
 import globalState, { setRecoilExternalValue } from '../../state/globalState';
 import SchemaService from '../schema/SchemaService.js';
 import serviceFactory from '../serviceFactory';
-import { rsToastify } from '@redskytech/framework/ui';
-
-const fakeUser: Restura.LoginDetails = {
-	token: 'fakeToken',
-	refreshToken: 'fakeRefreshToken',
-	expiresOn: 'never',
-	user: {
-		firstName: 'John',
-		lastName: 'Doe',
-		email: 'john@does.com'
-	}
-};
 
 export default class UserService extends Service {
 	schemaService!: SchemaService;
