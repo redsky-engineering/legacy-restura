@@ -3,85 +3,23 @@ const defaultSchema: Restura.Schema = {
 		{
 			name: 'company',
 			columns: [
-				{
-					name: 'id',
-					hasAutoIncrement: true,
-					isNullable: false,
-					roles: [],
-					type: 'BIGINT'
-				},
-				{
-					name: 'createdOn',
-					isNullable: false,
-					default: 'now()',
-					roles: [],
-					type: 'DATETIME'
-				},
-				{
-					name: 'modifiedOn',
-					isNullable: false,
-					default: 'now()',
-					roles: [],
-					type: 'DATETIME'
-				},
-				{
-					roles: [],
-					name: 'name',
-					type: 'VARCHAR',
-					length: 255,
-					isNullable: true
-				}
+				{ name: 'id', hasAutoIncrement: true, isNullable: false, roles: [], type: 'BIGINT' },
+				{ name: 'createdOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
+				{ name: 'modifiedOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
+				{ roles: [], name: 'name', type: 'VARCHAR', length: 255, isNullable: true }
 			],
 			foreignKeys: [],
-			indexes: [
-				{
-					name: 'PRIMARY',
-					columns: ['id'],
-					isUnique: true,
-					isPrimaryKey: true,
-					order: 'ASC'
-				}
-			],
+			indexes: [{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' }],
 			roles: []
 		},
 		{
 			name: 'user',
 			columns: [
-				{
-					name: 'id',
-					hasAutoIncrement: true,
-					isNullable: false,
-					roles: [],
-					type: 'BIGINT'
-				},
-				{
-					name: 'createdOn',
-					isNullable: false,
-					default: 'now()',
-					roles: [],
-					type: 'DATETIME'
-				},
-				{
-					name: 'modifiedOn',
-					isNullable: false,
-					default: 'now()',
-					roles: [],
-					type: 'DATETIME'
-				},
-				{
-					roles: [],
-					name: 'firstName',
-					type: 'VARCHAR',
-					length: 30,
-					isNullable: true
-				},
-				{
-					roles: [],
-					name: 'lastName',
-					type: 'VARCHAR',
-					length: 30,
-					isNullable: true
-				},
+				{ name: 'id', hasAutoIncrement: true, isNullable: false, roles: [], type: 'BIGINT' },
+				{ name: 'createdOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
+				{ name: 'modifiedOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
+				{ roles: [], name: 'firstName', type: 'VARCHAR', length: 30, isNullable: true },
+				{ roles: [], name: 'lastName', type: 'VARCHAR', length: 30, isNullable: true },
 				{
 					roles: [],
 					name: 'companyId',
@@ -89,27 +27,12 @@ const defaultSchema: Restura.Schema = {
 					isNullable: false,
 					comment: 'Foreign key to company(id)'
 				},
-				{
-					roles: [],
-					name: 'password',
-					type: 'VARCHAR',
-					length: 30,
-					isNullable: true
-				},
-				{
-					roles: [],
-					name: 'email',
-					type: 'VARCHAR',
-					length: 100,
-					isNullable: true
-				},
-				{
-					roles: [],
-					name: 'role',
-					type: 'VARCHAR',
-					length: 30,
-					isNullable: true
-				}
+				{ roles: [], name: 'password', type: 'VARCHAR', length: 70, isNullable: true },
+				{ roles: [], name: 'email', type: 'VARCHAR', length: 100, isNullable: true },
+				{ roles: [], name: 'role', type: 'VARCHAR', length: 30, isNullable: true },
+				{ roles: [], name: 'permissionLogin', type: 'BOOLEAN', isNullable: false, default: '1' },
+				{ roles: [], name: 'lastLoginOn', type: 'DATETIME', isNullable: true },
+				{ roles: [], name: 'phone', type: 'VARCHAR', length: 30, isNullable: false }
 			],
 			foreignKeys: [
 				{
@@ -122,13 +45,7 @@ const defaultSchema: Restura.Schema = {
 				}
 			],
 			indexes: [
-				{
-					name: 'PRIMARY',
-					columns: ['id'],
-					isUnique: true,
-					isPrimaryKey: true,
-					order: 'ASC'
-				},
+				{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' },
 				{
 					columns: ['companyId'],
 					isUnique: false,
@@ -147,135 +64,22 @@ const defaultSchema: Restura.Schema = {
 			baseUrl: '/api/v1',
 			routes: [
 				{
-					type: 'ARRAY',
-					method: 'GET',
-					name: 'user',
-					description: 'Get all users with firstname filter',
-					path: '/user',
-					table: 'user',
-					roles: [],
-					request: [
-						{
-							name: 'firstName',
-							required: true,
-							validator: [
-								{
-									type: 'TYPE_CHECK',
-									value: 'string'
-								}
-							]
-						},
-						{
-							name: 'type',
-							required: false,
-							validator: [
-								{
-									type: 'TYPE_CHECK',
-									value: 'string'
-								},
-								{
-									type: 'ONE_OF',
-									value: ['admin', 'user']
-								}
-							]
-						}
-					],
-					joins: [
-						{
-							table: 'company',
-							type: 'INNER',
-							custom: 'user.companyId = company.id'
-						}
-					],
-					response: [
-						{
-							name: 'id',
-							selector: 'user.id'
-						},
-						{
-							name: 'firstName',
-							selector: 'user.firstName'
-						},
-						{
-							name: 'lastName',
-							selector: 'user.lastName'
-						},
-						{
-							name: 'createdOn',
-							selector: 'user.createdOn'
-						},
-						{
-							name: 'bigBadCompanyName',
-							selector: 'company.name'
-						},
-						{
-							name: 'companyCreatedOn',
-							selector: 'company.createdOn'
-						},
-						{
-							name: 'company',
-							subquery: {
-								table: 'company',
-								joins: [],
-								where: [
-									{ tableName: 'company', columnName: 'id', operator: '=', value: 'user.companyId' }
-								],
-								properties: [
-									{
-										name: 'id',
-										selector: 'company.id'
-									},
-									{
-										name: 'name',
-										selector: 'company.name'
-									}
-								]
-							}
-						}
-					],
-					assignments: [],
-					where: [
-						{
-							tableName: 'user',
-							columnName: 'firstName',
-							operator: 'ENDS WITH',
-							value: '$firstName'
-						}
-					]
-				},
-				{
 					type: 'ONE',
 					method: 'GET',
 					name: 'get my user',
 					description: 'Get my user',
 					path: '/user/me',
 					table: 'user',
-					roles: ['admin'],
+					roles: ['user', 'admin'],
 					request: [],
 					joins: [],
 					response: [
-						{
-							name: 'id',
-							selector: 'user.id'
-						},
-						{
-							name: 'firstName',
-							selector: 'user.firstName'
-						},
-						{
-							name: 'lastName',
-							selector: 'user.lastName'
-						}
+						{ name: 'id', selector: 'user.id' },
+						{ name: 'firstName', selector: 'user.firstName' },
+						{ name: 'lastName', selector: 'user.lastName' }
 					],
 					assignments: [],
-					where: [
-						{
-							tableName: 'user',
-							columnName: 'id',
-							operator: '=',
-							value: '#userId'
-						}
-					]
+					where: [{ tableName: 'user', columnName: 'id', operator: '=', value: '#userId' }]
 				},
 				{
 					type: 'CUSTOM_ONE',
@@ -288,60 +92,44 @@ const defaultSchema: Restura.Schema = {
 						{
 							name: 'username',
 							required: true,
-							validator: [
-								{
-									type: 'TYPE_CHECK',
-									value: 'string'
-								}
-							]
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
 						},
 						{
 							name: 'password',
 							required: true,
-							validator: [
-								{
-									type: 'TYPE_CHECK',
-									value: 'string'
-								}
-							]
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
 						}
 					],
-					responseType: 'CustomTypes.LoginResponse'
+					responseType: 'LoginResponse'
 				},
 				{
 					type: 'CUSTOM_ONE',
-					method: 'GET',
-					name: 'order slim details',
-					description: 'Get order slim details',
-					path: '/order/slim-details',
-					roles: ['admin'],
+					responseType: 'ReAuthResponse',
 					request: [
 						{
-							name: 'id',
+							name: 'token',
 							required: true,
-							validator: [
-								{
-									type: 'TYPE_CHECK',
-									value: 'number'
-								}
-							]
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						},
+						{
+							name: 'refreshToken',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
 						}
 					],
-					responseType: 'boolean'
+					method: 'POST',
+					name: 'Re-Authenticates a Token',
+					description: 'Refresh an old, possibly expired token and returns a new token.',
+					path: '/user/re-auth',
+					roles: []
 				}
 			]
 		}
 	],
 	globalParams: ['companyId', 'userId'],
 	roles: ['admin', 'user', 'anonymous'],
-	customTypes: `
-		interface LoginResponse {
-		token: string;
-		expiresOn: string;
-		refreshToken: string;
-		user: IUserService.FilteredUser;
-	}
-	`
+	customTypes:
+		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface LoginResponse {\n\ttoken: string;\n\texpiresOn: string;\n\trefreshToken: string;\n\tuser: FilteredUser;\n}\n\nexport interface ReAuthResponse {\n\ttoken: string;\n\trefreshToken?: string;\n\texpiresOn: string;\n}\n'
 };
 
 export default defaultSchema;

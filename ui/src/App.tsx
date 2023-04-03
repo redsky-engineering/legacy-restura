@@ -12,14 +12,6 @@ import { View } from '@redskytech/framework/996';
 import useIsAtBreakpoint from './customHooks/useIsAtBreakpoint';
 import classNames from 'classnames';
 
-rsToastify.setIcons({
-	custom: '',
-	error: 'icon-exclamation-circle',
-	info: 'icon-solid-info-circle',
-	success: 'icon-check',
-	warning: 'icon-exclamation-circle'
-});
-
 function App() {
 	const isSmallerThan1920 = useIsAtBreakpoint(1919);
 	const isSmallerThan1440 = useIsAtBreakpoint(1439);
