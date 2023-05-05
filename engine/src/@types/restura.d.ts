@@ -87,7 +87,7 @@ declare namespace Restura {
 		foreignColumnName?: string;
 		custom?: string;
 		type: 'INNER' | 'LEFT';
-        alias?: string;
+		alias?: string;
 	}
 
 	export interface ResponseData {

@@ -138,7 +138,12 @@ class SqlEngine {
 		if (
 			!ObjectUtils.isArrayWithData(
 				item.subquery.properties.filter((nestedItem) => {
-					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem, routeData.joins);
+					return this.doesRoleHavePermissionToColumn(
+						req.requesterDetails.role,
+						schema,
+						nestedItem,
+						routeData.joins
+					);
 				})
 			)
 		) {
@@ -229,7 +234,8 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins) || item.subquery) selectColumns.push(item);
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins) || item.subquery)
+				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
 		let selectStatement = 'SELECT \n';
@@ -359,7 +365,12 @@ class SqlEngine {
 		return { data: true };
 	}
 
-	private doesRoleHavePermissionToColumn(role: string, schema: Restura.Schema, item: Restura.ResponseData, joins: Restura.JoinData[]): boolean {
+	private doesRoleHavePermissionToColumn(
+		role: string,
+		schema: Restura.Schema,
+		item: Restura.ResponseData,
+		joins: Restura.JoinData[]
+	): boolean {
 		if (item.selector) {
 			let tableName = item.selector.split('.')[0];
 			let columnName = item.selector.split('.')[1];
@@ -409,7 +420,11 @@ class SqlEngine {
 				const customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${customReplaced}\n`;
 			} else {
-				joinStatements += `\t${item.type} JOIN \`${item.table}\`${item.alias ? `AS ${item.alias}` : ''} ON \`${baseTable}\`.\`${item.localColumnName}\` = \`${item.alias ? item.alias : item.table}\`.\`${item.foreignColumnName}\`\n`;
+				joinStatements += `\t${item.type} JOIN \`${item.table}\`${
+					item.alias ? `AS ${item.alias}` : ''
+				} ON \`${baseTable}\`.\`${item.localColumnName}\` = \`${item.alias ? item.alias : item.table}\`.\`${
+					item.foreignColumnName
+				}\`\n`;
 			}
 		});
 		return joinStatements;
