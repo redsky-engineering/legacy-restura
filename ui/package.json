@@ -5,6 +5,10 @@
 	"license": "UNLICENSED",
 	"private": true,
 	"dependencies": {
+		"@capacitor/android": "^4.0.1",
+		"@capacitor/cli": "^4.0.1",
+		"@capacitor/core": "^4.0.1",
+		"@capacitor/ios": "^4.0.1",
 		"@react-hook/media-query": "^1.1.1",
 		"@redskytech/framework": "^1.6.1",
 		"ace-builds": "^1.11.2",
