@@ -138,7 +138,12 @@ class SqlEngine {
 		if (
 			!ObjectUtils.isArrayWithData(
 				item.subquery.properties.filter((nestedItem) => {
-					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem);
+					return this.doesRoleHavePermissionToColumn(
+						req.requesterDetails.role,
+						schema,
+						nestedItem,
+						routeData.joins
+					);
 				})
 			)
 		) {
@@ -154,7 +159,8 @@ class SqlEngine {
 											!this.doesRoleHavePermissionToColumn(
 												req.requesterDetails.role,
 												schema,
-												nestedItem
+												nestedItem,
+												routeData.joins
 											)
 										) {
 											return;
@@ -228,7 +234,8 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item) || item.subquery) selectColumns.push(item);
+			if (this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins) || item.subquery)
+				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
 		let selectStatement = 'SELECT \n';
@@ -358,11 +365,23 @@ class SqlEngine {
 		return { data: true };
 	}
 
-	private doesRoleHavePermissionToColumn(role: string, schema: Restura.Schema, item: Restura.ResponseData): boolean {
+	private doesRoleHavePermissionToColumn(
+		role: string,
+		schema: Restura.Schema,
+		item: Restura.ResponseData,
+		joins: Restura.JoinData[]
+	): boolean {
 		if (item.selector) {
 			let tableName = item.selector.split('.')[0];
 			let columnName = item.selector.split('.')[1];
 			let tableSchema = schema.database.find((item) => item.name === tableName);
+			if (!tableSchema) {
+				// check to see if this is an alias join table
+				let join = joins.find((join) => join.alias === tableName);
+				if (!join) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
+				tableName = join.table;
+				tableSchema = schema.database.find((item) => item.name === tableName);
+			}
 			if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
 			let columnSchema = tableSchema.columns.find((item) => item.name === columnName);
 			if (!columnSchema)
@@ -372,7 +391,7 @@ class SqlEngine {
 		if (item.subquery) {
 			return ObjectUtils.isArrayWithData(
 				item.subquery.properties.filter((nestedItem) => {
-					return this.doesRoleHavePermissionToColumn(role, schema, nestedItem);
+					return this.doesRoleHavePermissionToColumn(role, schema, nestedItem, joins);
 				})
 			);
 		}
@@ -401,7 +420,11 @@ class SqlEngine {
 				const customReplaced = this.replaceParamKeywords(item.custom, routeData, req, sqlParams);
 				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON ${customReplaced}\n`;
 			} else {
-				joinStatements += `\t${item.type} JOIN \`${item.table}\` ON \`${baseTable}\`.\`${item.localColumnName}\` = \`${item.table}\`.\`${item.foreignColumnName}\`\n`;
+				joinStatements += `\t${item.type} JOIN \`${item.table}\`${
+					item.alias ? `AS ${item.alias}` : ''
+				} ON \`${baseTable}\`.\`${item.localColumnName}\` = \`${item.alias ? item.alias : item.table}\`.\`${
+					item.foreignColumnName
+				}\`\n`;
 			}
 		});
 		return joinStatements;

@@ -63,7 +63,8 @@ const joinDataDecoder = JsonDecoder.array<Restura.JoinData>(
 			localColumnName: JsonDecoder.optional(JsonDecoder.string),
 			foreignColumnName: JsonDecoder.optional(JsonDecoder.string),
 			custom: JsonDecoder.optional(JsonDecoder.string),
-			type: JsonDecoder.oneOf([JsonDecoder.isExactly('LEFT'), JsonDecoder.isExactly('INNER')], 'type')
+			type: JsonDecoder.oneOf([JsonDecoder.isExactly('LEFT'), JsonDecoder.isExactly('INNER')], 'type'),
+			alias: JsonDecoder.optional(JsonDecoder.string)
 		},
 		'join'
 	),
