@@ -138,12 +138,10 @@ class SqlEngine {
 		if (
 			!ObjectUtils.isArrayWithData(
 				item.subquery.properties.filter((nestedItem) => {
-					return this.doesRoleHavePermissionToColumn(
-						req.requesterDetails.role,
-						schema,
-						nestedItem,
-						[...routeData.joins, ...item.subquery!.joins]
-					);
+					return this.doesRoleHavePermissionToColumn(req.requesterDetails.role, schema, nestedItem, [
+						...routeData.joins,
+						...item.subquery!.joins
+					]);
 				})
 			)
 		) {
@@ -219,7 +217,6 @@ class SqlEngine {
 		req.data = { id: insertId };
 		return this.executeGetRequest(req, { ...routeData, where: whereData }, schema);
 	}
-
 
 
 
