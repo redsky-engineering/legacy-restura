@@ -218,9 +218,6 @@ class SqlEngine {
 		return this.executeGetRequest(req, { ...routeData, where: whereData }, schema);
 	}
 
-
-
-
 	private async executeGetRequest(
 		req: RsRequest<any>,
 		routeData: Restura.StandardRouteData,
