@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "I'm here"
-echo "$(dirname -- "$0")"
 cd engine
 yarn lint-staged
 cd .. && cd ui
