@@ -142,7 +142,7 @@ class SqlEngine {
 						req.requesterDetails.role,
 						schema,
 						nestedItem,
-						routeData.joins
+						[...routeData.joins, ...item.subquery!.joins]
 					);
 				})
 			)
@@ -160,7 +160,7 @@ class SqlEngine {
 												req.requesterDetails.role,
 												schema,
 												nestedItem,
-												routeData.joins
+												[...routeData.joins, ...item.subquery!.joins]
 											)
 										) {
 											return;
@@ -234,7 +234,8 @@ class SqlEngine {
 
 		let selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
-			if (this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins) || item.subquery)
+			// For a subquery, we will check the permission when generating the subquery statement, so pass it through
+			if (item.subquery || this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins))
 				selectColumns.push(item);
 		});
 		if (!selectColumns.length) throw new RsError('UNAUTHORIZED', `You do not have permission to access this data.`);
