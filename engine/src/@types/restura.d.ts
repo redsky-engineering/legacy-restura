@@ -20,6 +20,7 @@ declare namespace Restura {
 		| 'MEDIUMTEXT' //	16 MB	Holds a medium amount of letters, numbers, and special characters of variable length. Supported from version 1.1.0 onwards.
 		| 'MEDIUMBLOB' //	16 MB	Holds a medium amount of binary data of variable length. Supported from version 1.1.0 onwards.
 		| 'LONGTEXT' //	1.96 GB	Holds a large amount of letters, numbers, and special characters of variable length. Supported from version 1.1.0 onwards.
+		| 'JSON' //	Alias for LONGTEXT, creates a CONSTRAINT for JSON_VALID, holds a JSON-formatted string of plain text.
 		| 'LONGBLOB' // 1.96 GB	Holds a large amount of binary data of variable length. Supported from version 1.1.0 onwards.
 		| 'ENUM';
 
@@ -197,7 +198,7 @@ declare namespace Restura {
 	}
 
 	// The `string` type is to handle for enums
-	type ValidatorString = 'boolean' | 'string' | 'number' | 'any';
+	type ValidatorString = 'boolean' | 'string' | 'number' | 'object' | 'any';
 
 	interface ResponseType {
 		isOptional?: boolean;

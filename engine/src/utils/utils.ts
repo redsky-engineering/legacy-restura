@@ -13,6 +13,7 @@ class SqlUtils {
 			type.startsWith('float')
 		)
 			return 'number';
+		if (type === 'json') return 'object';
 		if (
 			type.startsWith('varchar') ||
 			type.indexOf('text') > -1 ||

@@ -33,6 +33,7 @@ export const columnTypeList: (
 	'MEDIUMTEXT',
 	'MEDIUMBLOB',
 	'LONGTEXT',
+	'JSON',
 	'LONGBLOB',
 	'DATE',
 	'DATETIME',
