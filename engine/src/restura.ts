@@ -241,6 +241,11 @@ class ResturaEngine {
 	private async runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
 		let version = req.baseUrl.split('/')[2];
 		let domain = routeData.path.split('/')[1];
+		domain = domain.split('-').reduce((acc, value, index) => {
+			if (index === 0) acc = value;
+			else acc += StringUtils.capitalizeFirst(value);
+			return acc;
+		}, '');
 		let customApiName = `${StringUtils.capitalizeFirst(domain)}Api${StringUtils.capitalizeFirst(version)}`;
 
 		let customApi = apiFactory.getCustomApi(customApiName) as any;
