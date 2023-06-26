@@ -17,11 +17,15 @@ export default function customTypeValidationGenerator(currentSchema: Restura.Sch
 	const temporaryFile = tmp.fileSync({ mode: 0o644, prefix: 'prefix-', postfix: '.ts' });
 	fs.writeFileSync(temporaryFile.name, currentSchema.customTypes);
 
+	// optionally pass ts compiler options
+	const compilerOptions: TJS.CompilerOptions = {
+		strictNullChecks: true,
+		skipLibCheck: true
+	};
+
 	const program = TJS.getProgramFromFiles(
 		[resolve(temporaryFile.name), path.join(process.cwd(), 'src/@types/models.d.ts')],
-		{
-			skipLibCheck: true
-		}
+		compilerOptions
 	);
 	customInterfaceNames.forEach((item) => {
 		const ddlSchema = TJS.generateSchema(program, item, {
