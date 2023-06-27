@@ -1,9 +1,9 @@
 @import 'src/themes/themes';
 
 .rsColumnPickerPopup {
-	width: fit-content;
+	width: 90%;
 	min-width: 385px;
-	max-width: 500px;
+	max-width: 800px;
 	height: 60vh;
 	position: absolute;
 	background: theme-var($neutralBeige900);

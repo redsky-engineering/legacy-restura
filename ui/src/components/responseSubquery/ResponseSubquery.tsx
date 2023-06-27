@@ -45,32 +45,39 @@ const ResponseSubquery: React.FC<ResponseSubqueryProps> = (props) => {
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
 			baseTable: props.responseData.subquery.table,
 			headerText: 'Select Column',
-			onColumnSelect: async (tableName, columnData) => {
+			onColumnSelect: async (tableWithJoinColumn, columnData) => {
 				if (!props.responseData.subquery) return;
 				let name = '';
-				if (tableName === props.responseData.subquery.table) {
+				let selectorBase = tableWithJoinColumn.table;
+				if (!tableWithJoinColumn.joinColumn) {
 					name = columnData.name;
 				} else {
-					name = `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+					name = `${selectorBase}${StringUtils.capitalizeFirst(columnData.name)}`;
 					let latestResponseData = schemaService.getResponseParameter(props.rootPath, props.parameterIndex);
 					if (!latestResponseData || !latestResponseData.subquery) return;
-					let existingJoin = latestResponseData.subquery.joins.find((join) => join.table === tableName);
+					let existingJoin = latestResponseData.subquery.joins.find(
+						(join) => join.table === tableWithJoinColumn.table && join.alias === selectorBase
+					);
 					if (!existingJoin) {
 						// Find the foreign key for this table
-						let foreignKey = schemaService.getForeignKey(props.responseData.subquery.table, tableName);
+						let foreignKey = schemaService.getForeignKey(
+							props.responseData.subquery.table,
+							tableWithJoinColumn.table
+						);
 						if (!foreignKey) {
 							rsToastify.error(
-								`Could not find foreign key for table ${props.responseData.subquery.table} to table ${tableName}`
+								`Could not find foreign key for table ${props.responseData.subquery.table} to table ${tableWithJoinColumn}`
 							);
 							return;
 						}
 
 						let updatedResponse = cloneDeep(latestResponseData)!;
 						updatedResponse.subquery!.joins.push({
-							table: tableName,
+							table: tableWithJoinColumn.table,
 							localColumnName: foreignKey.column,
 							foreignColumnName: foreignKey.refColumn,
-							type: 'INNER'
+							type: 'INNER',
+							alias: selectorBase
 						});
 						schemaService.updateResponseParameter(props.rootPath, props.parameterIndex, updatedResponse);
 
@@ -81,7 +88,7 @@ const ResponseSubquery: React.FC<ResponseSubqueryProps> = (props) => {
 
 				schemaService.addResponseParameter(`${props.rootPath}.${props.responseData.name}`, {
 					name,
-					selector: `${tableName}.${columnData.name}`
+					selector: `${selectorBase}.${columnData.name}`
 				});
 			}
 		});

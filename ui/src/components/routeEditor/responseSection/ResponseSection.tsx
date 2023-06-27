@@ -69,30 +69,33 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 		popupController.open<ColumnPickerPopupProps>(ColumnPickerPopup, {
 			baseTable: routeData.table,
 			headerText: 'Select Column',
-			onColumnSelect: async (tableName, columnData) => {
+			onColumnSelect: async (tableWithJoinColumn, columnData) => {
 				let name = '';
-				if (tableName === routeData.table) {
+				let selectorBase = tableWithJoinColumn.table;
+				if (!tableWithJoinColumn.joinColumn) {
 					name = columnData.name;
 				} else {
-					name = `${tableName}${StringUtils.capitalizeFirst(columnData.name)}`;
+					name = `${selectorBase}${StringUtils.capitalizeFirst(columnData.name)}`;
+					selectorBase = `${tableWithJoinColumn.joinColumn}_${tableWithJoinColumn.table}`;
 					// Since we are in a closure, we need to make sure we are using the latest value of routeData
 					let latestRouteData = schemaService.getSelectedRouteData() as Restura.StandardRouteData;
 					if (!latestRouteData) return;
-					let existingJoin = latestRouteData.joins.find((join) => join.table === tableName);
+					let existingJoin = latestRouteData.joins.find((join) => join.table === tableWithJoinColumn.table && join.alias === selectorBase);
 					if (!existingJoin) {
 						// Find the foreign key for this table
-						let foreignKey = schemaService.getForeignKey(latestRouteData.table, tableName);
+						let foreignKey = schemaService.getForeignKey(latestRouteData.table, tableWithJoinColumn.table);
 						if (!foreignKey) {
 							rsToastify.error(
-								`Could not find foreign key for table ${latestRouteData.table} to table ${tableName}`
+								`Could not find foreign key for table ${latestRouteData.table} to table ${tableWithJoinColumn}`
 							);
 							return;
 						}
 
 						schemaService.addJoin({
-							table: tableName,
+							table: tableWithJoinColumn.table,
 							localColumnName: foreignKey.column,
 							foreignColumnName: foreignKey.refColumn,
+							alias: selectorBase,
 							type: 'INNER'
 						});
 
@@ -103,7 +106,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 
 				schemaService.addResponseParameter('root', {
 					name,
-					selector: `${tableName}.${columnData.name}`
+					selector: `${selectorBase}.${columnData.name}`
 				});
 			}
 		});

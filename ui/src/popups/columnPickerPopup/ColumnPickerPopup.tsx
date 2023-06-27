@@ -18,11 +18,13 @@ import globalState from '../../state/globalState';
 import classNames from 'classnames';
 import SchemaService from '../../services/schema/SchemaService';
 
+export type TableWithJoinColumn = { table: string; joinColumn?: string };
+
 export interface ColumnPickerPopupProps extends PopupProps {
 	baseTable: string;
 	headerText: string;
 	baseTableOnly?: boolean;
-	onColumnSelect: (tableName: string, columnData: Restura.ColumnData) => void;
+	onColumnSelect: (tableWithJoinColumn: TableWithJoinColumn, columnData: Restura.ColumnData) => void;
 	onCustomSelect?: () => void;
 	autoCloseOnSelect?: boolean;
 }
@@ -31,14 +33,17 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 	const [filterValue, setFilterValue] = useState<string>('');
 
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
-	const [selectedTable, setSelectedTable] = useState<string>('');
+	const [selectedTable, setSelectedTable] = useState<TableWithJoinColumn | undefined>();
 
-	const tableList = useMemo<string[]>(() => {
-		if (!schema) return [props.baseTable];
+	const tableList = useMemo<TableWithJoinColumn[]>(() => {
+		if (!schema) return [{ table: props.baseTable }];
 		let table = schema.database.find((item) => item.name === props.baseTable);
-		if (!table) return [props.baseTable];
-		if (props.baseTableOnly) return [props.baseTable];
-		return [props.baseTable, ...table.foreignKeys.map((item) => item.refTable)];
+		if (!table) return [{ table: props.baseTable }];
+		if (props.baseTableOnly) return [{ table: props.baseTable }];
+		return [
+			{ table: props.baseTable },
+			...table.foreignKeys.map((item) => ({ table: item.refTable, joinColumn: item.column }))
+		];
 	}, [schema]);
 
 	useEffect(() => {
@@ -56,26 +61,29 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		popupController.close(ColumnPickerPopup);
 	}
 
-	function handleColumnClick(columnData: Restura.ColumnData) {
+	function handleColumnClick(tableData: Restura.TableData, columnData: Restura.ColumnData) {
+		if (!selectedTable) return;
 		props.onColumnSelect(selectedTable, columnData);
 		if (props.autoCloseOnSelect) handleClose();
-		rsToastify.success(`${selectedTable}.${columnData.name} - added`, 'Added Column');
+		rsToastify.success(`${selectedTable.table}.${columnData.name} - added`, 'Added Column');
 	}
 
 	function handleAddAll() {
-		if (!schema) return;
-		let foundTable = schema.database.find((item) => item.name === selectedTable);
+		if (!schema || !selectedTable) return;
+		let foundTable = schema.database.find((item) => item.name === selectedTable.table);
 		if (!foundTable) return null;
 		let filteredColumns = foundTable.columns.filter((columnData) => {
 			if (filterValue === '') return true;
 			return columnData.name.includes(filterValue);
 		});
+
 		filteredColumns.forEach((columnData, index) => {
 			// We have to delay because the recoil value will not be updated if we fired the event too quickly
 			setTimeout(() => {
 				props.onColumnSelect(selectedTable, columnData);
 			}, 100 * index);
 		});
+
 		setTimeout(() => {
 			rsToastify.success(`Multiple columns added`, 'Added All Columns');
 			if (props.autoCloseOnSelect) handleClose();
@@ -110,7 +118,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 		return tableList.map((table) => {
 			return (
 				<Box
-					key={table}
+					key={`${table.table}_${table.joinColumn}`}
 					className={classNames('tableListItem', { isSelected: table === selectedTable })}
 					onClick={() => {
 						if (table === selectedTable) return;
@@ -118,7 +126,8 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 					}}
 				>
 					<Label variant={'caption1'} weight={'regular'}>
-						{table}
+						{table.table}
+						{!!table.joinColumn && ` (${table.joinColumn})`}
 					</Label>
 				</Box>
 			);
@@ -126,8 +135,8 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 	}
 
 	function renderColumnList() {
-		if (!schema) return null;
-		let foundTable = schema.database.find((item) => item.name === selectedTable);
+		if (!schema || !selectedTable) return null;
+		let foundTable = schema.database.find((item) => item.name === selectedTable.table);
 		if (!foundTable) return null;
 		return foundTable.columns
 			.filter((columnData) => {
@@ -139,7 +148,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 					<Box
 						key={columnData.name}
 						className={'columnListItem'}
-						onClick={() => handleColumnClick(columnData)}
+						onClick={() => handleColumnClick(foundTable!, columnData)}
 					>
 						<Label variant={'caption1'} weight={'regular'}>
 							{columnData.name}

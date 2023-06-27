@@ -23,11 +23,11 @@ const WhereClauseInput: React.FC<WhereClauseInputProps> = (props) => {
 			autoCloseOnSelect: true,
 			headerText: 'Select Column',
 			baseTable: props.baseTableName,
-			onColumnSelect: (tableName, columnData) => {
+			onColumnSelect: (tableWithJoinColumn, columnData) => {
 				let whereClauseLength = props.where.length;
 
 				props.onAddWhereClause({
-					tableName,
+					tableName: tableWithJoinColumn.table,
 					columnName: columnData.name,
 					operator: '=',
 					value: 'TRUE',

@@ -88,7 +88,7 @@ declare namespace Restura {
 		foreignColumnName?: string;
 		custom?: string;
 		type: 'INNER' | 'LEFT';
-		alias?: string;
+		alias?: string; // Alias should follow format "localColumnName_table". This allows us to properly look up the types
 	}
 
 	export interface ResponseData {

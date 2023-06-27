@@ -162,9 +162,15 @@ class ApiTree {
 		const path = selector.split('.');
 		if (path.length === 0 || path.length > 2 || path[0] === '') return { responseType: 'any', optional: false };
 
-		const tableName = path.length == 2 ? path[0] : name,
-			columnName = path.length == 2 ? path[1] : path[0];
-		const table = this.database.find((t) => t.name == tableName);
+		let tableName = path.length == 2 ? path[0] : name;
+			const columnName = path.length == 2 ? path[1] : path[0];
+		let table = this.database.find((t) => t.name == tableName);
+		if (!table && tableName.includes('_')) {
+			const tableAliasSplit = tableName.split('_');
+			tableName = tableAliasSplit[1];
+			table = this.database.find((t) => t.name == tableName);
+		}
+
 		const column = table?.columns.find((c) => c.name == columnName);
 		if (!table || !column) return { responseType: 'any', optional: false };
 

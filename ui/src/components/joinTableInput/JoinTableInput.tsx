@@ -64,6 +64,7 @@ const JoinTableInput: React.FC<JoinTableInputProps> = (props) => {
 					<Box className={'tableName'}>
 						<Label variant={'body1'} weight={'regular'}>
 							{joinData.table}
+							{!!joinData.alias && ` (${joinData.alias})`}
 						</Label>
 					</Box>
 					{!joinData.custom ? (

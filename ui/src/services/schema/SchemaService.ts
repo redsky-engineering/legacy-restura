@@ -474,7 +474,14 @@ export default class SchemaService extends Service {
 		let columnName = selector.split('.')[1];
 
 		let table = schema.database.find((item) => item.name === tableName);
+		if (!table && tableName.includes('_')) {
+			// Look to see if this has a join
+			const tableAliasSplit = tableName.split('_');
+			tableName = tableAliasSplit[1];
+			table = schema.database.find((item) => item.name === tableName);
+		}
 		if (!table) return 'unknown';
+
 		let column = table.columns.find((item) => item.name === columnName);
 		if (!column) return 'unknown';
 
