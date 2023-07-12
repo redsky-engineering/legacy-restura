@@ -138,7 +138,7 @@ class ResturaEngine {
 		do {
 			const fileName = path.join(__dirname, ...basePath, 'restura.schema.json');
 			if (fs.existsSync(fileName)) {
-				console.info(`Using restura file: ${fileName}`);
+				logger.info(`Using restura file: ${fileName}`);
 				return fileName;
 			}
 			missingFiles.push(fileName);
