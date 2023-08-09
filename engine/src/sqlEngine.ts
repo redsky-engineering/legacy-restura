@@ -11,7 +11,7 @@ import { DateUtils } from '@redskytech/framework/utils/index.js';
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
 		let sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
-		await connection.runQuery(sqlFullStatement);
+		await connection.runQuery(sqlFullStatement, [], 'SYSTEM_GENERATED');
 		return sqlFullStatement;
 	}
 
@@ -101,7 +101,7 @@ class SqlEngine {
 		]);
 		await scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
 										 CREATE DATABASE ${config.database[0].database}_scratch;
-										 USE ${config.database[0].database}_scratch;`);
+										 USE ${config.database[0].database}_scratch;`, [], 'SYSTEM_GENERATED');
 
 		scratchConnection.end();
 		scratchConnection = createCustomPool([
@@ -201,7 +201,7 @@ class SqlEngine {
 		const createdItem = await mainConnection.runQuery(
 			`INSERT INTO \`${routeData.table}\`
              SET ? ${parameterString ? `, ${parameterString}` : ''};`,
-			[{ ...req.data }, ...sqlParams]
+			[{ ...req.data }, ...sqlParams], req.requesterDetails
 		);
 		const insertId = createdItem.insertId;
 		const whereData: Restura.WhereData[] = [
@@ -264,13 +264,13 @@ class SqlEngine {
 		if (routeData.type === 'ONE') {
 			return await mainConnection.queryOne(
 				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
-				sqlParams
+				sqlParams, req.requesterDetails
 			);
 		} else if (routeData.type === 'ARRAY') {
 			// Array
 			return await mainConnection.runQuery(
 				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
-				sqlParams
+				sqlParams, req.requesterDetails
 			);
 		} else if (routeData.type === 'PAGED') {
 			// The COUNT() does not work with group by and order by, so we need to catch that case and act accordingly
@@ -283,7 +283,7 @@ class SqlEngine {
 					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
 					(req.data.page - 1) * req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER,
 					...sqlParams
-				]
+				], req.requesterDetails
 			);
 			let total = 0;
 			if (ObjectUtils.isArrayWithData(pageResults)) {
@@ -333,7 +333,7 @@ class SqlEngine {
                             SET ? `;
 		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		sqlStatement += ';';
-		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams]);
+		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams], req.requesterDetails);
 		return this.executeGetRequest(req, routeData, schema);
 	}
 
@@ -360,7 +360,7 @@ class SqlEngine {
         ${joinStatement}`;
 		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		deleteStatement += ';';
-		await mainConnection.runQuery(deleteStatement, sqlParams);
+		await mainConnection.runQuery(deleteStatement, sqlParams, req.requesterDetails);
 		return { data: true };
 	}
 
