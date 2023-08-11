@@ -354,8 +354,7 @@ class SqlEngine {
 			sqlParams
 		);
 
-		let deleteStatement = `DELETE
-        ${routeData.table} \tFROM
+		let deleteStatement = `DELETE FROM
         ${routeData.table}
         ${joinStatement}`;
 		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
