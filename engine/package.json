@@ -10,7 +10,7 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"@types/lodash.clone": "^4.5.6",
+		"@types/lodash.clonedeep": "^4.5.9",
 		"@types/prettier": "2.7.2",
 		"@types/tmp": "^0.2.3",
 		"husky": "^8.0.1",
