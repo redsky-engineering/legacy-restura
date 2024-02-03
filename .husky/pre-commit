@@ -1,7 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 cd engine
-#pnpm lint-staged
+pnpm lint-staged
 cd .. && cd ui
-#pnpm lint-staged
+pnpm lint-staged
