@@ -1,6 +1,5 @@
 import { Service } from '../Service';
 import globalState, { getRecoilExternalValue, setRecoilExternalValue } from '../../state/globalState';
-import defaultSchema from '../../../../engine/src/defaultSchema.js';
 import http from '../../utils/http.js';
 import cloneDeep from 'lodash.clonedeep';
 import { rsToastify } from '@redskytech/framework/ui';
@@ -11,7 +10,6 @@ export default class SchemaService extends Service {
 	private lastSchema: Restura.Schema | undefined = undefined;
 
 	constructor() {
-		console.log(defaultSchema);
 		super();
 	}
 

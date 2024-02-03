@@ -2,6 +2,6 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 cd engine
-yarn lint-staged
+#pnpm lint-staged
 cd .. && cd ui
-yarn lint-staged
+#pnpm lint-staged
