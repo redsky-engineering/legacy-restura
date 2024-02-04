@@ -18,8 +18,8 @@ const defaultSchema: Restura.Schema = {
 				{ name: 'id', hasAutoIncrement: true, isNullable: false, roles: [], type: 'BIGINT' },
 				{ name: 'createdOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
 				{ name: 'modifiedOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
-				{ roles: [], name: 'firstName', type: 'VARCHAR', length: 30, isNullable: true },
-				{ roles: [], name: 'lastName', type: 'VARCHAR', length: 30, isNullable: true },
+				{ roles: [], name: 'firstName', type: 'VARCHAR', length: 30, isNullable: false },
+				{ roles: [], name: 'lastName', type: 'VARCHAR', length: 30, isNullable: false },
 				{
 					roles: [],
 					name: 'companyId',
@@ -27,12 +27,12 @@ const defaultSchema: Restura.Schema = {
 					isNullable: false,
 					comment: 'Foreign key to company(id)'
 				},
-				{ roles: [], name: 'password', type: 'VARCHAR', length: 70, isNullable: true },
+				{ roles: [], name: 'password', type: 'VARCHAR', length: 70, isNullable: false },
 				{ roles: [], name: 'email', type: 'VARCHAR', length: 100, isNullable: true },
-				{ roles: [], name: 'role', type: 'VARCHAR', length: 30, isNullable: true },
+				{ roles: [], name: 'role', type: 'ENUM', isNullable: false, value: "'admin','technician'" },
 				{ roles: [], name: 'permissionLogin', type: 'BOOLEAN', isNullable: false, default: '1' },
 				{ roles: [], name: 'lastLoginOn', type: 'DATETIME', isNullable: true },
-				{ roles: [], name: 'phone', type: 'VARCHAR', length: 30, isNullable: false }
+				{ roles: [], name: 'phone', type: 'VARCHAR', length: 30, isNullable: true }
 			],
 			foreignKeys: [
 				{
