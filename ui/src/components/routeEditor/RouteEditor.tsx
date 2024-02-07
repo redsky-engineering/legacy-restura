@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import ApiDetailsSection from './apiDetailsSection/ApiDetailsSection.js';
 import ResponseSection from './responseSection/ResponseSection.js';
 import RawDataSection from './rawDataSection/RawDataSection.js';
+import CodeGenSection from './codeGenSection/CodeGenSection.js';
 
 interface RouteEditorProps {}
 
@@ -40,6 +41,14 @@ const RouteEditor: React.FC<RouteEditorProps> = (props) => {
 						Raw Data
 					</Label>
 				</Box>
+				<Box
+					className={classNames('tab', { isSelected: editMode === 'CODE_GEN' })}
+					onClick={() => setEditMode('CODE_GEN')}
+				>
+					<Label variant={'subheader2'} weight={'semiBold'}>
+						Code Gen
+					</Label>
+				</Box>
 			</Box>
 		);
 	}
@@ -50,6 +59,7 @@ const RouteEditor: React.FC<RouteEditorProps> = (props) => {
 			{editMode === 'API_DETAILS' && <ApiDetailsSection />}
 			{editMode === 'RESPONSE' && <ResponseSection />}
 			{editMode === 'RAW_DATA' && <RawDataSection />}
+			{editMode === 'CODE_GEN' && <CodeGenSection />}
 		</Box>
 	);
 };

@@ -16,7 +16,7 @@ enum GlobalStateKeys {
 	EDIT_MODE = 'EditMode'
 }
 
-export type EditMode = 'API_DETAILS' | 'RESPONSE' | 'RAW_DATA';
+export type EditMode = 'API_DETAILS' | 'RESPONSE' | 'RAW_DATA' | 'CODE_GEN';
 
 const KEY_PREFIX = 'restura-';
 
