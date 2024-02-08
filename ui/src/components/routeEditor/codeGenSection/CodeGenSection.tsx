@@ -12,6 +12,7 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/theme-terminal';
 import 'ace-builds/src-noconflict/ext-language_tools';
+import 'ace-builds/src-noconflict/mode-sh';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import { StringUtils } from '../../../utils/utils';
 
@@ -30,25 +31,43 @@ const CodeGenSection: React.FC<CodeGenSectionProps> = (props) => {
 			setCodeGenText('');
 			return;
 		}
-		if (!SchemaService.isStandardRouteData(routeData)) {
-			setCodeGenText('');
-			return;
+
+		const requestData: string[] = [];
+
+		if (routeData.request) {
+			routeData.request.forEach((item) => {
+				requestData.push(item.name);
+			});
+		} else if (SchemaService.isCustomRouteData(routeData)) {
+			let responsePreviewText = SchemaService.getInterfaceFromCustomTypes(
+				routeData.requestType || '',
+				schema.customTypes
+			);
+			responsePreviewText.split('\n').forEach((item) => {
+				// perform a regex and check if this is a key : value line
+				let matches = item.match(/(\w+)(?=:)/);
+				if (matches && matches.length > 0) {
+					requestData.push(matches[0]);
+				}
+			});
 		}
 
 		// Todo: add support for other code gen types
 
 		// Create a curl command from the route data
 		const fullpath = `http://localhost:3001${schema.endpoints[0].baseUrl}${routeData.path}`;
-		if (routeData.method === 'GET') {
+		if (['DELETE', 'GET'].includes(routeData.method)) {
 			let queryParams: string[] = [];
-			routeData.request.forEach((item) => {
-				queryParams.push(`${item.name}=''`);
+			requestData.forEach((item, index) => {
+				queryParams.push(`${item}=value_${index}`);
 			});
-			setCodeGenText(`curl -X GET ${fullpath}${queryParams.length > 0 ? '?' + queryParams.join('&') : ''}`);
+			setCodeGenText(
+				`curl -X ${routeData.method} ${fullpath}${queryParams.length > 0 ? '?' + queryParams.join('&') : ''}`
+			);
 		} else if (['POST', 'PATCH', 'PUT'].includes(routeData.method)) {
 			let bodyParams: string[] = [];
-			routeData.request.forEach((item) => {
-				bodyParams.push(`        "${item.name}" : ""`);
+			requestData.forEach((item) => {
+				bodyParams.push(`        "${item}" : ""`);
 			});
 			let bodyJsonStr = `{\n${bodyParams.join(',\n')}\n    }`;
 			let curlCommands: string[] = [];
@@ -58,8 +77,6 @@ const CodeGenSection: React.FC<CodeGenSectionProps> = (props) => {
 			curlCommands.push(`    --header 'Content-Type: application/json' \\`);
 			curlCommands.push(`    --data '${bodyJsonStr}'`);
 			setCodeGenText(curlCommands.join('\n'));
-		} else if (routeData.method === 'DELETE') {
-			setCodeGenText(`curl -X DELETE ${fullpath}`);
 		}
 	}
 
