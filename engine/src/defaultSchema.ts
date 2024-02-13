@@ -122,27 +122,16 @@ const defaultSchema: Restura.Schema = {
 							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
 						}
 					],
-					responseType: 'LoginResponse'
+					responseType: 'boolean'
 				},
 				{
 					type: 'CUSTOM_ONE',
-					responseType: 'ReAuthResponse',
-					request: [
-						{
-							name: 'token',
-							required: true,
-							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
-						},
-						{
-							name: 'refreshToken',
-							required: true,
-							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
-						}
-					],
+					responseType: 'boolean',
+					request: [],
 					method: 'POST',
-					name: 'Re-Authenticates a Token',
+					name: 'Refreshes a Token',
 					description: 'Refresh an old, possibly expired token and returns a new token.',
-					path: '/user/re-auth',
+					path: '/user/refresh-token',
 					roles: []
 				},
 				{
@@ -274,6 +263,6 @@ const defaultSchema: Restura.Schema = {
 	globalParams: ['companyId', 'userId'],
 	roles: ['admin', 'user', 'anonymous'],
 	customTypes:
-		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface LoginResponse {\n\ttoken: string;\n\texpiresOn: string;\n\trefreshToken: string;\n\tuser: FilteredUser;\n}\n\nexport interface ReAuthResponse {\n\ttoken: string;\n\trefreshToken?: string;\n\texpiresOn: string;\n}\n'
+		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\n'
 };
 export default defaultSchema;
