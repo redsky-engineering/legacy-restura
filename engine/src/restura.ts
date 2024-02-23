@@ -65,11 +65,17 @@ class ResturaEngine {
 	}
 
 	async generateApiFromSchema(outputFile: string, providedSchema: Restura.Schema): Promise<void> {
-		fs.writeFileSync(outputFile, apiGenerator(providedSchema, this.generateHashForSchema(providedSchema)));
+		fs.writeFileSync(
+			outputFile,
+			await apiGenerator(providedSchema, await this.generateHashForSchema(providedSchema))
+		);
 	}
 
 	async generateModelFromSchema(outputFile: string, providedSchema: Restura.Schema): Promise<void> {
-		fs.writeFileSync(outputFile, modelGenerator(providedSchema, this.generateHashForSchema(providedSchema)));
+		fs.writeFileSync(
+			outputFile,
+			await modelGenerator(providedSchema, await this.generateHashForSchema(providedSchema))
+		);
 	}
 
 	async getLatestFileSystemSchema(): Promise<Restura.Schema> {
@@ -81,12 +87,12 @@ class ResturaEngine {
 		return schema;
 	}
 
-	getHashes(providedSchema: Restura.Schema): {
+	async getHashes(providedSchema: Restura.Schema): Promise<{
 		schemaHash: string;
 		apiCreatedSchemaHash: string;
 		modelCreatedSchemaHash: string;
-	} {
-		const schemaHash = this.generateHashForSchema(providedSchema);
+	}> {
+		const schemaHash = await this.generateHashForSchema(providedSchema);
 		const apiFile = fs.readFileSync(path.join(__dirname, '../../../../../src/@types/api.d.ts'));
 		const apiCreatedSchemaHash = apiFile.toString().match(/\((.*)\)/)?.[1] ?? '';
 		const modelFile = fs.readFileSync(path.join(__dirname, '../../../../../src/@types/models.d.ts'));
@@ -191,7 +197,7 @@ class ResturaEngine {
 	private async getSchemaAndTypes(req: express.Request, res: express.Response) {
 		try {
 			let schema = await this.getLatestFileSystemSchema();
-			let schemaHash = this.generateHashForSchema(schema);
+			let schemaHash = await this.generateHashForSchema(schema);
 			const apiText = apiGenerator(schema, schemaHash);
 			const modelsText = modelGenerator(schema, schemaHash);
 			res.send({ schema, api: apiText, models: modelsText });
@@ -263,8 +269,8 @@ class ResturaEngine {
 		await customFunction(req, res, routeData);
 	}
 
-	private generateHashForSchema(providedSchema: Restura.Schema): string {
-		const schemaPrettyStr = prettier.format(JSON.stringify(providedSchema), {
+	private async generateHashForSchema(providedSchema: Restura.Schema): Promise<string> {
+		const schemaPrettyStr = await prettier.format(JSON.stringify(providedSchema), {
 			parser: 'json',
 			...{
 				trailingComma: 'none',
@@ -278,8 +284,8 @@ class ResturaEngine {
 		return createHash('sha256').update(schemaPrettyStr).digest('hex');
 	}
 
-	private storeFileSystemSchema() {
-		const schemaPrettyStr = prettier.format(JSON.stringify(this.schema), {
+	private async storeFileSystemSchema() {
+		const schemaPrettyStr = await prettier.format(JSON.stringify(this.schema), {
 			parser: 'json',
 			...{
 				trailingComma: 'none',

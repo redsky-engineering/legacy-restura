@@ -132,7 +132,7 @@ class ApiTree {
 
 	generateResponseParameters(route: Restura.RouteData): string {
 		if (ResponseValidator.isCustomRoute(route)) {
-			return `export interface Res extends ${route.responseType} {}`;
+			return `export interface Res extends CustomTypes.${route.responseType} {}`;
 		}
 		return `export interface Res ${this.getFields(route.response)}`;
 	}
@@ -163,7 +163,7 @@ class ApiTree {
 		if (path.length === 0 || path.length > 2 || path[0] === '') return { responseType: 'any', optional: false };
 
 		let tableName = path.length == 2 ? path[0] : name;
-			const columnName = path.length == 2 ? path[1] : path[0];
+		const columnName = path.length == 2 ? path[1] : path[0];
 		let table = this.database.find((t) => t.name == tableName);
 		if (!table && tableName.includes('_')) {
 			const tableAliasSplit = tableName.split('_');
@@ -188,7 +188,7 @@ function pathToNamespaces(path: string): string[] {
 		.filter((e) => e);
 }
 
-export default function apiGenerator(schema: Restura.Schema, schemaHash: string): string {
+export default function apiGenerator(schema: Restura.Schema, schemaHash: string): Promise<string> {
 	let apiString = `/** Auto generated file from Schema Hash (${schemaHash}). DO NOT MODIFY **/`;
 	const rootNamespace = ApiTree.createRootNode(schema.database);
 	for (let endpoint of schema.endpoints) {

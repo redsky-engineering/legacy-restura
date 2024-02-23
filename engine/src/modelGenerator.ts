@@ -2,7 +2,7 @@ import { StringUtils } from '../../../../src/utils/utils.js';
 import prettier from 'prettier';
 import { SqlUtils } from './utils/utils.js';
 
-export default function modelGenerator(schema: Restura.Schema, schemaHash: string): string {
+export default function modelGenerator(schema: Restura.Schema, schemaHash: string): Promise<string> {
 	let modelString = `/** Auto generated file from Schema Hash (${schemaHash}). DO NOT MODIFY **/\n`;
 	modelString += `declare namespace Model {\n`;
 	for (let table of schema.database) {
