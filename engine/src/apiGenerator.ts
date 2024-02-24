@@ -1,4 +1,4 @@
-import { StringUtils } from '../../../../src/utils/utils.js';
+import { StringUtils } from '@redskytech/core-utils';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
 import ResponseValidator from './responseValidator.js';

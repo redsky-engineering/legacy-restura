@@ -1,4 +1,4 @@
-import { StringUtils } from '../../../../src/utils/utils.js';
+import { StringUtils } from '@redskytech/core-utils';
 import prettier from 'prettier';
 import { SqlUtils } from './utils/utils.js';
 

@@ -1,6 +1,6 @@
 import { ApiMethod, RsRequest, RsResponse } from '../../../../src/@types/expressCustom.js';
 import { NextFunction } from 'express';
-import { ObjectUtils } from '../../../../src/utils/utils.js';
+import { ObjectUtils } from '@redskytech/core-utils';
 import logger from '../../../../src/utils/logger.js';
 import { HtmlStatusCodes } from '../../../../src/utils/errors.js';
 import { JsonDecoder } from 'ts.data.json/dist/cjs/index.js';

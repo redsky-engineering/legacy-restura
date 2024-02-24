@@ -10,7 +10,7 @@ import validateRequestParams from './validateRequestParams.js';
 import sqlEngine from './sqlEngine.js';
 import compareSchema from './compareSchema.js';
 import apiFactory from '../../../../src/api/apiFactory.js';
-import { StringUtils } from '../../../../src/utils/utils.js';
+import { StringUtils } from '@redskytech/core-utils';
 import apiGenerator from './apiGenerator.js';
 import fs from 'fs';
 
