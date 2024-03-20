@@ -163,7 +163,7 @@ class ApiTree {
 		if (path.length === 0 || path.length > 2 || path[0] === '') return { responseType: 'any', optional: false };
 
 		let tableName = path.length == 2 ? path[0] : name;
-			const columnName = path.length == 2 ? path[1] : path[0];
+		const columnName = path.length == 2 ? path[1] : path[0];
 		let table = this.database.find((t) => t.name == tableName);
 		if (!table && tableName.includes('_')) {
 			const tableAliasSplit = tableName.split('_');

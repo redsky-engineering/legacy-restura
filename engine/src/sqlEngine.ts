@@ -99,9 +99,13 @@ class SqlEngine {
 				port: dbConfig.port
 			}
 		]);
-		await scratchConnection.runQuery(`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
+		await scratchConnection.runQuery(
+			`DROP DATABASE IF EXISTS ${config.database[0].database}_scratch;
 										 CREATE DATABASE ${config.database[0].database}_scratch;
-										 USE ${config.database[0].database}_scratch;`, [], 'SYSTEM_GENERATED');
+										 USE ${config.database[0].database}_scratch;`,
+			[],
+			'SYSTEM_GENERATED'
+		);
 
 		scratchConnection.end();
 		scratchConnection = createCustomPool([
@@ -201,7 +205,8 @@ class SqlEngine {
 		const createdItem = await mainConnection.runQuery(
 			`INSERT INTO \`${routeData.table}\`
              SET ? ${parameterString ? `, ${parameterString}` : ''};`,
-			[{ ...req.data }, ...sqlParams], req.requesterDetails
+			[{ ...req.data }, ...sqlParams],
+			req.requesterDetails
 		);
 		const insertId = createdItem.insertId;
 		const whereData: Restura.WhereData[] = [
@@ -264,13 +269,15 @@ class SqlEngine {
 		if (routeData.type === 'ONE') {
 			return await mainConnection.queryOne(
 				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
-				sqlParams, req.requesterDetails
+				sqlParams,
+				req.requesterDetails
 			);
 		} else if (routeData.type === 'ARRAY') {
 			// Array
 			return await mainConnection.runQuery(
 				`${selectStatement}${sqlStatement}${groupByOrderByStatement};`,
-				sqlParams, req.requesterDetails
+				sqlParams,
+				req.requesterDetails
 			);
 		} else if (routeData.type === 'PAGED') {
 			// The COUNT() does not work with group by and order by, so we need to catch that case and act accordingly
@@ -283,7 +290,8 @@ class SqlEngine {
 					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
 					(req.data.page - 1) * req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER,
 					...sqlParams
-				], req.requesterDetails
+				],
+				req.requesterDetails
 			);
 			let total = 0;
 			if (ObjectUtils.isArrayWithData(pageResults)) {
