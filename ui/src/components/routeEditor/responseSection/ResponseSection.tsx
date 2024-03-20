@@ -80,7 +80,9 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 					// Since we are in a closure, we need to make sure we are using the latest value of routeData
 					let latestRouteData = schemaService.getSelectedRouteData() as Restura.StandardRouteData;
 					if (!latestRouteData) return;
-					let existingJoin = latestRouteData.joins.find((join) => join.table === tableWithJoinColumn.table && join.alias === selectorBase);
+					let existingJoin = latestRouteData.joins.find(
+						(join) => join.table === tableWithJoinColumn.table && join.alias === selectorBase
+					);
 					if (!existingJoin) {
 						// Find the foreign key for this table
 						let foreignKey = schemaService.getForeignKey(latestRouteData.table, tableWithJoinColumn.table);

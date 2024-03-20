@@ -64,6 +64,16 @@ class ResturaEngine {
 		return this.publicEndpoints[method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'].includes(fullUrl);
 	}
 
+	doesEndpointExist(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', fullUrl: string): boolean {
+		return this.schema.endpoints.some((endpoint) => {
+			if (!fullUrl.startsWith(endpoint.baseUrl)) return false;
+			const pathWithoutBaseUrl = fullUrl.replace(endpoint.baseUrl, '');
+			return endpoint.routes.some((route) => {
+				return route.method === method && route.path === pathWithoutBaseUrl;
+			});
+		});
+	}
+
 	async generateApiFromSchema(outputFile: string, providedSchema: Restura.Schema): Promise<void> {
 		fs.writeFileSync(
 			outputFile,
