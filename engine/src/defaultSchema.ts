@@ -98,7 +98,8 @@ const defaultSchema: Restura.Schema = {
 					response: [
 						{ name: 'id', selector: 'user.id' },
 						{ name: 'firstName', selector: 'user.firstName' },
-						{ name: 'lastName', selector: 'user.lastName' }
+						{ name: 'lastName', selector: 'user.lastName' },
+						{ name: 'email', selector: 'user.email' }
 					],
 					assignments: [],
 					where: [{ tableName: 'user', columnName: 'id', operator: '=', value: '#userId' }]
@@ -122,11 +123,11 @@ const defaultSchema: Restura.Schema = {
 							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
 						}
 					],
-					responseType: 'boolean'
+					responseType: 'AuthResponse'
 				},
 				{
 					type: 'CUSTOM_ONE',
-					responseType: 'boolean',
+					responseType: 'AuthResponse',
 					request: [],
 					method: 'POST',
 					name: 'Refreshes a Token',
@@ -263,6 +264,6 @@ const defaultSchema: Restura.Schema = {
 	globalParams: ['companyId', 'userId'],
 	roles: ['admin', 'user', 'anonymous'],
 	customTypes:
-		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\n'
+		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface AuthResponse {\n    token: string;\n    tokenExp: string;\n    refresh: string;\n    refreshExp: string;\n}\n'
 };
 export default defaultSchema;
