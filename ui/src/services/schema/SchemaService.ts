@@ -440,7 +440,10 @@ export default class SchemaService extends Service {
 			case 'datetime':
 				return 'Date';
 			case 'tinyint':
+			case 'boolean':
 				return 'boolean';
+			case 'enum':
+				return 'enum';
 			default:
 				return 'any';
 		}
@@ -483,6 +486,6 @@ export default class SchemaService extends Service {
 		let column = table.columns.find((item) => item.name === columnName);
 		if (!column) return 'unknown';
 
-		return SchemaService.convertSqlTypeToTypescriptType(column.type);
+		return `${column.isNullable ? '(?)' : ''} ${SchemaService.convertSqlTypeToTypescriptType(column.type)}`;
 	}
 }

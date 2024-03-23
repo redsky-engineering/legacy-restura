@@ -154,6 +154,7 @@ const ColumnPickerPopup: React.FC<ColumnPickerPopupProps> = (props) => {
 							{columnData.name}
 						</Label>
 						<Label variant={'caption2'} weight={'regular'} color={themes.neutralBeige600}>
+							{columnData.isNullable ? '(?)' : ''}
 							{SchemaService.convertSqlTypeToTypescriptType(columnData.type)}
 						</Label>
 					</Box>

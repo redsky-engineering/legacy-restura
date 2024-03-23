@@ -381,7 +381,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 								);
 								if (!getAllowLengthEdit(value as MariaDbColumnNumericTypes)) delete columnData.length;
 								else columnData.length = columnData.length || 10;
-								columnData.default = ('`' + value + '`') as Restura.MariaDbColumnDateTypes;
+								columnData.default = ('"' + value + '"') as Restura.MariaDbColumnDateTypes;
 								setSchema(updatedSchema);
 							}}
 						/>

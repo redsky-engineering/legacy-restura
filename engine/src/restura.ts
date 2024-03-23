@@ -183,7 +183,7 @@ class ResturaEngine {
 	private async updateSchema(req: RsRequest<Restura.Schema>, res: express.Response) {
 		try {
 			this.schema = req.data;
-			this.storeFileSystemSchema();
+			await this.storeFileSystemSchema();
 			await this.reloadEndpoints();
 			await this.updateTypes();
 			res.send({ data: 'success' });

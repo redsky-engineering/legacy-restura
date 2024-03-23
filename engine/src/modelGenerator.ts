@@ -25,7 +25,7 @@ export default function modelGenerator(schema: Restura.Schema, schemaHash: strin
 function convertTable(table: Restura.TableData): string {
 	let modelString = `\texport interface ${StringUtils.capitalizeFirst(table.name)} {\n`;
 	for (let column of table.columns) {
-		modelString += `\t\t${column.name}: ${SqlUtils.convertDatabaseTypeToTypescript(column.type, column.value)};\n`;
+		modelString += `\t\t${column.name}${column.isNullable ? '?' : ''}: ${SqlUtils.convertDatabaseTypeToTypescript(column.type, column.value)};\n`;
 	}
 	modelString += `\t}\n`;
 	return modelString;
