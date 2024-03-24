@@ -179,6 +179,8 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 				});
 				columnData.comment = `Foreign key to ${refTableName}(${refColumnName})`;
 				columnData.isNullable = false;
+			} else {
+				// todo: show a popup that we couldn't figure out what table its referencing and show a selector of tables
 			}
 
 			delete columnData.length;
@@ -202,6 +204,10 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 		} else if (newColumnName === 'role') {
 			columnData.type = 'ENUM';
 			columnData.value = "'ADMIN','USER'";
+			delete columnData.length;
+		} else if (newColumnName.startsWith('is') || newColumnName.startsWith('has')) {
+			columnData.type = 'BOOLEAN';
+			columnData.isNullable = false;
 			delete columnData.length;
 		} else {
 			columnData.name = newColumnName;

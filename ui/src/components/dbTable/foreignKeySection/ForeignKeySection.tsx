@@ -19,7 +19,8 @@ const ForeignKeySection: React.FC<ForeignKeySectionProps> = (props) => {
 		if (!schema) return [];
 		let otherTableNames: string[] = [];
 		schema.database.forEach((table) => {
-			if (table.name !== props.tableName) otherTableNames.push(table.name);
+			// We allow foreign keys to our table for parent-child relationships
+			otherTableNames.push(table.name);
 		});
 		return otherTableNames;
 	}
