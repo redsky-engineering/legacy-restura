@@ -208,8 +208,8 @@ class ResturaEngine {
 		try {
 			let schema = await this.getLatestFileSystemSchema();
 			let schemaHash = await this.generateHashForSchema(schema);
-			const apiText = apiGenerator(schema, schemaHash);
-			const modelsText = modelGenerator(schema, schemaHash);
+			const apiText = await apiGenerator(schema, schemaHash);
+			const modelsText = await modelGenerator(schema, schemaHash);
 			res.send({ schema, api: apiText, models: modelsText });
 		} catch (err) {
 			res.status(400).send({ error: err });
