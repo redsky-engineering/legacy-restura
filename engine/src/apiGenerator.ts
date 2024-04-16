@@ -11,7 +11,10 @@ class ApiTree {
 	private data: TreeData[] = [];
 	private children: Map<string, ApiTree>;
 
-	private constructor(namespace: string | null, private readonly database: Array<Restura.TableData>) {
+	private constructor(
+		namespace: string | null,
+		private readonly database: Array<Restura.TableData>
+	) {
 		this.namespace = namespace;
 		this.children = new Map();
 	}
@@ -93,6 +96,12 @@ class ApiTree {
 
 	generateRequestParameters(route: Restura.RouteData): string {
 		let modelString: string = ``;
+		if (ResponseValidator.isCustomRoute(route) && route.requestType) {
+			modelString += `
+				export interface Req extends CustomTypes.${route.requestType} {}`;
+			return modelString;
+		}
+
 		if (!route.request) return modelString;
 
 		modelString += `
@@ -132,7 +141,10 @@ class ApiTree {
 
 	generateResponseParameters(route: Restura.RouteData): string {
 		if (ResponseValidator.isCustomRoute(route)) {
-			return `export interface Res extends CustomTypes.${route.responseType} {}`;
+			// Look for simple type for response
+			if (['number', 'string', 'boolean'].includes(route.responseType))
+				return `export type Res = ${route.responseType}`;
+			else return `export interface Res extends CustomTypes.${route.responseType} {}`;
 		}
 		return `export interface Res ${this.getFields(route.response)}`;
 	}
