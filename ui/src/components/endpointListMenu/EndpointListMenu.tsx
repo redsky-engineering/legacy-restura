@@ -155,7 +155,7 @@ const EndpointListMenu: React.FC<EndpointListMenuProps> = (props) => {
 				return route.path.includes(filterValue);
 			})
 			.map((route) => {
-				let isPublic = route.roles.length === 0 || route.roles.includes('anonymous');
+				let isPublic = route.roles.length === 0;
 				return (
 					<Box
 						key={`${route.method}_${route.path}`}

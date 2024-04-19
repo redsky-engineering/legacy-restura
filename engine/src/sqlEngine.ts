@@ -1,5 +1,5 @@
 import mainConnection, { createCustomPool } from '../../../../src/database/connection.js';
-import { RsRequest } from '../../../../src/@types/expressCustom.js';
+import { RsRequest, systemUserRequesterDetails } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '@redskytech/core-utils';
 import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
@@ -11,7 +11,7 @@ import { DateUtils } from '@redskytech/framework/utils/index.js';
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
 		let sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
-		await connection.runQuery(sqlFullStatement, [], 'SYSTEM_GENERATED');
+		await connection.runQuery(sqlFullStatement, [], systemUserRequesterDetails);
 		return sqlFullStatement;
 	}
 
@@ -104,7 +104,7 @@ class SqlEngine {
 										 CREATE DATABASE ${config.database[0].database}_scratch;
 										 USE ${config.database[0].database}_scratch;`,
 			[],
-			'SYSTEM_GENERATED'
+			systemUserRequesterDetails
 		);
 
 		scratchConnection.end();
@@ -135,7 +135,7 @@ class SqlEngine {
 		schema: Restura.Schema,
 		item: Restura.ResponseData,
 		routeData: Restura.StandardRouteData,
-		userRole: string,
+		userRole: string | undefined,
 		sqlParams: string[]
 	): string {
 		if (!item.subquery) return '';
@@ -372,7 +372,7 @@ class SqlEngine {
 	}
 
 	private doesRoleHavePermissionToColumn(
-		role: string,
+		role: string | undefined,
 		schema: Restura.Schema,
 		item: Restura.ResponseData,
 		joins: Restura.JoinData[]
@@ -392,7 +392,13 @@ class SqlEngine {
 			let columnSchema = tableSchema.columns.find((item) => item.name === columnName);
 			if (!columnSchema)
 				throw new RsError('SCHEMA_ERROR', `Column ${columnName} not found in table ${tableName}`);
-			return !(ObjectUtils.isArrayWithData(columnSchema.roles) && !columnSchema.roles.includes(role));
+
+			const doesColumnHaveRoles = ObjectUtils.isArrayWithData(columnSchema.roles);
+			if (!doesColumnHaveRoles) return true; // Public column, any role can access
+
+			if (!role) return false; // Column has roles, but no role provided (no access)
+
+			return columnSchema.roles.includes(role);
 		}
 		if (item.subquery) {
 			return ObjectUtils.isArrayWithData(
@@ -404,9 +410,18 @@ class SqlEngine {
 		return false;
 	}
 
-	private doesRoleHavePermissionToTable(userRole: string, schema: Restura.Schema, tableName: string): boolean {
+	private doesRoleHavePermissionToTable(
+		userRole: string | undefined,
+		schema: Restura.Schema,
+		tableName: string
+	): boolean {
 		let tableSchema = this.getTableSchema(schema, tableName);
-		return !(ObjectUtils.isArrayWithData(tableSchema.roles) && !tableSchema.roles.includes(userRole));
+		const doesTableHaveRoles = ObjectUtils.isArrayWithData(tableSchema.roles);
+		if (!doesTableHaveRoles) return true; // Public table, any role can access
+
+		if (!userRole) return false; // Table has roles, but no role provided (no access)
+
+		return tableSchema.roles.includes(userRole);
 	}
 
 	private generateJoinStatements(
@@ -415,7 +430,7 @@ class SqlEngine {
 		baseTable: string,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema,
-		userRole: string,
+		userRole: string | undefined,
 		sqlParams: string[]
 	): string {
 		let joinStatements = '';

@@ -262,7 +262,7 @@ const defaultSchema: Restura.Schema = {
 		}
 	],
 	globalParams: ['companyId', 'userId'],
-	roles: ['admin', 'user', 'anonymous'],
+	roles: ['admin', 'user'],
 	customTypes:
 		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface AuthResponse {\n    token: string;\n    tokenExp: string;\n    refresh: string;\n    refreshExp: string;\n}\n'
 };

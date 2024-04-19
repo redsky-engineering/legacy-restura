@@ -133,8 +133,7 @@ class ResturaEngine {
 				route.path = route.path.endsWith('/') ? route.path.slice(0, -1) : route.path;
 				const fullUrl = `${baseUrl}${route.path}`;
 
-				if (route.roles.includes('anonymous') || route.roles.length === 0)
-					this.publicEndpoints[route.method].push(fullUrl);
+				if (route.roles.length === 0) this.publicEndpoints[route.method].push(fullUrl);
 
 				this.resturaRouter[route.method.toLowerCase() as Lowercase<typeof route.method>](
 					route.path, // <-- Notice we only use path here since the baseUrl is already added to the router.
@@ -320,8 +319,8 @@ class ResturaEngine {
 	}
 
 	private validateAuthorization(req: RsRequest<any>, routeData: Restura.RouteData) {
-		let role = req.requesterDetails.role;
-		if (routeData.roles.length === 0) return;
+		const role = req.requesterDetails.role;
+		if (routeData.roles.length === 0 || !role) return;
 		if (!routeData.roles.includes(role))
 			throw new RsError('UNAUTHORIZED', 'Not authorized to access this endpoint');
 	}
