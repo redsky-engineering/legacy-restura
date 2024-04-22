@@ -98,7 +98,7 @@ class ApiTree {
 		let modelString: string = ``;
 		if (ResponseValidator.isCustomRoute(route) && route.requestType) {
 			modelString += `
-				export interface Req extends CustomTypes.${route.requestType} {}`;
+				export type Req = CustomTypes.${route.requestType}`;
 			return modelString;
 		}
 
@@ -144,7 +144,8 @@ class ApiTree {
 			// Look for simple type for response
 			if (['number', 'string', 'boolean'].includes(route.responseType))
 				return `export type Res = ${route.responseType}`;
-			else return `export interface Res extends CustomTypes.${route.responseType} {}`;
+			else
+				return `export type Res = CustomTypes.${route.responseType}${route.type === 'CUSTOM_ARRAY' ? '[]' : ''}`;
 		}
 		return `export interface Res ${this.getFields(route.response)}`;
 	}
