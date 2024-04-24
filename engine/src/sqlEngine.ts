@@ -44,7 +44,15 @@ class SqlEngine {
                        (  `;
 			for (let column of table.columns) {
 				sql += `\t\`${column.name}\` ${column.type}`;
-				if (column.value) sql += `(${column.value})`;
+				let value = column.value;
+				// JSON's value is used only for typescript not for the database
+				if (column.type === 'JSON') value = '';
+				if (column.type === 'DECIMAL' && value) {
+					// replace the character '-' with comma since we use it to separate the values in restura for decimals
+					// also remove single and double quotes
+					value = value.replace('-', ',').replace(/['"]/g, '');
+				}
+				if (value) sql += `(${value})`;
 				else if (column.length) sql += `(${column.length})`;
 				if (column.isPrimary) sql += ' PRIMARY KEY';
 				if (column.isUnique) sql += ' UNIQUE';

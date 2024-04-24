@@ -422,7 +422,7 @@ export default class SchemaService extends Service {
 		return data.type !== 'CUSTOM_ONE' && data.type !== 'CUSTOM_ARRAY';
 	}
 
-	static convertSqlTypeToTypescriptType(sqlType: string): string {
+	static convertSqlTypeToTypescriptType(sqlType: string, value?: string): string {
 		switch (sqlType.toLowerCase()) {
 			case 'smallint':
 			case 'mediumint':
@@ -444,6 +444,16 @@ export default class SchemaService extends Service {
 				return 'boolean';
 			case 'enum':
 				return 'enum';
+			case 'json':
+				if (value) {
+					return value
+						.split(',')
+						.map((val) => {
+							return val.replace(/['"]/g, '');
+						})
+						.join(' | ');
+				}
+				return 'object';
 			default:
 				return 'any';
 		}
@@ -486,6 +496,9 @@ export default class SchemaService extends Service {
 		let column = table.columns.find((item) => item.name === columnName);
 		if (!column) return 'unknown';
 
-		return `${column.isNullable ? '(?)' : ''} ${SchemaService.convertSqlTypeToTypescriptType(column.type)}`;
+		return `${column.isNullable ? '(?)' : ''} ${SchemaService.convertSqlTypeToTypescriptType(
+			column.type,
+			column.value
+		)}`;
 	}
 }

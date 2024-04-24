@@ -60,6 +60,17 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 		return lengthTypes.includes(type);
 	}
 
+	function getAllowValueEdit(
+		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
+	): boolean {
+		let valueTypes: (
+			| Restura.MariaDbColumnNumericTypes
+			| Restura.MariaDbColumnStringTypes
+			| Restura.MariaDbColumnDateTypes
+		)[] = ['ENUM', 'JSON', 'DECIMAL'];
+		return valueTypes.includes(type);
+	}
+
 	function getAllowAutoIncrement(
 		type: Restura.MariaDbColumnNumericTypes | Restura.MariaDbColumnStringTypes | Restura.MariaDbColumnDateTypes
 	): boolean {
@@ -285,7 +296,7 @@ const ColumnSection: React.FC<ColumnSectionProps> = (props) => {
 						}}
 					/>
 					<DbTableCell
-						disableEdit={column.type !== 'ENUM'}
+						disableEdit={!getAllowValueEdit(column.type)}
 						cellType={'multiSelect'}
 						selectOptions={column.value ? (column.value.replaceAll("'", '').split(',') as string[]) : []}
 						value={column.value ? column.value.replaceAll("'", '').split(',') : []}

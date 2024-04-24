@@ -13,7 +13,16 @@ class SqlUtils {
 			type.startsWith('float')
 		)
 			return 'number';
-		if (type === 'json') return 'object';
+		if (type === 'json') {
+			if (!value) return 'object';
+			// Split the value by comma and remove any single or double quote characters, and then join with " | "
+			return value
+				.split(',')
+				.map((val) => {
+					return val.replace(/['"]/g, '');
+				})
+				.join(' | ');
+		}
 		if (
 			type.startsWith('varchar') ||
 			type.indexOf('text') > -1 ||
