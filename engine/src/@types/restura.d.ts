@@ -154,6 +154,7 @@ declare namespace Restura {
 		responseType: string | 'number' | 'string' | 'boolean';
 		requestType?: string;
 		request?: RequestData[];
+		fileUploadType?: 'SINGLE' | 'MULTIPLE';
 	}
 
 	export type RouteData = CustomRouteData | StandardRouteData;

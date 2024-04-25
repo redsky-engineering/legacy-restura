@@ -198,7 +198,10 @@ const customRouteDecoder = JsonDecoder.objectStrict<Restura.CustomRouteData>(
 			],
 			'responseType'
 		),
-		requestType: JsonDecoder.optional(JsonDecoder.string)
+		requestType: JsonDecoder.optional(JsonDecoder.string),
+		fileUploadType: JsonDecoder.optional(
+			JsonDecoder.oneOf([JsonDecoder.isExactly('SINGLE'), JsonDecoder.isExactly('MULTIPLE')], 'fileUploadType')
+		)
 	},
 	'route'
 );

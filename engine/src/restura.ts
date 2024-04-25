@@ -24,6 +24,7 @@ import customTypeValidationGenerator, { ValidationDictionary } from './customTyp
 import schemaValidator, { isSchemaValid } from './schemaValidator.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
+import multerCommonUpload from '../../../../src/middleware/multerCommonUpload.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -216,6 +217,32 @@ class ResturaEngine {
 	}
 
 	@boundMethod
+	private async getMulterFilesIfAny(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
+		if (!req.header('content-type')?.includes('multipart/form-data')) return;
+		if (!this.isCustomRoute(routeData)) return;
+
+		if (!routeData.fileUploadType) {
+			throw new RsError('BAD_REQUEST', 'File upload type not defined for route');
+		}
+
+		let multerFileUploadFunction =
+			routeData.fileUploadType === 'MULTIPLE'
+				? multerCommonUpload.array('files')
+				: multerCommonUpload.single('file');
+
+		return new Promise<void>((resolve, reject) => {
+			multerFileUploadFunction(req as unknown as express.Request, res, (err: any) => {
+				if (err) {
+					logger.warn('Multer error: ' + err);
+					reject(err);
+				}
+				if (req.body['data']) req.body = JSON.parse(req.body['data']);
+				resolve();
+			});
+		});
+	}
+
+	@boundMethod
 	private async executeRouteLogic(req: RsRequest<any>, res: RsResponse<any>, next: express.NextFunction) {
 		try {
 			// Locate the route in the schema
@@ -223,6 +250,9 @@ class ResturaEngine {
 
 			// Validate the user has access to the endpoint
 			this.validateAuthorization(req, routeData);
+
+			// Check for file uploads
+			await this.getMulterFilesIfAny(req, res, routeData);
 
 			// Validate the request
 			validateRequestParams(req, routeData, this.customTypeValidation);
