@@ -150,6 +150,8 @@ export default class ResponseValidator {
 				return value;
 			} else if (valueType === validator) {
 				return value;
+			} else if (valueType === 'object') {
+				return value;
 			}
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
 		}
