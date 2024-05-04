@@ -59,7 +59,7 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 		!props.routeData ||
 		SchemaService.isCustomRouteData(props.routeData) ||
 		!props.routeData.assignments ||
-		props.routeData.method !== 'POST'
+		!['POST', 'PATCH', 'PUT'].includes(props.routeData.method)
 	)
 		return null;
 

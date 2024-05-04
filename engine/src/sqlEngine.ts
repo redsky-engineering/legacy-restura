@@ -7,6 +7,7 @@ import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
 import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
 import DbDiff from 'dbdiff';
 import { DateUtils } from '@redskytech/framework/utils/index.js';
+import { SqlUtils } from './utils/utils.js';
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
@@ -334,6 +335,19 @@ class SqlEngine {
 			if (i.includes('.')) continue;
 			bodyNoId[`${routeData.table}.${i}`] = bodyNoId[i];
 			delete bodyNoId[i];
+		}
+
+		for (const assignment of routeData.assignments) {
+			const column = table.columns.find((column) => column.name === assignment.name);
+			if (!column) continue;
+
+			const assignmentWithPrefix = `${routeData.table}.${assignment.name}`;
+
+			if (SqlUtils.convertDatabaseTypeToTypescript(column.type) === 'boolean')
+				bodyNoId[assignmentWithPrefix] = assignment.value.toLowerCase() === 'false' ? 0 : 1;
+			else if (SqlUtils.convertDatabaseTypeToTypescript(column.type) === 'number')
+				bodyNoId[assignmentWithPrefix] = Number(assignment.value);
+			else bodyNoId[assignmentWithPrefix] = assignment.value;
 		}
 
 		let joinStatement = this.generateJoinStatements(
