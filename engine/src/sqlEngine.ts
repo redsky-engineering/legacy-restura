@@ -390,7 +390,7 @@ class SqlEngine {
 		deleteStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		deleteStatement += ';';
 		await mainConnection.runQuery(deleteStatement, sqlParams, req.requesterDetails);
-		return { data: true };
+		return true;
 	}
 
 	private doesRoleHavePermissionToColumn(

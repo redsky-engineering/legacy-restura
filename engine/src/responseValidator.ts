@@ -50,9 +50,7 @@ export default class ResponseValidator {
 
 		if (route.method === 'DELETE') {
 			return {
-				validator: {
-					data: { validator: 'boolean' }
-				}
+				validator: 'boolean'
 			};
 		}
 
