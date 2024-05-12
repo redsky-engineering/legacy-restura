@@ -24,7 +24,11 @@ export default function customTypeValidationGenerator(currentSchema: Restura.Sch
 	};
 
 	const program = TJS.getProgramFromFiles(
-		[resolve(temporaryFile.name), path.join(process.cwd(), 'src/@types/models.d.ts')],
+		[
+			resolve(temporaryFile.name),
+			path.join(process.cwd(), 'src/@types/models.d.ts'),
+			path.join(process.cwd(), 'src/@types/api.d.ts')
+		],
 		compilerOptions
 	);
 	customInterfaceNames.forEach((item) => {
