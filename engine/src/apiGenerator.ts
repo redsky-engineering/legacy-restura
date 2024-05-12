@@ -144,8 +144,9 @@ class ApiTree {
 			// Look for simple type for response
 			if (['number', 'string', 'boolean'].includes(route.responseType))
 				return `export type Res = ${route.responseType}`;
-			else
-				return `export type Res = CustomTypes.${route.responseType}${route.type === 'CUSTOM_ARRAY' ? '[]' : ''}`;
+			else if (['CUSTOM_ARRAY', 'CUSTOM_PAGED'].includes(route.type))
+				return `export type Res = CustomTypes.${route.responseType}[]`;
+			else return `export type Res = CustomTypes.${route.responseType}`;
 		}
 		return `export interface Res ${this.getFields(route.response)}`;
 	}

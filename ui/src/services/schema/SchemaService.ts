@@ -414,12 +414,12 @@ export default class SchemaService extends Service {
 
 	static isCustomRouteData(data: Restura.RouteData | undefined): data is Restura.CustomRouteData {
 		if (!data) return false;
-		return data.type === 'CUSTOM_ONE' || data.type === 'CUSTOM_ARRAY';
+		return data.type === 'CUSTOM_ONE' || data.type === 'CUSTOM_ARRAY' || data.type === 'CUSTOM_PAGED';
 	}
 
 	static isStandardRouteData(data: Restura.RouteData | undefined): data is Restura.StandardRouteData {
 		if (!data) return false;
-		return data.type !== 'CUSTOM_ONE' && data.type !== 'CUSTOM_ARRAY';
+		return data.type !== 'CUSTOM_ONE' && data.type !== 'CUSTOM_ARRAY' && data.type !== 'CUSTOM_PAGED';
 	}
 
 	static convertSqlTypeToTypescriptType(sqlType: string, value?: string): string {

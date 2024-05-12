@@ -173,7 +173,14 @@ const standardRouteDecoder = JsonDecoder.objectStrict<Restura.StandardRouteData>
 
 const customRouteDecoder = JsonDecoder.objectStrict<Restura.CustomRouteData>(
 	{
-		type: JsonDecoder.oneOf([JsonDecoder.isExactly('CUSTOM_ONE'), JsonDecoder.isExactly('CUSTOM_ARRAY')], 'type'),
+		type: JsonDecoder.oneOf(
+			[
+				JsonDecoder.isExactly('CUSTOM_ONE'),
+				JsonDecoder.isExactly('CUSTOM_ARRAY'),
+				JsonDecoder.isExactly('CUSTOM_PAGED')
+			],
+			'type'
+		),
 		method: JsonDecoder.oneOf(
 			[
 				JsonDecoder.isExactly('GET'),

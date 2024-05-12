@@ -13,7 +13,7 @@ export default function validateRequestParams(
 	req.data = requestData;
 
 	if (routeData.request === undefined) {
-		if (routeData.type !== 'CUSTOM_ONE' && routeData.type !== 'CUSTOM_ARRAY')
+		if (routeData.type !== 'CUSTOM_ONE' && routeData.type !== 'CUSTOM_ARRAY' && routeData.type !== 'CUSTOM_PAGED')
 			throw new RsError('BAD_REQUEST', `No request parameters provided for standard request.`);
 
 		if (!routeData.responseType) throw new RsError('BAD_REQUEST', `No response type defined for custom request.`);

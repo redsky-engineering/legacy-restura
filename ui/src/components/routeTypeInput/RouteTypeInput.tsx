@@ -18,7 +18,8 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 			{ label: 'Array of Items', value: 'ARRAY' },
 			{ label: 'Paginated List', value: 'PAGED' },
 			{ label: 'Custom One Item', value: 'CUSTOM_ONE' },
-			{ label: 'Custom Array', value: 'CUSTOM_ARRAY' }
+			{ label: 'Custom Array', value: 'CUSTOM_ARRAY' },
+			{ label: 'Custom Paged', value: 'CUSTOM_PAGED' }
 		];
 	}, []);
 
@@ -45,7 +46,11 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 
 						if (newValue.value === 'ONE') {
 							delete (updatedRouteData as Restura.StandardRouteData).orderBy;
-						} else if (newValue.value === 'CUSTOM_ONE' || newValue.value === 'CUSTOM_ARRAY') {
+						} else if (
+							newValue.value === 'CUSTOM_ONE' ||
+							newValue.value === 'CUSTOM_ARRAY' ||
+							newValue.value === 'CUSTOM_PAGED'
+						) {
 							if (SchemaService.isStandardRouteData(updatedRouteData)) {
 								updatedRouteData = {
 									type: newValue.value,

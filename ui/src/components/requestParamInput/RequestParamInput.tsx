@@ -115,7 +115,7 @@ const RequestParamInput: React.FC<RequestParamInputProps> = (props: RequestParam
 		return (
 			<>
 				{props.routeData.request.map((requestParam, paramIndex) => {
-					const isPageParam = pageParams.includes(requestParam.name);
+					const isPageParam = pageParams.includes(requestParam.name) && props.routeData?.type === 'PAGED';
 					return (
 						<Box
 							key={`${props.routeData!.path}_${requestParam.name}_${paramIndex}`}

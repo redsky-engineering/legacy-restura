@@ -150,7 +150,7 @@ declare namespace Restura {
 	}
 
 	export interface CustomRouteData extends RouteDataBase {
-		type: 'CUSTOM_ONE' | 'CUSTOM_ARRAY';
+		type: 'CUSTOM_ONE' | 'CUSTOM_ARRAY' | 'CUSTOM_PAGED';
 		responseType: string | 'number' | 'string' | 'boolean';
 		requestType?: string;
 		request?: RequestData[];
