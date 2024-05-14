@@ -94,6 +94,19 @@ class SqlEngine {
 			}
 			sqlStatements.push(sql + constraints.join(',\n') + ';');
 		}
+
+		// Now setup check constraints
+		for (let table of schema.database) {
+			if (!table.checkConstraints.length) continue;
+			let sql = `ALTER TABLE \`${table.name}\`  `;
+			let constraints: string[] = [];
+			for (let check of table.checkConstraints) {
+				let constraint = `ADD CONSTRAINT \`${check.name}\` CHECK (${check.check})`;
+				constraints.push(constraint);
+			}
+			sqlStatements.push(sql + constraints.join(',\n') + ';');
+		}
+
 		return sqlStatements.join('\n\n');
 	}
 

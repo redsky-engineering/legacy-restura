@@ -286,6 +286,16 @@ const schemaValidationDecoder = JsonDecoder.objectStrict<Restura.Schema>(
 						),
 						'foreignKeys'
 					),
+					checkConstraints: JsonDecoder.array(
+						JsonDecoder.objectStrict<Restura.CheckConstraintData>(
+							{
+								name: JsonDecoder.string,
+								check: JsonDecoder.string
+							},
+							'check'
+						),
+						'checkConstraints'
+					),
 					roles: JsonDecoder.array(JsonDecoder.string, 'roles')
 				},
 				'database'

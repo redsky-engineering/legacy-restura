@@ -9,6 +9,7 @@ const defaultSchema: Restura.Schema = {
 				{ roles: [], name: 'name', type: 'VARCHAR', length: 255, isNullable: true }
 			],
 			foreignKeys: [],
+			checkConstraints: [],
 			indexes: [{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' }],
 			roles: []
 		},
@@ -52,6 +53,7 @@ const defaultSchema: Restura.Schema = {
 					refColumn: 'id'
 				}
 			],
+			checkConstraints: [],
 			indexes: [
 				{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' },
 				{

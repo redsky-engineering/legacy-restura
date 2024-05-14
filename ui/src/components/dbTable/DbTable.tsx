@@ -10,12 +10,14 @@ import ForeignKeySection from './foreignKeySection/ForeignKeySection';
 import IndexSection from './indexSection/IndexSection';
 import ConfirmationPopup, { ConfirmationPopupProps } from '../../popups/confirmationPopup/ConfirmationPopup';
 import ColumnSection from './columnSection/ColumnSection';
+import CheckConstraintSection from './checkConstraintSection/CheckConstraintSection.js';
 
 interface DbTableProps {
 	tableName: string;
 	hideColumns: boolean;
 	hideIndexes: boolean;
 	hideForeignKeys: boolean;
+	hideChecks: boolean;
 }
 
 const DbTable: React.FC<DbTableProps> = (props) => {
@@ -93,6 +95,7 @@ const DbTable: React.FC<DbTableProps> = (props) => {
 				{!props.hideColumns && <ColumnSection tableName={props.tableName} />}
 				{!props.hideIndexes && <IndexSection tableName={props.tableName} />}
 				{!props.hideForeignKeys && <ForeignKeySection tableName={props.tableName} />}
+				{!props.hideChecks && <CheckConstraintSection tableName={props.tableName} />}
 			</Paper>
 		</Box>
 	);

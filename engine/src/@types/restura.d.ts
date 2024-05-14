@@ -63,11 +63,17 @@ declare namespace Restura {
 		length?: number;
 	}
 
+	export interface CheckConstraintData {
+		name: string;
+		check: string;
+	}
+
 	export interface TableData {
 		name: string;
 		columns: ColumnData[];
 		indexes: IndexData[];
 		foreignKeys: ForeignKeyData[];
+		checkConstraints: CheckConstraintData[];
 		roles: string[];
 	}
 

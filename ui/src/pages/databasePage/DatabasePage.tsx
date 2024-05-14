@@ -18,6 +18,7 @@ const DatabasePage: React.FC<DatabasePageProps> = (props) => {
 	const [isColumnsFiltered, setIsColumnsFiltered] = useState<boolean>(false);
 	const [isIndexesFiltered, setIsIndexesFiltered] = useState<boolean>(false);
 	const [isForeignKeysFiltered, setIsForeignKeysFiltered] = useState<boolean>(false);
+	const [isChecksFiltered, setIsChecksFiltered] = useState<boolean>(false);
 	const [tableSearch, setTableSearch] = useState<string>('');
 	const [validationError, setValidationError] = useState<string>('');
 
@@ -34,6 +35,7 @@ const DatabasePage: React.FC<DatabasePageProps> = (props) => {
 				{ name: 'modifiedOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' }
 			],
 			foreignKeys: [],
+			checkConstraints: [],
 			indexes: [
 				{
 					name: 'PRIMARY',
@@ -83,6 +85,13 @@ const DatabasePage: React.FC<DatabasePageProps> = (props) => {
 					>
 						Foreign Keys
 					</Button>
+					<Button
+						look={isChecksFiltered ? 'containedPrimary' : 'outlinedPrimary'}
+						ml={8}
+						onClick={() => setIsChecksFiltered(!isChecksFiltered)}
+					>
+						Checks
+					</Button>
 				</Box>
 				{validationError && (
 					<Label variant={'subheader2'} weight={'bold'} color={themes.primaryRed500}>
@@ -123,6 +132,7 @@ const DatabasePage: React.FC<DatabasePageProps> = (props) => {
 								hideColumns={isAnyFiltersApplied && !isColumnsFiltered}
 								hideIndexes={isAnyFiltersApplied && !isIndexesFiltered}
 								hideForeignKeys={isAnyFiltersApplied && !isForeignKeysFiltered}
+								hideChecks={isAnyFiltersApplied && !isChecksFiltered}
 								key={item.name}
 								tableName={item.name}
 							/>
