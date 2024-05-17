@@ -5,7 +5,7 @@ import { useRecoilValue } from 'recoil';
 import globalState from '../../state/globalState';
 import serviceFactory from '../../services/serviceFactory';
 import SchemaService from '../../services/schema/SchemaService';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StringUtils } from '../../utils/utils.js';
 import classNames from 'classnames';
 import AutoComplete from '../autoComplete/AutoComplete.js';
@@ -19,9 +19,11 @@ const AssignmentInput: React.FC<RequestParamInputProps> = (props: RequestParamIn
 	const [assignmentName, setAssignmentName] = useState<string>('');
 	const schema = useRecoilValue<Restura.Schema | undefined>(globalState.schema);
 
-	if (SchemaService.isStandardRouteData(props.routeData) && !props.routeData.assignments) {
-		schemaService.addDefaultAssignments();
-	}
+	useEffect(() => {
+		if (SchemaService.isStandardRouteData(props.routeData) && !props.routeData.assignments) {
+			schemaService.addDefaultAssignments();
+		}
+	}, [props.routeData, schemaService]);
 
 	function checkForDuplicateName(name: string): void {
 		if (!props.routeData) return;

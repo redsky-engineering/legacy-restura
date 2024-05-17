@@ -37,6 +37,37 @@ const RouteTypeInput: React.FC<RouteTypeInputProps> = (props) => {
 					onChange={(newValue) => {
 						if (!newValue) return;
 						let updatedRouteData = { ...props.routeData! };
+
+						if (
+							SchemaService.isCustomRouteData(props.routeData) &&
+							['ONE', 'ARRAY', 'PAGED'].includes(newValue.value)
+						) {
+							// We are switching from custom to standard
+							delete (updatedRouteData as any).responseType;
+							delete (updatedRouteData as any).requestType;
+							delete (updatedRouteData as any).fileUploadType;
+							(updatedRouteData as Restura.StandardRouteData).joins = [];
+							(updatedRouteData as Restura.StandardRouteData).assignments = [];
+							(updatedRouteData as Restura.StandardRouteData).where = [];
+							(updatedRouteData as Restura.StandardRouteData).request = [];
+							(updatedRouteData as Restura.StandardRouteData).response = [];
+							(updatedRouteData as Restura.StandardRouteData).table = '';
+						} else if (
+							SchemaService.isStandardRouteData(props.routeData) &&
+							['CUSTOM_ONE', 'CUSTOM_ARRAY', 'CUSTOM_PAGED'].includes(newValue.value)
+						) {
+							// We are switching from standard to custom
+							(updatedRouteData as Restura.CustomRouteData).responseType = 'boolean';
+							delete (updatedRouteData as any).requestType;
+							delete (updatedRouteData as any).fileUploadType;
+							delete (updatedRouteData as any).joins;
+							delete (updatedRouteData as any).assignments;
+							delete (updatedRouteData as any).where;
+							delete (updatedRouteData as any).request;
+							delete (updatedRouteData as any).response;
+							delete (updatedRouteData as any).table;
+						}
+
 						if (newValue.value !== 'PAGED') {
 							updatedRouteData.request = updatedRouteData.request?.filter(
 								(request) =>
