@@ -460,7 +460,11 @@ export default class SchemaService extends Service {
 	}
 
 	static getInterfaceFromCustomTypes(interfaceName: string, customTypes: string): string {
-		let start = customTypes.indexOf(`interface ${interfaceName}`);
+		// Change the code below to find the index using a regex
+		const regex = new RegExp(`\\b(interface|type)\\s+${interfaceName}\\b`);
+		const match = regex.exec(customTypes);
+		if (!match) return 'not found';
+		const start = match.index;
 
 		let index = customTypes.indexOf('{', start) + 1;
 		let depth = 1;

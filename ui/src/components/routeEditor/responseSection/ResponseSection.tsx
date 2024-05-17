@@ -37,7 +37,7 @@ const ResponseSection: React.FC<ResponseSectionProps> = (props) => {
 
 		if (!schema) return options;
 
-		let matches = schema.customTypes.match(/(?<=\binterface\s)(\w+)/g);
+		let matches = schema.customTypes.match(/(?<=\b(?:interface|type)\s)(\w+)/g);
 		if (!matches) return options;
 		return [...options, ...matches.map((item) => ({ label: item, value: item }))];
 	}, [schema]);
