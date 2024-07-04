@@ -11,12 +11,11 @@
 	"license": "ISC",
 	"peerDependencies": {
 		"@types/lodash.clonedeep": "^4.5.9",
-		"@types/prettier": "2.7.2",
 		"@types/tmp": "^0.2.3",
 		"husky": "^8.0.1",
 		"lint-staged": "^13.0.3",
 		"lodash.clonedeep": "^4.5.0",
-		"prettier": "2.8.4",
+		"prettier": "3.2.5",
 		"dbdiff": "https://github.com/snppla/dbdiff.git",
 		"jsonschema": "^1.4.1",
 		"tmp": "^0.2.1",
