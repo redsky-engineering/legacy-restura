@@ -8,8 +8,8 @@ const defaultSchema: Restura.Schema = {
 				{ name: 'modifiedOn', isNullable: false, default: 'now()', roles: [], type: 'DATETIME' },
 				{ roles: [], name: 'name', type: 'VARCHAR', length: 255, isNullable: true }
 			],
-			foreignKeys: [],
 			checkConstraints: [],
+			foreignKeys: [],
 			indexes: [{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' }],
 			roles: []
 		},
@@ -29,8 +29,8 @@ const defaultSchema: Restura.Schema = {
 					comment: 'Foreign key to company(id)'
 				},
 				{ roles: [], name: 'password', type: 'VARCHAR', length: 70, isNullable: false },
-				{ roles: [], name: 'email', type: 'VARCHAR', length: 100, isNullable: true },
-				{ roles: [], name: 'role', type: 'ENUM', isNullable: false, value: "'admin','technician'" },
+				{ roles: [], name: 'email', type: 'VARCHAR', length: 100, isNullable: false },
+				{ roles: [], name: 'role', type: 'ENUM', isNullable: false, value: "'admin','user'" },
 				{ roles: [], name: 'permissionLogin', type: 'BOOLEAN', isNullable: false, default: '1' },
 				{ roles: [], name: 'lastLoginOn', type: 'DATETIME', isNullable: true },
 				{ roles: [], name: 'phone', type: 'VARCHAR', length: 30, isNullable: true },
@@ -41,8 +41,35 @@ const defaultSchema: Restura.Schema = {
 					isNullable: true,
 					comment: 'When user was disabled'
 				},
-				{ roles: [], name: 'passwordResetGuid', type: 'VARCHAR', length: 100, isNullable: true }
+				{ roles: [], name: 'passwordResetGuid', type: 'VARCHAR', length: 100, isNullable: true },
+				{ roles: [], name: 'verifyEmailPin', type: 'MEDIUMINT', isNullable: true },
+				{ roles: [], name: 'verifyEmailPinExpiresOn', type: 'DATETIME', isNullable: true },
+				{
+					roles: [],
+					name: 'accountStatus',
+					type: 'ENUM',
+					isNullable: false,
+					value: "'banned','view_only','active'",
+					default: '"view_only"'
+				},
+				{
+					roles: [],
+					name: 'passwordResetExpiresOn',
+					type: 'DATETIME',
+					isNullable: true,
+					comment: 'When guid is no longer valid'
+				},
+				{
+					roles: [],
+					name: 'onboardingStatus',
+					type: 'ENUM',
+					isNullable: false,
+					value: "'verify_email','complete'",
+					default: '"verify_email"'
+				},
+				{ roles: [], name: 'pendingEmail', type: 'VARCHAR', length: 100, isNullable: true }
 			],
+			checkConstraints: [],
 			foreignKeys: [
 				{
 					name: 'user_companyId_company_id_fk',
@@ -53,7 +80,6 @@ const defaultSchema: Restura.Schema = {
 					refColumn: 'id'
 				}
 			],
-			checkConstraints: [],
 			indexes: [
 				{ name: 'PRIMARY', columns: ['id'], isUnique: true, isPrimaryKey: true, order: 'ASC' },
 				{
@@ -139,6 +165,32 @@ const defaultSchema: Restura.Schema = {
 				},
 				{
 					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'newEmail',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Change Email Request',
+					description: 'Request to change email. Sends a verification email with pin',
+					path: '/user/change-email',
+					roles: ['admin', 'user']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [{ name: 'pin', required: true, validator: [{ type: 'TYPE_CHECK', value: 'number' }] }],
+					method: 'PATCH',
+					name: 'Commit Email Change',
+					description: 'Commits an email change with a pin',
+					path: '/user/change-email/commit',
+					roles: ['admin', 'user']
+				},
+				{
+					type: 'CUSTOM_ONE',
 					responseType: 'FilteredUser',
 					request: [
 						{
@@ -201,7 +253,7 @@ const defaultSchema: Restura.Schema = {
 						{
 							name: 'role',
 							required: false,
-							validator: [{ type: 'ONE_OF', value: ['admin', 'technician'] }]
+							validator: [{ type: 'ONE_OF', value: ['admin', 'user'] }]
 						},
 						{
 							name: 'password',
@@ -214,6 +266,147 @@ const defaultSchema: Restura.Schema = {
 					description: 'Update an existing user.',
 					path: '/user',
 					roles: ['admin']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					method: 'POST',
+					name: 'Logout',
+					description: 'User logout endpoint',
+					path: '/user/logout',
+					roles: ['admin', 'user'],
+					request: [],
+					responseType: 'boolean'
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'username',
+							required: false,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						},
+						{
+							name: 'email',
+							required: false,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Check Available',
+					description: 'Checks if a given username or email or both are available or not',
+					path: '/user/check-available',
+					roles: []
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'password',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Verify User Password',
+					description: 'Verifies a user password to get past security checkpoints',
+					path: '/user/verify-password',
+					roles: ['admin', 'athlete', 'fan', 'recruiter']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [],
+					method: 'POST',
+					name: 'Resend Verify Email Pin',
+					description: 'Resend the email that sends out the verify email pin',
+					path: '/user/resend-verify-email',
+					roles: ['admin', 'athlete', 'fan', 'recruiter']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'email',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Forgot Password',
+					description: 'Sends a forgot password request',
+					path: '/user/forgot-password',
+					roles: []
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'oldPassword',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						},
+						{
+							name: 'newPassword',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Change Password',
+					description: 'Changes a password of the user',
+					path: '/user/change-password',
+					roles: ['admin', 'user']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'guid',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						},
+						{
+							name: 'newPassword',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Reset Password',
+					description: 'Resets a password using a reset password guid',
+					path: '/user/reset-password',
+					roles: []
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [{ name: 'pin', required: true, validator: [{ type: 'TYPE_CHECK', value: 'number' }] }],
+					method: 'POST',
+					name: 'Verify Email',
+					description: 'Verifies an email given a pin',
+					path: '/user/verify-email',
+					roles: ['admin', 'user']
+				},
+				{
+					type: 'CUSTOM_ONE',
+					responseType: 'boolean',
+					request: [
+						{
+							name: 'password',
+							required: true,
+							validator: [{ type: 'TYPE_CHECK', value: 'string' }]
+						}
+					],
+					method: 'POST',
+					name: 'Delete Me',
+					description: "Deletes the user that calls this. This is a post so we don't show password on url.",
+					path: '/user/delete/me',
+					roles: ['admin', 'user']
 				},
 				{
 					type: 'ONE',
@@ -264,8 +457,8 @@ const defaultSchema: Restura.Schema = {
 		}
 	],
 	globalParams: ['companyId', 'userId'],
-	roles: ['admin', 'user'],
+	roles: ['admin', 'user', 'anonymous'],
 	customTypes:
-		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface AuthResponse {\n    token: string;\n    tokenExp: string;\n    refresh: string;\n    refreshExp: string;\n}\n'
+		'export interface FilteredUser {\n    id: number;\n\tcompanyId: number;\n\tfirstName: string;\n\tlastName: string;\n\temail: string;\n\trole: string;\n\tphone: string;\n\tlastLoginOn: string;\n}\n\nexport interface AuthResponse {\n    token: string;\n    tokenExp: string;\n    refreshToken: string;\n    refreshTokenExp: string;\n}\n'
 };
 export default defaultSchema;
