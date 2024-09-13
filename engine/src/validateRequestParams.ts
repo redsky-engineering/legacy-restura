@@ -1,15 +1,15 @@
-import jsonschema, { Schema } from 'jsonschema';
-import { RsRequest } from '../../../../src/@types/expressCustom.js';
 import { ObjectUtils } from '@redskytech/core-utils';
+import jsonschema, { Schema } from 'jsonschema';
+import { RsRequest, type DynamicObject } from '../../../../src/@types/expressCustom.js';
 import { RsError } from '../../../../src/utils/errors.js';
 import { ValidationDictionary } from './customTypeValidationGenerator.js';
 
 export default function validateRequestParams(
-	req: RsRequest<any>,
+	req: RsRequest<DynamicObject>,
 	routeData: Restura.RouteData,
 	validationSchema: ValidationDictionary
 ) {
-	let requestData = getRequestData(req);
+	const requestData = getRequestData(req as RsRequest<DynamicObject>);
 	req.data = requestData;
 
 	if (routeData.request === undefined) {
@@ -34,7 +34,7 @@ export default function validateRequestParams(
 
 	// Make sure all passed in params are defined in the schema
 	Object.keys(req.data).forEach((requestParamName) => {
-		let requestParam = routeData.request!.find((param) => param.name === requestParamName);
+		const requestParam = routeData.request!.find((param) => param.name === requestParamName);
 		if (!requestParam) {
 			throw new RsError('BAD_REQUEST', `Request param (${requestParamName}) is not allowed`);
 		}
@@ -42,7 +42,7 @@ export default function validateRequestParams(
 
 	routeData.request.forEach((requestParam) => {
 		// Find the request param in the request data
-		let requestValue = requestData[requestParam.name];
+		const requestValue = requestData[requestParam.name];
 		// If the request param is required and not found in the request data, throw an error
 		if (requestParam.required && requestValue === undefined)
 			throw new RsError('BAD_REQUEST', `Request param (${requestParam.name}) is required but missing`);
@@ -52,7 +52,7 @@ export default function validateRequestParams(
 	});
 }
 
-function validateRequestSingleParam(requestValue: any, requestParam: Restura.RequestData) {
+function validateRequestSingleParam(requestValue: unknown, requestParam: Restura.RequestData) {
 	requestParam.validator.forEach((validator) => {
 		switch (validator.type) {
 			case 'TYPE_CHECK':
@@ -71,7 +71,7 @@ function validateRequestSingleParam(requestValue: any, requestParam: Restura.Req
 	});
 }
 
-function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
+function performTypeCheck(requestValue: unknown, validator: Restura.ValidatorData, requestParamName: string) {
 	if (validator.value === 'number' || validator.value === 'string' || validator.value === 'boolean') {
 		if (typeof requestValue !== validator.value) {
 			throw new RsError(
@@ -87,7 +87,7 @@ function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, r
 			);
 		}
 		if (validator.value === 'any[]') return;
-		requestValue.forEach((value: any) => {
+		requestValue.forEach((value: unknown) => {
 			if (typeof value !== (validator.value as string).replace('[]', '')) {
 				throw new RsError(
 					'BAD_REQUEST',
@@ -107,8 +107,15 @@ function performTypeCheck(requestValue: any, validator: Restura.ValidatorData, r
 	}
 }
 
-function performMinCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
-	validateBothAreNumbers(requestValue, validator.value, requestParamName);
+function performMinCheck(requestValue: unknown, validator: Restura.ValidatorData, requestParamName: string) {
+	if (!isValueNumber(requestValue))
+		throw new RsError(
+			'BAD_REQUEST',
+			`Request param (${requestParamName}) with value (${requestValue}) is not of type number`
+		);
+
+	if (!isValueNumber(validator.value))
+		throw new RsError('SCHEMA_ERROR', `Schema validator value (${validator.value} is not of type number`);
 
 	if (requestValue < validator.value)
 		throw new RsError(
@@ -117,8 +124,15 @@ function performMinCheck(requestValue: any, validator: Restura.ValidatorData, re
 		);
 }
 
-function performMaxCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
-	validateBothAreNumbers(requestValue, validator.value, requestParamName);
+function performMaxCheck(requestValue: unknown, validator: Restura.ValidatorData, requestParamName: string) {
+	if (!isValueNumber(requestValue))
+		throw new RsError(
+			'BAD_REQUEST',
+			`Request param (${requestParamName}) with value (${requestValue}) is not of type number`
+		);
+
+	if (!isValueNumber(validator.value))
+		throw new RsError('SCHEMA_ERROR', `Schema validator value (${validator.value} is not of type number`);
 
 	if (requestValue > validator.value)
 		throw new RsError(
@@ -127,56 +141,57 @@ function performMaxCheck(requestValue: any, validator: Restura.ValidatorData, re
 		);
 }
 
-function performOneOfCheck(requestValue: any, validator: Restura.ValidatorData, requestParamName: string) {
-	if (!ObjectUtils.isArrayWithData(validator.value as any[]))
+function performOneOfCheck(requestValue: unknown, validator: Restura.ValidatorData, requestParamName: string) {
+	if (!ObjectUtils.isArrayWithData(validator.value as unknown[]))
 		throw new RsError('SCHEMA_ERROR', `Schema validator value (${validator.value}) is not of type array`);
 	if (typeof requestValue === 'object')
 		throw new RsError('BAD_REQUEST', `Request param (${requestParamName}) is not of type string or number`);
 
-	if (!(validator.value as any[]).includes(requestValue as string | number))
+	if (!(validator.value as unknown[]).includes(requestValue as string | number))
 		throw new RsError(
 			'BAD_REQUEST',
 			`Request param (${requestParamName}) with value (${requestValue}) is not one of (${(
-				validator.value as any[]
+				validator.value as unknown[]
 			).join(', ')})`
 		);
 }
 
-function validateBothAreNumbers(requestValue: any, validatorValue: any, requestParamName: string) {
-	if (!isValueNumber(requestValue))
-		throw new RsError(
-			'BAD_REQUEST',
-			`Request param (${requestParamName}) with value (${requestValue}) is not of type number`
-		);
-
-	if (!isValueNumber(validatorValue))
-		throw new RsError('SCHEMA_ERROR', `Schema validator value (${validatorValue} is not of type number`);
-}
-
-function isValueNumber(value: any): value is number {
+function isValueNumber(value: unknown): value is number {
 	return !isNaN(Number(value));
 }
 
-function getRequestData(req: RsRequest<any>): any {
-	if (req.method !== 'GET' && req.method !== 'DELETE') {
-		return req['body'];
+export function getRequestData(req: RsRequest<DynamicObject>): DynamicObject {
+	let body = '';
+	if (req.method === 'GET' || req.method === 'DELETE') {
+		body = 'query';
+	} else {
+		body = 'body';
 	}
-	let returnValue: any = {};
-	for (let attr in req['query']) {
-		if (req['query'][attr] instanceof Array) {
-			let attrList = [];
-			for (let value of req['query'][attr] as any[]) {
-				if (isNaN(Number(value))) continue;
-				attrList.push(Number(value));
+
+	const bodyData = req[body as keyof typeof req]; // Cast once and store in a variable
+
+	if (bodyData) {
+		for (const attr in bodyData) {
+			if (attr === 'token') {
+				delete bodyData[attr];
+				continue;
 			}
-			if (ObjectUtils.isArrayWithData(attrList)) {
-				returnValue[attr] = attrList;
+
+			if (bodyData[attr] instanceof Array) {
+				const attrList = [];
+				for (const value of bodyData[attr]) {
+					if (isNaN(Number(value))) continue;
+					attrList.push(Number(value));
+				}
+				if (ObjectUtils.isArrayWithData(attrList)) {
+					bodyData[attr] = attrList;
+				}
+			} else {
+				bodyData[attr] = ObjectUtils.safeParse(bodyData[attr]);
+				if (isNaN(Number(bodyData[attr]))) continue;
+				bodyData[attr] = Number(bodyData[attr]);
 			}
-		} else {
-			returnValue[attr] = ObjectUtils.safeParse(req['query'][attr]);
-			if (isNaN(Number(req['query'][attr]))) continue;
-			returnValue[attr] = Number(req['query'][attr]);
 		}
 	}
-	return returnValue;
+	return bodyData;
 }

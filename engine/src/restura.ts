@@ -1,30 +1,30 @@
 import * as express from 'express';
 
-import { RsRequest, RsResponse } from '../../../../src/@types/expressCustom.js';
-import { boundMethod } from 'autobind-decorator';
-import config from '../../../../src/utils/config.js';
-import { Router } from 'express';
-import logger from '../../../../src/utils/logger.js';
-import { RsError } from '../../../../src/utils/errors.js';
-import validateRequestParams from './validateRequestParams.js';
-import sqlEngine from './sqlEngine.js';
-import compareSchema from './compareSchema.js';
-import apiFactory from '../../../../src/api/apiFactory.js';
 import { StringUtils } from '@redskytech/core-utils';
-import apiGenerator from './apiGenerator.js';
+import { boundMethod } from 'autobind-decorator';
+import { Router } from 'express';
 import fs from 'fs';
+import { RsRequest, RsResponse, type DynamicObject } from '../../../../src/@types/expressCustom.js';
+import apiFactory from '../../../../src/api/apiFactory.js';
+import config from '../../../../src/utils/config.js';
+import { RsError } from '../../../../src/utils/errors.js';
+import logger from '../../../../src/utils/logger.js';
+import apiGenerator from './apiGenerator.js';
+import compareSchema from './compareSchema.js';
+import sqlEngine from './sqlEngine.js';
+import validateRequestParams from './validateRequestParams.js';
 
-import modelGenerator from './modelGenerator.js';
 import { createHash } from 'crypto';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import modelGenerator from './modelGenerator.js';
 import ResponseValidator from './responseValidator.js';
 
-import customTypeValidationGenerator, { ValidationDictionary } from './customTypeValidationGenerator.js';
-import schemaValidator, { isSchemaValid } from './schemaValidator.js';
 import { ObjectUtils } from '@redskytech/framework/utils/index.js';
 import prettier from 'prettier';
 import multerCommonUpload from '../../../../src/middleware/multerCommonUpload.js';
+import customTypeValidationGenerator, { ValidationDictionary } from './customTypeValidationGenerator.js';
+import schemaValidator, { isSchemaValid } from './schemaValidator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -91,9 +91,9 @@ class ResturaEngine {
 
 	async getLatestFileSystemSchema(): Promise<Restura.Schema> {
 		this.schemaFilePath = this.findSchemaFilePath();
-		let schemaFileData = fs.readFileSync(this.schemaFilePath, 'utf8');
-		let schema: Restura.Schema = ObjectUtils.safeParse(schemaFileData);
-		let isValid = await isSchemaValid(schema);
+		const schemaFileData = fs.readFileSync(this.schemaFilePath, 'utf8');
+		const schema: Restura.Schema = ObjectUtils.safeParse(schemaFileData);
+		const isValid = await isSchemaValid(schema);
 		if (!isValid) throw new Error('Schema is not valid');
 		return schema;
 	}
@@ -123,13 +123,13 @@ class ResturaEngine {
 		this.resetPublicEndpoints();
 
 		let routeCount = 0;
-		for (let endpoint of this.schema.endpoints) {
+		for (const endpoint of this.schema.endpoints) {
 			const baseUrl = endpoint.baseUrl.endsWith('/') ? endpoint.baseUrl.slice(0, -1) : endpoint.baseUrl;
 			this.expressApp.use(baseUrl, (req, res, next) => {
 				// When you do an express use the baseUrl is stripped from the url, so we need to add to the router each baseUrl usage.
 				this.resturaRouter(req, res, next);
 			});
-			for (let route of endpoint.routes) {
+			for (const route of endpoint.routes) {
 				route.path = route.path.startsWith('/') ? route.path : `/${route.path}`;
 				route.path = route.path.endsWith('/') ? route.path.slice(0, -1) : route.path;
 				const fullUrl = `${baseUrl}${route.path}`;
@@ -149,8 +149,8 @@ class ResturaEngine {
 	}
 
 	private findSchemaFilePath(): string {
-		let basePath: string[] = ['..', '..', '..', '..', '..'];
-		let missingFiles: string[] = [];
+		const basePath: string[] = ['..', '..', '..', '..', '..'];
+		const missingFiles: string[] = [];
 		do {
 			const fileName = path.join(__dirname, ...basePath, 'restura.schema.json');
 			if (fs.existsSync(fileName)) {
@@ -187,8 +187,9 @@ class ResturaEngine {
 			await this.reloadEndpoints();
 			await this.updateTypes();
 			res.send({ data: 'success' });
-		} catch (err: any) {
-			res.status(400).send(err.message);
+		} catch (err) {
+			if (err instanceof Error) res.status(400).send(err.message);
+			else res.status(400).send('Unknown error');
 		}
 	}
 
@@ -206,8 +207,8 @@ class ResturaEngine {
 	@boundMethod
 	private async getSchemaAndTypes(req: express.Request, res: express.Response) {
 		try {
-			let schema = await this.getLatestFileSystemSchema();
-			let schemaHash = await this.generateHashForSchema(schema);
+			const schema = await this.getLatestFileSystemSchema();
+			const schemaHash = await this.generateHashForSchema(schema);
 			const apiText = await apiGenerator(schema, schemaHash);
 			const modelsText = await modelGenerator(schema, schemaHash);
 			res.send({ schema, api: apiText, models: modelsText });
@@ -217,7 +218,7 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	private async getMulterFilesIfAny(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
+	private async getMulterFilesIfAny<T>(req: RsRequest<T>, res: RsResponse<T>, routeData: Restura.RouteData) {
 		if (!req.header('content-type')?.includes('multipart/form-data')) return;
 		if (!this.isCustomRoute(routeData)) return;
 
@@ -225,13 +226,13 @@ class ResturaEngine {
 			throw new RsError('BAD_REQUEST', 'File upload type not defined for route');
 		}
 
-		let multerFileUploadFunction =
+		const multerFileUploadFunction =
 			routeData.fileUploadType === 'MULTIPLE'
 				? multerCommonUpload.array('files')
 				: multerCommonUpload.single('file');
 
 		return new Promise<void>((resolve, reject) => {
-			multerFileUploadFunction(req as unknown as express.Request, res, (err: any) => {
+			multerFileUploadFunction(req as unknown as express.Request, res, (err: unknown) => {
 				if (err) {
 					logger.warn('Multer error: ' + err);
 					reject(err);
@@ -243,10 +244,10 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	private async executeRouteLogic(req: RsRequest<any>, res: RsResponse<any>, next: express.NextFunction) {
+	private async executeRouteLogic<T>(req: RsRequest<T>, res: RsResponse<T>, next: express.NextFunction) {
 		try {
 			// Locate the route in the schema
-			let routeData = this.getRouteData(req.method, req.baseUrl, req.path);
+			const routeData = this.getRouteData(req.method, req.baseUrl, req.path);
 
 			// Validate the user has access to the endpoint
 			this.validateAuthorization(req, routeData);
@@ -254,8 +255,8 @@ class ResturaEngine {
 			// Check for file uploads
 			await this.getMulterFilesIfAny(req, res, routeData);
 
-			// Validate the request
-			validateRequestParams(req, routeData, this.customTypeValidation);
+			// Validate the request and assign to req.data
+			validateRequestParams(req as RsRequest<DynamicObject>, routeData, this.customTypeValidation);
 
 			// Check for custom logic
 			if (this.isCustomRoute(routeData)) {
@@ -264,15 +265,15 @@ class ResturaEngine {
 			}
 
 			// Run SQL query
-			let data = await sqlEngine.runQueryForRoute(req, routeData, this.schema);
+			const data = await sqlEngine.runQueryForRoute(req as RsRequest<DynamicObject>, routeData, this.schema);
 
 			// Validate the response
 			this.responseValidator.validateResponseParams(data, req.baseUrl, routeData);
 
 			// Send response
-			if (routeData.type === 'PAGED') res.sendNoWrap(data);
-			else res.sendData(data);
-		} catch (e: any) {
+			if (routeData.type === 'PAGED') res.sendNoWrap(data as T);
+			else res.sendData(data as T);
+		} catch (e) {
 			next(e);
 		}
 	}
@@ -283,27 +284,33 @@ class ResturaEngine {
 	}
 
 	@boundMethod
-	private async runCustomRouteLogic(req: RsRequest<any>, res: RsResponse<any>, routeData: Restura.RouteData) {
-		let version = req.baseUrl.split('/')[2];
+	private async runCustomRouteLogic<T>(req: RsRequest<T>, res: RsResponse<T>, routeData: Restura.RouteData) {
+		const version = req.baseUrl.split('/')[2];
 		let domain = routeData.path.split('/')[1];
 		domain = domain.split('-').reduce((acc, value, index) => {
 			if (index === 0) acc = value;
 			else acc += StringUtils.capitalizeFirst(value);
 			return acc;
 		}, '');
-		let customApiName = `${StringUtils.capitalizeFirst(domain)}Api${StringUtils.capitalizeFirst(version)}`;
+		const customApiName = `${StringUtils.capitalizeFirst(domain)}Api${StringUtils.capitalizeFirst(version)}`;
 
-		let customApi = apiFactory.getCustomApi(customApiName) as any;
+		const customApi = apiFactory.getCustomApi(customApiName);
 		if (!customApi) throw new RsError('NOT_FOUND', `API domain ${domain}-${version} not found`);
 
-		let functionName = `${routeData.method.toLowerCase()}${routeData.path
+		const functionName = `${routeData.method.toLowerCase()}${routeData.path
 			.replace(new RegExp('-', 'g'), '/')
 			.split('/')
 			.reduce((acc, cur) => {
 				if (cur === '') return acc;
 				return acc + StringUtils.capitalizeFirst(cur);
 			}, '')}`;
-		let customFunction = customApi[functionName];
+
+		// @ts-expect-error - Here we are dynamically calling the function from a custom class, not sure how to typescript this
+		const customFunction = customApi[functionName] as (
+			req: RsRequest<T>,
+			res: RsResponse<T>,
+			routeData: Restura.RouteData
+		) => Promise<void>;
 		if (!customFunction) throw new RsError('NOT_FOUND', `API path ${routeData.path} not implemented`);
 		await customFunction(req, res, routeData);
 	}
@@ -348,7 +355,7 @@ class ResturaEngine {
 		};
 	}
 
-	private validateAuthorization(req: RsRequest<any>, routeData: Restura.RouteData) {
+	private validateAuthorization(req: RsRequest<unknown>, routeData: Restura.RouteData) {
 		const role = req.requesterDetails.role;
 		if (routeData.roles.length === 0 || !role) return;
 		if (!routeData.roles.includes(role))
@@ -356,11 +363,11 @@ class ResturaEngine {
 	}
 
 	private getRouteData(method: string, baseUrl: string, path: string): Restura.RouteData {
-		let endpoint = this.schema.endpoints.find((item) => {
+		const endpoint = this.schema.endpoints.find((item) => {
 			return item.baseUrl === baseUrl;
 		});
 		if (!endpoint) throw new RsError('NOT_FOUND', 'Route not found');
-		let route = endpoint.routes.find((item) => {
+		const route = endpoint.routes.find((item) => {
 			return item.method === method && item.path === path;
 		});
 		if (!route) throw new RsError('NOT_FOUND', 'Route not found');

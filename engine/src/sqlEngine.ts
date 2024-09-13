@@ -1,34 +1,34 @@
-import mainConnection, { createCustomPool } from '../../../../src/database/connection.js';
-import { RsRequest, systemUserRequesterDetails } from '../../../../src/@types/expressCustom.js';
-import { RsError } from '../../../../src/utils/errors.js';
 import { ObjectUtils } from '@redskytech/core-utils';
-import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
-import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
-import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
-import DbDiff from 'dbdiff';
 import { DateUtils } from '@redskytech/framework/utils/index.js';
+import DbDiff from 'dbdiff';
+import { RsRequest, systemUserRequesterDetails, type DynamicObject } from '../../../../src/@types/expressCustom.js';
+import { CustomPool } from '../../../../src/@types/mysqlCustom.js';
+import mainConnection, { createCustomPool } from '../../../../src/database/connection.js';
+import config, { IMysqlDatabase } from '../../../../src/utils/config.js';
+import { RsError } from '../../../../src/utils/errors.js';
+import filterSqlParser from '../../../../src/utils/filterSqlParser.js';
 import { SqlUtils } from './utils/utils.js';
 
 class SqlEngine {
 	async createDatabaseFromSchema(schema: Restura.Schema, connection: CustomPool): Promise<string> {
-		let sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
+		const sqlFullStatement = this.generateDatabaseSchemaFromSchema(schema);
 		await connection.runQuery(sqlFullStatement, [], systemUserRequesterDetails);
 		return sqlFullStatement;
 	}
 
 	async runQueryForRoute(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
-	): Promise<any> {
+	): Promise<unknown> {
 		if (!this.doesRoleHavePermissionToTable(req.requesterDetails.role, schema, routeData.table))
 			throw new RsError('UNAUTHORIZED', 'You do not have permission to access this table');
 
 		switch (routeData.method) {
 			case 'POST':
-				return this.executeCreateRequest(req, routeData, schema);
+				return this.executeCreateRequest(req as RsRequest<DynamicObject>, routeData, schema);
 			case 'GET':
-				return this.executeGetRequest(req, routeData, schema);
+				return this.executeGetRequest(req as RsRequest<DynamicObject>, routeData, schema);
 			case 'PUT':
 			case 'PATCH':
 				return this.executeUpdateRequest(req, routeData, schema);
@@ -38,12 +38,12 @@ class SqlEngine {
 	}
 
 	generateDatabaseSchemaFromSchema(schema: Restura.Schema): string {
-		let sqlStatements = [];
+		const sqlStatements = [];
 		// Setup tables and indexes first
-		for (let table of schema.database) {
+		for (const table of schema.database) {
 			let sql = `CREATE TABLE \`${table.name}\`
                        (  `;
-			for (let column of table.columns) {
+			for (const column of table.columns) {
 				sql += `\t\`${column.name}\` ${column.type}`;
 				let value = column.value;
 				// JSON's value is used only for typescript not for the database
@@ -63,7 +63,7 @@ class SqlEngine {
 				if (column.default) sql += ` DEFAULT ${column.default}`;
 				sql += ', \n';
 			}
-			for (let index of table.indexes) {
+			for (const index of table.indexes) {
 				if (index.isPrimaryKey) {
 					sql += `\tPRIMARY KEY (\`${index.columns.join('`, `')}\`)`;
 				} else {
@@ -82,11 +82,11 @@ class SqlEngine {
 		}
 
 		// Now setup foreign keys
-		for (let table of schema.database) {
+		for (const table of schema.database) {
 			if (!table.foreignKeys.length) continue;
-			let sql = `ALTER TABLE \`${table.name}\`  `;
-			let constraints: string[] = [];
-			for (let foreignKey of table.foreignKeys) {
+			const sql = `ALTER TABLE \`${table.name}\`  `;
+			const constraints: string[] = [];
+			for (const foreignKey of table.foreignKeys) {
 				let constraint = `\tADD CONSTRAINT \`${foreignKey.name}\` FOREIGN KEY (\`${foreignKey.column}\`) REFERENCES \`${foreignKey.refTable}\`(\`${foreignKey.refColumn}\`)`;
 				constraint += ` ON DELETE ${foreignKey.onDelete}`;
 				constraint += ` ON UPDATE ${foreignKey.onUpdate}`;
@@ -96,12 +96,12 @@ class SqlEngine {
 		}
 
 		// Now setup check constraints
-		for (let table of schema.database) {
+		for (const table of schema.database) {
 			if (!table.checkConstraints.length) continue;
-			let sql = `ALTER TABLE \`${table.name}\`  `;
-			let constraints: string[] = [];
-			for (let check of table.checkConstraints) {
-				let constraint = `ADD CONSTRAINT \`${check.name}\` CHECK (${check.check})`;
+			const sql = `ALTER TABLE \`${table.name}\`  `;
+			const constraints: string[] = [];
+			for (const check of table.checkConstraints) {
+				const constraint = `ADD CONSTRAINT \`${check.name}\` CHECK (${check.check})`;
 				constraints.push(constraint);
 			}
 			sqlStatements.push(sql + constraints.join(',\n') + ';');
@@ -111,7 +111,7 @@ class SqlEngine {
 	}
 
 	async diffDatabaseToSchema(schema: Restura.Schema): Promise<string> {
-		let dbConfig: IMysqlDatabase = config.database[0];
+		const dbConfig: IMysqlDatabase = config.database[0];
 
 		let scratchConnection: CustomPool = createCustomPool([
 			{
@@ -153,7 +153,7 @@ class SqlEngine {
 	}
 
 	private createNestedSelect(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		schema: Restura.Schema,
 		item: Restura.ResponseData,
 		routeData: Restura.StandardRouteData,
@@ -213,10 +213,10 @@ class SqlEngine {
 	}
 
 	private async executeCreateRequest(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
-	): Promise<any> {
+	): Promise<unknown> {
 		const sqlParams: string[] = [];
 		let parameterString = '';
 		parameterString = (routeData.assignments || [])
@@ -230,7 +230,7 @@ class SqlEngine {
 			[{ ...req.data }, ...sqlParams],
 			req.requesterDetails
 		);
-		const insertId = createdItem.insertId;
+		const insertId = (createdItem as { insertId: number }).insertId;
 		const whereData: Restura.WhereData[] = [
 			...routeData.where,
 			{
@@ -246,18 +246,18 @@ class SqlEngine {
 	}
 
 	private async executeGetRequest(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
-	): Promise<any> {
+	): Promise<object | void> {
 		const DEFAULT_PAGED_PAGE_NUMBER = 0;
 		const DEFAULT_PAGED_PER_PAGE_NUMBER = 25;
 		const sqlParams: string[] = [];
 
-		let userRole = req.requesterDetails.role;
+		const userRole = req.requesterDetails.role;
 		let sqlStatement = '';
 
-		let selectColumns: Restura.ResponseData[] = [];
+		const selectColumns: Restura.ResponseData[] = [];
 		routeData.response.forEach((item) => {
 			// For a subquery, we will check the permission when generating the subquery statement, so pass it through
 			if (item.subquery || this.doesRoleHavePermissionToColumn(userRole, schema, item, routeData.joins))
@@ -302,6 +302,7 @@ class SqlEngine {
 				req.requesterDetails
 			);
 		} else if (routeData.type === 'PAGED') {
+			const paginationData = req.data as RedSky.PageQuery;
 			// The COUNT() does not work with group by and order by, so we need to catch that case and act accordingly
 			const pageResults = await mainConnection.runQuery(
 				`${selectStatement}${sqlStatement}${groupByOrderByStatement} LIMIT ? OFFSET ?;SELECT COUNT(${
@@ -309,29 +310,30 @@ class SqlEngine {
 				}) AS total\n${sqlStatement};`,
 				[
 					...sqlParams,
-					req.data.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
-					(req.data.page - 1) * req.data.perPage || DEFAULT_PAGED_PAGE_NUMBER,
+					paginationData.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER,
+					((paginationData.page || DEFAULT_PAGED_PAGE_NUMBER) - 1) *
+						(paginationData.perPage || DEFAULT_PAGED_PER_PAGE_NUMBER),
 					...sqlParams
 				],
 				req.requesterDetails
 			);
 			let total = 0;
-			if (ObjectUtils.isArrayWithData(pageResults)) {
-				total = pageResults[1][0].total;
+			if (ObjectUtils.isArrayWithData(pageResults as unknown[])) {
+				total = (pageResults as { total: number }[][])[1][0].total;
 			}
-			return { data: pageResults[0], total };
+			return { data: (pageResults as object[])[0] as object, total };
 		} else {
 			throw new RsError('UNKNOWN_ERROR', 'Unknown route type.');
 		}
 	}
 
 	private async executeUpdateRequest(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
-	): Promise<any> {
+	): Promise<object> {
 		const sqlParams: string[] = [];
-		const { id, ...bodyNoId } = req.body;
+		const { id: _id, ...bodyNoId } = req.body;
 
 		// See if table has a modifiedOn column, if so set it to now
 		// Find the database table
@@ -344,7 +346,7 @@ class SqlEngine {
 		}
 
 		// In order remove ambiguity, we need to add the table name to the column names when the table is joined
-		for (let i in bodyNoId) {
+		for (const i in bodyNoId) {
 			if (i.includes('.')) continue;
 			bodyNoId[`${routeData.table}.${i}`] = bodyNoId[i];
 			delete bodyNoId[i];
@@ -363,7 +365,7 @@ class SqlEngine {
 			else bodyNoId[assignmentWithPrefix] = assignment.value;
 		}
 
-		let joinStatement = this.generateJoinStatements(
+		const joinStatement = this.generateJoinStatements(
 			req,
 			routeData.joins,
 			routeData.table,
@@ -377,17 +379,17 @@ class SqlEngine {
 		sqlStatement += this.generateWhereClause(req, routeData.where, routeData, sqlParams);
 		sqlStatement += ';';
 		await mainConnection.runQuery(sqlStatement, [bodyNoId, ...sqlParams], req.requesterDetails);
-		return this.executeGetRequest(req, routeData, schema);
+		return this.executeGetRequest(req, routeData, schema) as object;
 	}
 
 	private async executeDeleteRequest(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		routeData: Restura.StandardRouteData,
 		schema: Restura.Schema
-	): Promise<any> {
+	): Promise<true> {
 		const sqlParams: string[] = [];
 
-		let joinStatement = this.generateJoinStatements(
+		const joinStatement = this.generateJoinStatements(
 			req,
 			routeData.joins,
 			routeData.table,
@@ -414,17 +416,17 @@ class SqlEngine {
 	): boolean {
 		if (item.selector) {
 			let tableName = item.selector.split('.')[0];
-			let columnName = item.selector.split('.')[1];
+			const columnName = item.selector.split('.')[1];
 			let tableSchema = schema.database.find((item) => item.name === tableName);
 			if (!tableSchema) {
 				// check to see if this is an alias join table
-				let join = joins.find((join) => join.alias === tableName);
+				const join = joins.find((join) => join.alias === tableName);
 				if (!join) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
 				tableName = join.table;
 				tableSchema = schema.database.find((item) => item.name === tableName);
 			}
 			if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
-			let columnSchema = tableSchema.columns.find((item) => item.name === columnName);
+			const columnSchema = tableSchema.columns.find((item) => item.name === columnName);
 			if (!columnSchema)
 				throw new RsError('SCHEMA_ERROR', `Column ${columnName} not found in table ${tableName}`);
 
@@ -450,7 +452,7 @@ class SqlEngine {
 		schema: Restura.Schema,
 		tableName: string
 	): boolean {
-		let tableSchema = this.getTableSchema(schema, tableName);
+		const tableSchema = this.getTableSchema(schema, tableName);
 		const doesTableHaveRoles = ObjectUtils.isArrayWithData(tableSchema.roles);
 		if (!doesTableHaveRoles) return true; // Public table, any role can access
 
@@ -460,7 +462,7 @@ class SqlEngine {
 	}
 
 	private generateJoinStatements(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		joins: Restura.JoinData[],
 		baseTable: string,
 		routeData: Restura.StandardRouteData,
@@ -487,7 +489,7 @@ class SqlEngine {
 	}
 
 	private getTableSchema(schema: Restura.Schema, tableName: string): Restura.TableData {
-		let tableSchema = schema.database.find((item) => item.name === tableName);
+		const tableSchema = schema.database.find((item) => item.name === tableName);
 		if (!tableSchema) throw new RsError('SCHEMA_ERROR', `Table ${tableName} not found in schema`);
 		return tableSchema;
 	}
@@ -500,10 +502,10 @@ class SqlEngine {
 		return groupBy;
 	}
 
-	private generateOrderBy(req: RsRequest<any>, routeData: Restura.StandardRouteData): string {
+	private generateOrderBy(req: RsRequest<DynamicObject>, routeData: Restura.StandardRouteData): string {
 		let orderBy = '';
 		if (routeData.type === 'PAGED' && 'sortBy' in req.data) {
-			let sortOrder = 'sortOrder' in req.data ? req.data.sortOrder : 'ASC';
+			const sortOrder = 'sortOrder' in req.data ? req.data.sortOrder : 'ASC';
 			orderBy = `ORDER BY ${req.data.sortBy} ${sortOrder}\n`;
 		} else if (routeData.orderBy) {
 			orderBy = `ORDER BY \`${routeData.orderBy.tableName}\`.\`${routeData.orderBy.columnName}\` ${routeData.orderBy.order}\n`;
@@ -512,7 +514,7 @@ class SqlEngine {
 	}
 
 	private generateWhereClause(
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		where: Restura.WhereData[],
 		routeData: Restura.StandardRouteData,
 		sqlParams: string[]
@@ -553,23 +555,26 @@ class SqlEngine {
 				operator === 'IN' || operator === 'NOT IN' ? `(${replacedValue})` : replacedValue
 			}\n`;
 		});
-		if (routeData.type === 'PAGED' && !!req.data.filter) {
-			let statement = req.data.filter.replace(/\$[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
-				let requestParam = routeData.request!.find((item) => {
-					return item.name === value.replace('$', '');
-				});
-				if (!requestParam)
-					throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
-				return req.data[requestParam.name];
-			});
+		if (routeData.type === 'PAGED' && !!(req.data as RedSky.PageQuery).filter) {
+			let statement = (req.data as { filter: string }).filter.replace(
+				/\$[a-zA-Z][a-zA-Z0-9_]+/g,
+				(value: string) => {
+					const requestParam = routeData.request!.find((item) => {
+						return item.name === value.replace('$', '');
+					});
+					if (!requestParam)
+						throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
+					return req.data[requestParam.name] as string;
+				}
+			);
 
 			statement = statement.replace(/#[a-zA-Z][a-zA-Z0-9_]+/g, (value: string) => {
-				let requestParam = routeData.request!.find((item) => {
+				const requestParam = routeData.request!.find((item) => {
 					return item.name === value.replace('#', '');
 				});
 				if (!requestParam)
 					throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
-				return req.data[requestParam.name];
+				return req.data[requestParam.name] as string;
 			});
 
 			statement = filterSqlParser.parse(statement);
@@ -586,11 +591,16 @@ class SqlEngine {
 	private replaceParamKeywords(
 		value: string,
 		routeData: Restura.RouteData,
-		req: RsRequest<any>,
+		req: RsRequest<DynamicObject>,
 		sqlParams: string[]
 	): string {
 		let returnValue = value;
-		returnValue = this.replaceLocalParamKeywords(returnValue, routeData, req, sqlParams);
+		returnValue = this.replaceLocalParamKeywords(
+			returnValue,
+			routeData,
+			req as RsRequest<{ data: string }>,
+			sqlParams
+		);
 		returnValue = this.replaceGlobalParamKeywords(returnValue, routeData, req, sqlParams);
 		return returnValue;
 	}
@@ -598,18 +608,18 @@ class SqlEngine {
 	private replaceLocalParamKeywords(
 		value: string,
 		routeData: Restura.RouteData,
-		req: RsRequest<any>,
+		req: RsRequest<{ data: string }>,
 		sqlParams: string[]
 	): string {
 		if (!routeData.request) return value;
 
 		// Match any value that starts with a $
 		value.match(/\$[a-zA-Z][a-zA-Z0-9_]+/g)?.forEach((param) => {
-			let requestParam = routeData.request!.find((item) => {
+			const requestParam = routeData.request!.find((item) => {
 				return item.name === param.replace('$', '');
 			});
 			if (!requestParam) throw new RsError('SCHEMA_ERROR', `Invalid route keyword in route ${routeData.name}`);
-			sqlParams.push(req.data[requestParam.name]);
+			sqlParams.push(req.data[requestParam.name as keyof typeof req.data]);
 		});
 		return value.replace(new RegExp(/\$[a-zA-Z][a-zA-Z0-9_]+/g), '?');
 	}
@@ -617,16 +627,16 @@ class SqlEngine {
 	private replaceGlobalParamKeywords(
 		value: string,
 		routeData: Restura.RouteData,
-		req: RsRequest<any>,
+		req: RsRequest<unknown>,
 		sqlParams: string[]
 	): string {
 		// Match any value that starts with a #
 		value.match(/#[a-zA-Z][a-zA-Z0-9_]+/g)?.forEach((param) => {
 			param = param.replace('#', '');
-			let globalParamValue = (req.requesterDetails as any)[param];
+			const globalParamValue = req.requesterDetails[param as keyof typeof req.requesterDetails];
 			if (!globalParamValue)
 				throw new RsError('SCHEMA_ERROR', `Invalid global keyword clause in route ${routeData.name}`);
-			sqlParams.push(globalParamValue);
+			sqlParams.push(globalParamValue.toString());
 		});
 		return value.replace(new RegExp(/#[a-zA-Z][a-zA-Z0-9_]+/g), '?');
 	}

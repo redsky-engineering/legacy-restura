@@ -10,7 +10,7 @@ export default class ResponseValidator {
 		this.rootMap = {};
 		for (const endpoint of schema.endpoints) {
 			const endpointMap: Restura.ResponseTypeMap = {};
-			for (let route of endpoint.routes) {
+			for (const route of endpoint.routes) {
 				if (ResponseValidator.isCustomRoute(route)) {
 					endpointMap[`${route.method}:${route.path}`] = { validator: 'any' };
 					continue;
@@ -22,7 +22,7 @@ export default class ResponseValidator {
 		}
 	}
 
-	public validateResponseParams(data: any, endpointUrl: string, routeData: Restura.RouteData): void {
+	public validateResponseParams(data: unknown, endpointUrl: string, routeData: Restura.RouteData): void {
 		if (!this.rootMap) {
 			throw new RsError('BAD_REQUEST', 'Cannot validate response without type maps');
 		}
@@ -107,9 +107,9 @@ export default class ResponseValidator {
 
 	private validateAndCoerceMap(
 		name: string,
-		value: any,
+		value: unknown,
 		{ isOptional, isArray, validator }: Restura.ResponseTypeMap[string]
-	): any {
+	): unknown {
 		if (validator === 'any') return value;
 		const valueType = typeof value;
 		if (value == null) {
@@ -136,6 +136,7 @@ export default class ResponseValidator {
 			} else if (validator === 'string' && valueType === 'string') {
 				// Check if the string is a SQL datetime, date, time, timestamp format
 				if (
+					typeof value === 'string' &&
 					value.match(
 						/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.?\d*$|\d{2}:\d{2}:\d{2}.?\d*$|^\d{4}-\d{2}-\d{2}$/
 					)
@@ -153,7 +154,7 @@ export default class ResponseValidator {
 			}
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
 		}
-		if (Array.isArray(validator)) {
+		if (Array.isArray(validator) && typeof value === 'string') {
 			if (validator.includes(value)) return value;
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is not one of the enum options (${value})`);
 		}
@@ -161,10 +162,12 @@ export default class ResponseValidator {
 			throw new RsError('DATABASE_ERROR', `Response param (${name}) is of the wrong type (${valueType})`);
 		}
 		for (const prop in value) {
+			// @ts-expect-error - not sure types but we will be changing to zod soon
 			if (!validator[prop])
 				throw new RsError('DATABASE_ERROR', `Response param (${name}.${prop}) is not allowed`);
 		}
-		for (let prop in validator) {
+		for (const prop in validator) {
+			// @ts-expect-error - not sure types but we will be changing to zod soon
 			value[prop] = this.validateAndCoerceMap(`${name}.${prop}`, value[prop], validator[prop]);
 		}
 		return value;

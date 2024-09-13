@@ -83,7 +83,6 @@ class ApiTree {
 
 	generateRouteModels(route: Restura.RouteData): string {
 		let modelString: string = ``;
-		const routeNamespaces = route.path.split('/').filter((e) => e);
 		modelString += `
 				// ${route.name}
 				// ${route.description}
@@ -109,8 +108,8 @@ class ApiTree {
 		 					${route.request
 								.map((p) => {
 									let requestType = 'any';
-									let oneOfValidator = p.validator.find((v) => v.type === 'ONE_OF');
-									let typeCheckValidator = p.validator.find((v) => v.type === 'TYPE_CHECK');
+									const oneOfValidator = p.validator.find((v) => v.type === 'ONE_OF');
+									const typeCheckValidator = p.validator.find((v) => v.type === 'TYPE_CHECK');
 									if (
 										oneOfValidator &&
 										ObjectUtils.isArrayWithData(oneOfValidator.value as string[])
@@ -152,8 +151,8 @@ class ApiTree {
 	}
 
 	getFields(fields: ReadonlyArray<Restura.ResponseData>): string {
-		let nameFields = fields.map((f) => this.getNameAndType(f));
-		let nested: string = `{
+		const nameFields = fields.map((f) => this.getNameAndType(f));
+		const nested: string = `{
 			${nameFields.join(';\n\t')}${ObjectUtils.isArrayWithData(nameFields) ? ';' : ''}
 		}`;
 		return nested;
@@ -205,10 +204,10 @@ function pathToNamespaces(path: string): string[] {
 export default function apiGenerator(schema: Restura.Schema, schemaHash: string): Promise<string> {
 	let apiString = `/** Auto generated file from Schema Hash (${schemaHash}). DO NOT MODIFY **/`;
 	const rootNamespace = ApiTree.createRootNode(schema.database);
-	for (let endpoint of schema.endpoints) {
+	for (const endpoint of schema.endpoints) {
 		const endpointNamespaces = pathToNamespaces(endpoint.baseUrl);
 		rootNamespace.addData(endpointNamespaces, endpoint);
-		for (let route of endpoint.routes) {
+		for (const route of endpoint.routes) {
 			const fullNamespace: string[] = [...endpointNamespaces, ...pathToNamespaces(route.path)];
 			rootNamespace.addData(fullNamespace, route);
 		}

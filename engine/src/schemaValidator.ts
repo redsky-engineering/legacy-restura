@@ -1,9 +1,9 @@
-import { ApiMethod, RsRequest, RsResponse } from '../../../../src/@types/expressCustom.js';
 import { NextFunction } from 'express';
-import { ObjectUtils } from '@redskytech/core-utils';
-import logger from '../../../../src/utils/logger.js';
-import { HtmlStatusCodes } from '../../../../src/utils/errors.js';
 import { JsonDecoder } from 'ts.data.json/dist/cjs/index.js';
+import { ApiMethod, RsRequest, RsResponse, type DynamicObject } from '../../../../src/@types/expressCustom.js';
+import { HtmlStatusCodes } from '../../../../src/utils/errors.js';
+import logger from '../../../../src/utils/logger.js';
+import { getRequestData } from './validateRequestParams.js';
 
 const orderByDecoder = JsonDecoder.objectStrict<Restura.OrderByData>(
 	{
@@ -324,11 +324,11 @@ const schemaValidationDecoder = JsonDecoder.objectStrict<Restura.Schema>(
 	'schema'
 );
 
-export default async function schemaValidator(req: RsRequest<any>, res: RsResponse<any>, next: NextFunction) {
+export default async function schemaValidator(req: RsRequest<unknown>, res: RsResponse<unknown>, next: NextFunction) {
 	const apiMethod = req.method as ApiMethod;
 	if (apiMethod === 'OPTIONS') return next();
 
-	req.data = getData(req);
+	req.data = getRequestData(req as RsRequest<DynamicObject>);
 
 	const methodUrl = `${apiMethod}:${req.originalUrl}`;
 	if (!['POST:/restura/v1/schema', 'PUT:/restura/v1/schema', 'POST:/restura/v1/schema/preview'].includes(methodUrl))
@@ -345,7 +345,7 @@ export default async function schemaValidator(req: RsRequest<any>, res: RsRespon
 		});
 }
 
-export async function isSchemaValid(schemaToCheck: any): Promise<boolean> {
+export async function isSchemaValid(schemaToCheck: unknown): Promise<boolean> {
 	return new Promise((resolve) => {
 		schemaValidationDecoder
 			.decodeToPromise(schemaToCheck)
@@ -357,43 +357,4 @@ export async function isSchemaValid(schemaToCheck: any): Promise<boolean> {
 				resolve(false);
 			});
 	});
-}
-
-function getData(req: RsRequest<any>) {
-	let body = '';
-	if (req.method == 'GET' || req.method === 'DELETE') {
-		body = 'query';
-		// @ts-ignore
-		for (let attr in req[body]) {
-			if (attr === 'token') {
-				// @ts-ignore
-				delete req[body][attr];
-				continue;
-			}
-			// @ts-ignore
-			if (req[body][attr] instanceof Array) {
-				let attrList = [];
-				// @ts-ignore
-				for (let value of req[body][attr]) {
-					if (isNaN(Number(value))) continue;
-					attrList.push(Number(value));
-				}
-				if (ObjectUtils.isArrayWithData(attrList)) {
-					// @ts-ignore
-					req[body][attr] = attrList;
-				}
-			} else {
-				// @ts-ignore
-				req[body][attr] = ObjectUtils.safeParse(req[body][attr]);
-				// @ts-ignore
-				if (isNaN(Number(req[body][attr]))) continue;
-				// @ts-ignore
-				req[body][attr] = Number(req[body][attr]);
-			}
-		}
-	} else {
-		body = 'body';
-	}
-	// @ts-ignore
-	return req[body];
 }

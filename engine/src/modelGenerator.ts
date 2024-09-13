@@ -5,7 +5,7 @@ import { SqlUtils } from './utils/utils.js';
 export default function modelGenerator(schema: Restura.Schema, schemaHash: string): Promise<string> {
 	let modelString = `/** Auto generated file from Schema Hash (${schemaHash}). DO NOT MODIFY **/\n`;
 	modelString += `declare namespace Model {\n`;
-	for (let table of schema.database) {
+	for (const table of schema.database) {
 		modelString += convertTable(table);
 	}
 	modelString += `}`;
@@ -24,7 +24,7 @@ export default function modelGenerator(schema: Restura.Schema, schemaHash: strin
 
 function convertTable(table: Restura.TableData): string {
 	let modelString = `\texport interface ${StringUtils.capitalizeFirst(table.name)} {\n`;
-	for (let column of table.columns) {
+	for (const column of table.columns) {
 		modelString += `\t\t${column.name}${column.isNullable ? '?' : ''}: ${SqlUtils.convertDatabaseTypeToTypescript(column.type, column.value)};\n`;
 	}
 	modelString += `\t}\n`;

@@ -10,8 +10,8 @@ export interface ValidationDictionary {
 }
 
 export default function customTypeValidationGenerator(currentSchema: Restura.Schema): ValidationDictionary {
-	let schemaObject: ValidationDictionary = {};
-	let customInterfaceNames = currentSchema.customTypes.match(/(?<=interface\s)(\w+)|(?<=type\s)(\w+)/g);
+	const schemaObject: ValidationDictionary = {};
+	const customInterfaceNames = currentSchema.customTypes.match(/(?<=interface\s)(\w+)|(?<=type\s)(\w+)/g);
 	if (!customInterfaceNames) return {};
 
 	const temporaryFile = tmp.fileSync({ mode: 0o644, prefix: 'prefix-', postfix: '.ts' });

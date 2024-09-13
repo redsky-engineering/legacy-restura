@@ -1,5 +1,3 @@
-import { StringUtils } from '@redskytech/framework/utils/index.js';
-
 class SqlUtils {
 	static convertDatabaseTypeToTypescript(type: string): Restura.ValidatorString | string;
 	static convertDatabaseTypeToTypescript(type: string, value?: string): Restura.ValidatorString | string;
